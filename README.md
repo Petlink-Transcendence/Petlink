@@ -84,3 +84,7 @@
 
 > [!Note]
 > Anything can be changed after the next meeting, nothing here is mandatory
+
+
+> [!Testing]
+> Adding more text just to test main ruleset
