@@ -1,90 +1,84 @@
-# Ft_transcendence planning
+# Ft_transcendence — Initial Planning
 
-## Devops (Gabriel)
+## 🧠 Project Idea
 
-### Tech stack
-- Docker && Docker-compose
-- Nginx
-- Documentation (Swagger)
+We aim to build a social platform that connects pet owners with caregivers through an interactive swipe system.
 
-### Tasks
-- Check that frontend is using everything backend has to ofer (all microservices endpoints)
-- Implement search filter
-- Dockerize the project
+* Users create profiles for their pets
+* Caregivers create service profiles
+* Users can browse and "swipe" on caregivers
+* A match represents interest in hiring a caregiver
 
-## Backend
+> The concept is inspired by swipe-based apps, adapted for pet care services.
 
-### Team 
-- Gabriel (Techinical Lead && Developer)
-- João (Project Manager && Developer)
-- Ricardo (Product Owner && Developer)
+---
 
-### Tasks
-- Microservices (docker/docker-compose, API getway, service communication)
-- Auth permission (JWT, json web token)
-- DataBase
+## ⚙️ Tech Stack
 
-### Tech stack
-- Node.js with typeScript
-- Framework (Next.js)
-- DB (To be decided, PostgreSQL mb?)
-- Communication (Rabbitmq + Redis)
-- Web socket (Socket.io)
-- Security (Passport.js)
+### Backend
 
-## Frontend
+* Node.js + TypeScript
+* NestJS
+* PostgreSQL *(to be confirmed)*
+* Socket.io *(for real-time features)*
 
-### Team
-- Daniela (Product Owner && Developer)
-- Isabel (Project Manager && Developer)
+---
 
-### Tech stack
-- Framework (React or next.js)
-- Microservices management (ReactQuery)
-- Styling (Tailwind CSS)
+### Frontend
 
-### Tasks
-- Real-time chat
-- Notifications
-- Profile dashboard
-- Swipe interface (tinder like)?
+* Next.js
+* React Query
+* Tailwind CSS
 
-# Development Roadmap
-### Phase 1: Infrastructure (The "Fullstack" Bridge)
-- Dockerization: Setup docker-compose with nginx, postgres, and redis.
+---
 
-- API Gateway: Configure Nginx to route /api to Backend and / to Frontend.
+### DevOps
 
-- Shared Types: Create a shared package/folder for TypeScript interfaces used by both fronted and backend.
+* Docker & Docker Compose
+* Nginx
+* Notion (documentation)
 
-### Phase 2: Core Backend Services
-- Auth Service: 42 OAuth implementation, JWT generation, and 2FA (Google Authenticator).
+---
 
-- User Service: Profile management, stats, and "Swipe" logic data.
+## 👥 Team Roles
 
-- Chat Service: Room-based architecture (Direct Messages, Channels, Protected Rooms).
+### Backend
 
-- Game Service: Server-side Physics engine (The source of truth for Pong to prevent cheating).
+* Gabriel — Technical Lead & Developer
+* João — Project Manager & Developer
+* Ricardo — Product Owner & Developer
 
-### Phase 3: Frontend Experience
-- Dashboard: User stats, match history, and friend lists.
+---
 
-- The Arena: Responsive Pong canvas with low-latency socket updates.
+### Frontend
 
-- Social Hub: Floating chat window and notification system.
+* Daniela — Product Owner & Developer
+* Isabel — Project Manager & Developer
 
-- The Swipe (Bonus): Tinder-like interface to find new opponents/friends.
+---
 
-# Security Checklis
-- 2FA: Mandatory implementation (SMS or TOTP).
+### DevOps
 
-- Input Validation: Use class-validator in Nest.js to sanitize all incoming data.
+* Gabriel
 
-- Protected Routes: JWT-guarded endpoints and HttpOnly Cookies for token storage.
+---
 
-> [!Note]
-> Anything can be changed after the next meeting, nothing here is mandatory
+## 🗺️ Development Approach
 
+We will start with a simple and solid foundation, prioritizing:
 
-> [!Testing]
-> Adding more text just to test main ruleset
+* Clear communication between team members
+* Incremental development
+* Early integration between frontend and backend
+
+The architecture and internal design may evolve as the project progresses.
+
+---
+
+## 📌 Notes
+
+* This document represents an initial plan
+* Decisions may change after team discussions
+* Focus is on collaboration and gradual progress
+
+---
