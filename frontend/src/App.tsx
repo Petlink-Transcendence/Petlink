@@ -7,13 +7,13 @@ function App() {
   return(
     <Router>
       <nav style={{padding: "1rem", borderBottom: "1px solid #ccc" }}>
-        <Link style={{ marginRight: "1rem" }} to="/home">Home</Link>
-        <Link to="/">Login</Link>
+        <Link style={{ marginRight: "1rem" }} to="/">Login</Link>
+        <Link to="/home">Home</Link>
       </nav>
 
       <Routes>
-        <Route path="/home" element={<Home/>} />
         <Route path="/" element={<Login/>} />
+        <Route path="/home" element={<Home/>} />
       </Routes>
     </Router>
   );
