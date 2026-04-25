@@ -1,6 +1,6 @@
 /* Post container style */
 .post-container {
-  width: 500px;
+  width: 100%;
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -78,8 +78,13 @@
 /* Buttons */
 .post-buttons {
   display: flex;
-  justify-content: space-between;
+  gap: 15px;
   margin-top: 15px;
+}
+
+/* push last button to the right */
+.post-buttons > :last-child {
+  margin-left: auto;
 }
 
 .btn {

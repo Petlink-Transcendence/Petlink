@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import './ProfileCard.css'
 
 export default function ProfileCard() {
