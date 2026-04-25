@@ -1,35 +1,49 @@
 import './Post.css'
 
-/*needs to recieve profile id, location, time of post, content, etc*/
-export default function Post() {
+const tags = [
+  {
+    name: "Jane Doe",
+    text: "Looking for a sitter...",
+    location: "Porto, PT",
+    time: "2h ago",
+  },
+];
+
+type PostProps = {
+  name: string;
+  tag: string;
+  text: string;
+  location: string;
+  time: string;
+  tags?: string[];
+};
+
+export default function Post({ name, tag, text, location, time, tags }: PostProps) {
   return (
     <div className="post-container">
       <div className="post-author">
         <img src="/profile-pic.png" alt="profile picture" />
 
         <div className="post-author-info">
-        <p className="post-name">Jane Doe</p>
+        <p className="post-name">{name}</p>
 
           <div className="author-tags-container">
-            <p className="post-tags">NEED SITTER</p>
-            <p className="post-location">Porto, PT</p>
-            <p className="post-time">2h ago</p>
+            <p className="post-tags">{tag}</p>
+            <p className="post-location">{location}</p>
+            <p className="post-time">{time}</p>
           </div>
         </div>
       </div>
 
       <div className="post-content">
-        <p className="post-text">
-          Looking for a sitter for my cat Luna next week!
-          She loves attention and is very playful.
-          Is a picky eater.
-        </p>
+        <p className="post-text">{text}</p>
 
         <div className="post-tags-container">
-          <p className="post-tags">May 1-5</p>
-          <p className="post-tags">15€-20€/day</p>
-          <p className="post-tags">Luna | Bengal Cat | 2yr</p>
-          <p className="post-tags">Cat experience required</p>
+          {tags?.map((tag, index) => (
+            <p key={index} className="post-tags">
+              {tag}
+            </p>
+          ))}
         </div>
       </div>
 
