@@ -1,5 +1,6 @@
 import './CreatePost.css'
 
+/* it will send text to Post eventually */
 export default function CreatePost() {
 	return (
 	<div className="create-post">

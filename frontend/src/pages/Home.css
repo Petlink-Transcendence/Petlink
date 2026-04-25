@@ -1,4 +1,4 @@
-/* container wrapper */
+/* Container wrapper */
 .home-container {
   display: flex;
   align-items: flex-start;
@@ -7,10 +7,20 @@
   margin-top: 10px;
   padding: 20px;
 }
+
+/* Profile card and menu container */
+.left-sidebar {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  flex-direction: column;
+}
  
+/* Post container */
 .home-post-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 600px;
 }
+

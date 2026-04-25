@@ -2,6 +2,7 @@ import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
 import CreatePost from '../components/homepage/CreatePost'
+import SidebarMenu from '../components/homepage/SidebarMenu'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -11,7 +12,10 @@ export default function Home() {
   
   return (
     <div className="home-container">
-      <ProfileCard />
+      <div className="left-sidebar">
+        <ProfileCard />
+        <SidebarMenu />
+      </div>
       <div className="home-post-container">
         <CreatePost />
 
@@ -31,7 +35,7 @@ export default function Home() {
         <Post
         name="John Smith"
         tag="NEED WALKER"
-        text="Dog needs walking every morning."
+        text="My dog needs walking every morning."
         location="Lisbon, PT"
         time="5h ago"
         tags={[
