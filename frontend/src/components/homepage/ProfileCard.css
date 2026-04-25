@@ -1,0 +1,72 @@
+/* Profile card position*/
+.profile-card-container {
+  margin-left: 20px;
+}
+
+/* Card styling */
+.profile-card {
+  width: 280px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile image */
+.profile-card img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 5px;
+}
+
+/* Name */
+.profile-card .name {
+  margin: 0;
+  font-size: 18px;
+  color: var(--petlink-tan);
+  text-align: left;
+}
+
+/* Username */
+.profile-card .username {
+  margin: 0;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* Bio */
+.profile-card .bio {
+  font-size: 14px;
+  color: black;
+  margin: 10px 0;
+  text-align: left;
+}
+
+/* Divider */
+.profile-card .divider {
+  border: none;
+  border-top: 1px solid var(--petlink-tan);
+  margin: 15px 0;
+}
+
+/* Stats container */
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+/* Each stat block */
+.stats-nbrs {
+  text-align: center;
+  color: black;
+}
+
+/* Number */
+.nbr {
+  color: var(--petlink-tan);
+  font-weight: bolder;
+  margin: 0;
+}
