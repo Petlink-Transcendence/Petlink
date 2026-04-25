@@ -1,8 +1,11 @@
 import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
+<<<<<<< HEAD
 import CreatePost from '../components/homepage/CreatePost'
 import SidebarMenu from '../components/homepage/SidebarMenu'
+=======
+>>>>>>> e914a55 (added post section and separated components)
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -13,6 +16,7 @@ export default function Home() {
 
   return (
     <div className="home-container">
+<<<<<<< HEAD
       <div className="left-sidebar">
         <ProfileCard />
         <SidebarMenu />
@@ -58,6 +62,10 @@ export default function Home() {
           ]}
         />
       </div>
+=======
+      <ProfileCard />
+      <Post />
+>>>>>>> e914a55 (added post section and separated components)
     </div>
   )
 }
