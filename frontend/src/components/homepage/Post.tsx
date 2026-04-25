@@ -1,7 +1,6 @@
-import { Link } from 'react-router-dom';
 import './Post.css'
 
-/*needs to recieve profile id, location, time of post*/
+/*needs to recieve profile id, location, time of post, content, etc*/
 export default function Post() {
   return (
     <div className="post-container">

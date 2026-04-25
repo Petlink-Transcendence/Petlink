@@ -1,6 +1,7 @@
 import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
+import CreatePost from '../components/homepage/CreatePost'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -11,7 +12,13 @@ export default function Home() {
   return (
     <div className="home-container">
       <ProfileCard />
-      <Post />
+      <div className="home-post-container">
+        <CreatePost />
+
+        <Post />
+        <Post />
+        <Post />
+      </div>
     </div>
   )
 }
