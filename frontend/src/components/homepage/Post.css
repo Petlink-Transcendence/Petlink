@@ -1,0 +1,105 @@
+/* Post container style */
+.post-container {
+  width: 500px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Author section container position */
+.post-author {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Author img */
+.post-author img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Name */
+.post-name {
+  font-weight: bold;
+  margin: 0;
+  color: black;
+  text-align: left;
+}
+
+/* Author tags container position*/
+.author-tags-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+/* Tags style */
+.post-tags {
+  font-size: 10px;
+  color: var(--petlink-tan);
+  background-color: rgba(0,0,0,0.05);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.post-location,
+.post-time {
+  font-size: 12px;
+  margin: 2px 0 0 0;
+  color: black;
+}
+
+/* Tags container position */
+.post-tags-container{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* Content section */
+.post-text {
+  margin: 10px 0 10px 0px;
+  line-height: 1.4;
+  color: black;
+  text-align: left;
+}
+
+/* Buttons */
+.post-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.btn {
+  border: none;
+  background: #f5f5f5;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: black;
+}
+
+.btn:hover {
+  background: #eaeaea;
+}
+
+.btn.apply {
+  background: var(--petlink-tan);
+}
+
+.btn.apply:hover {
+  background: #c9a366;
+}
