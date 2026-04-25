@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 /* Container wrapper */
 .home-container {
   display: flex;
@@ -16,7 +16,7 @@
   align-items: flex-start;
   flex-direction: column;
 }
- 
+
 /* Post container */
 .home-post-container {
   display: flex;
@@ -28,13 +28,3 @@
 .home-post-container > :last-child {
   margin-bottom: 2.5rem;
 }
-=======
-/* container wrapper */
-.home-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 30px;
-  margin-top: 30px;
-}
- 
->>>>>>> e914a55 (added post section and separated components)
