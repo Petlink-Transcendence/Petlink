@@ -1,17 +1,21 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Header from './components/Header';
 import Home from './pages/Home';
+import Login from './pages/Login'
 import './App.css'
 
 function App() {
-  return(
+  return (
     <Router>
-      <nav style={{padding: "1rem", borderBottom: "1px solid #ccc" }}>
-        <Link style={{ marginRight: "1rem" }} to="/home">Home</Link>
-      </nav>
+      <Header />
+      <div className="page-content">
+        
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
 
-      <Routes>
-        <Route path="/home" element={<Home/>} />
-      </Routes>
+      </div>
     </Router>
   );
 }
