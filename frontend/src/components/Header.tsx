@@ -14,6 +14,7 @@ export default function Header() {
         <Link to="/search" className="nav-item">Search</Link>
         <Link to="/notifications" className="nav-item">Notifications</Link>
         <Link to="/chat" className="nav-item">Chat </Link>
+        <Link to="/profile" className="nav-item">Profile </Link>
         <Link to="/" className="nav-item home-link">Home</Link>
       </nav>
     </header>

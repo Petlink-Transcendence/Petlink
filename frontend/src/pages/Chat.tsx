@@ -80,6 +80,35 @@ export default function Chat() {
                 </div>
             </aside>
 
+            <main className="chat-window">
+                {activeChat ? (
+                    <>
+
+                    {/* Header */}
+                    <header className="chat-header">
+                        <div className="header-info">
+                        <div className="header-avatar">
+                            {contacts.find(c => c.id === activeChat)?.name[0]}
+                        </div>
+                        <div>
+                            <h3>{contacts.find(c => c.id === activeChat)?.name}</h3>
+                            <span className="status-indicator">Online</span>
+                        </div>
+                        </div>
+                    </header>
+
+                    {/* Messages Area */}
+                    {/* Input Area */}
+                    
+                    </>
+                ) : (                
+                    /* No selection - empty */    
+                    <div className="empty-state">
+                        <h2>Select a contact to start messaging</h2>
+                    </div>
+
+                )}
+            </main>
         </div>
     );
 }

@@ -1,6 +1,5 @@
 /*--- main layout --- */
 .chat-container {
-    height: 100vh;
     width: 100%;
     display: flex;
     background-color: var(--social-bg);
@@ -9,10 +8,32 @@
 /* --- sidebar --- */
 .chat-sidebar {
     width: 350px;
-    border-right: 1px solid white;
+    height: calc(100vh - 140px);
+    position: sticky;
+    top: 140px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
+
 }
+
+.chat-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #b38f5a;
+}
+
+.contact-list {
+    flex: 1; /* Takes up all remaining space */
+    overflow-y: auto;
+}
+
 
 /*--- title ---*/
 .title {
@@ -155,4 +176,47 @@
 
 .contact-item.active .contact-last-msg {
   color: black;
+}
+
+.chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #fcfbf9;
+}
+
+/* Chat Header Section */
+.chat-header {
+    padding: 15px 30px;
+    background: white;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.header-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--petlink-tan);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Messages Area */
+.messages-display {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
