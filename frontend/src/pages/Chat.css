@@ -30,8 +30,9 @@
 }
 
 .contact-list {
-    flex: 1; /* Takes up all remaining space */
+    flex: 1;
     overflow-y: auto;
+    padding-right: 2px;
 }
 
 
