@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 export default function Home() {
 
   useEffect(() => {
-        document.title = "Login | PetLink";
+        document.title = "Home | PetLink";
     }, []);
 
   return (
