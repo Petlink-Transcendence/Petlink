@@ -1,10 +1,13 @@
-.page-content {
-  padding-top: 140px; 
-  min-height: 100vh;
-  box-sizing: border-box;
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  font-size: 1rem;
+  overflow-y: auto;
 }
 
-/* App.css or index.css */
-html, body {
-  overflow-y: visible;
+.page-content {
+  padding-top: 8.75rem;
+  min-height: 50rem;
+  box-sizing: border-box;
 }
