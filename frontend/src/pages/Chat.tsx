@@ -57,15 +57,15 @@ export default function Chat() {
                 {/*Contact list */}
                 <div className="contact-list">
                 {filteredContacts.map(contact => (
-                    
+
                     <div 
                     key={contact.id} 
                     className={`contact-item ${activeChat === contact.id ? 'active' : ''}`}
                     onClick={() => setActiveChat(contact.id)}
                     >
-                    
+
                     <div className="contact-avatar">{contact.name[0]}</div>
-                    
+
                     <div className="contact-info">
 
                         <div className="contact-top">
@@ -74,7 +74,7 @@ export default function Chat() {
 
                         <p className="contact-last-msg"><span className="contact-time">{contact.time}</span>: {contact.lastMsg}</p>
                     </div>
-                    
+
                     </div>
                 ))}
                 </div>
@@ -99,7 +99,7 @@ export default function Chat() {
 
                     {/* Messages Area */}
                     {/* Input Area */}
-                    
+
                     </>
                 ) : (                
                     /* No selection - empty */    
