@@ -1,17 +1,17 @@
 import './Auth.css';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-    // States to control data
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         document.title = "Login | PetLink";
     }, []);
 
-    // Send data to Backend
     const handleLogin = async () => {
         setError('');
         try {
@@ -25,12 +25,12 @@ export default function Login() {
                 const data = await response.json();
                 localStorage.setItem('access', data.access);
                 localStorage.setItem('refresh', data.refresh);
-                alert("Login successful!");
+                navigate('/');
             } else {
                 setError("Invalid username or password.");
             }
         } catch (err) {
-            setError("Error connecting to server. Check if the backend is running.");
+            setError("Error connecting to server.");
         }
     };
 

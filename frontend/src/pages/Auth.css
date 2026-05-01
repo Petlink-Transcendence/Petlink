@@ -1,4 +1,3 @@
-/* Auth.css */
 :root {
   --social-bg: #2d2d34;
   --petlink-tan: #dbb679;
@@ -6,7 +5,7 @@
 }
 
 .login-page-container {
-  min-height: 80vh;
+  min-height: 40rem;
   width: 100%;
   display: flex;
   flex-direction: column;
