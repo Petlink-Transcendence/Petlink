@@ -80,6 +80,11 @@
   border-color: var(--petlink-tan);
 }
 
+.input-group input:focus::placeholder {
+    color: transparent;
+}
+
+
 .login-button {
   background-color: var(--petlink-tan);
   color: white;

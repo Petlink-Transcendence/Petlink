@@ -26,6 +26,12 @@ function App() {
               <Register />
             </PublicOnlyRoute>
           } />
+
+          <Route path="/chat" element={
+            <PublicOnlyRoute>
+              <Chat />
+            </PublicOnlyRoute>
+          } />
         </Routes>
       </div>
     </Router>
