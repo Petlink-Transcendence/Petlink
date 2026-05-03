@@ -4,20 +4,22 @@
   --white: #ffffff;
 }
 
-
 /*--- main layout --- */
 .chat-container {
     min-height: 40rem;
     height: 150vh;
     width: 100%;
+    margin-left: 1rem;
+    margin-right: 1rem;
     display: flex;
     background-color: var(--social-bg);
     box-sizing: border-box;
+    z-index: 1;
 }
 
 /* --- sidebar --- */
 .chat-sidebar {
-    width: 21.875rem;
+    width: 18rem;
     height: 100%;
     position: sticky;
     padding-top: 6.25rem;
@@ -85,7 +87,7 @@
   pointer-events: none;
 }
 
-.contact-search-input {
+.search-input {
   width: 100%;
   padding: 0.625rem 0.625rem 0.625rem 2.1875rem;
   border: none;
@@ -97,13 +99,13 @@
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-.contact-search-input:focus {
+.search-input:focus {
   background-color: #646464;
   box-shadow: 0 0 0 0.125rem var(--petlink-tan);
   color: white;
 }
 
-.contact-search-input::placeholder {
+.search-input::placeholder {
   color: #aaa;
 }
 
@@ -208,7 +210,7 @@
 /* Chat Header Section */
 .chat-header {
     padding: 0.9375rem 1.875rem;
-    padding-top: 6.25rem;
+    padding-top: 1.875rem;
     border-bottom: 0.0625rem solid var(--white);
     color: var(--white);
 }
