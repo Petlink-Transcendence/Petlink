@@ -12,6 +12,7 @@
     width: 100%;
     display: flex;
     background-color: var(--social-bg);
+    box-sizing: border-box;
 }
 
 /* --- sidebar --- */
