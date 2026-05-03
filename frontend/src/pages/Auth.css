@@ -5,14 +5,15 @@
 }
 
 .login-page-container {
-  min-height: 40rem;
+  min-height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: var(--social-bg);
-  padding: 2rem 0;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .welcome-message {
