@@ -10,6 +10,12 @@ export default function Chat() {
 
     const [activeChat, setActiveChat] = useState(null);
 
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
     const contacts = [
         {id: 1, name: "Daniela", role: "animal-sitter"},
         {id: 2, name: "Filipe", role: "dog-owner"},
@@ -52,6 +58,10 @@ export default function Chat() {
         { id: 122, contactId: 7, text: "Sim. Pode trazê-los às 15h. Até lá.", sender: "them", time: "14:05pm" },
     ]);
 
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, activeChat]);
+
     const [message, setMessage] = useState("");
 
     const chatHistory = messages.filter(msg => msg.contactId === activeChat);
@@ -63,8 +73,8 @@ export default function Chat() {
     );
 
     const getLastMessage = (contactId) => {
-        const lastMessage = messages.filter(msg => msg.contactId === contactId);
-        return messages.length > 0 ? messages[messages.length -1] : null;
+        const contactHistory = messages.filter(msg => msg.contactId === contactId);
+        return contactHistory.length > 0 ? contactHistory[contactHistory.length - 1] : null;
     }
 
     const handleSendMessage = () => {
@@ -200,8 +210,8 @@ export default function Chat() {
                         ) : (
                             <p className='no-results'>No messages found.</p>
                         )}
+                        <div ref={messagesEndRef} />
                     </div>
-                        
 
                     {/* Input Area */}
                     <footer className="chat-input-container">

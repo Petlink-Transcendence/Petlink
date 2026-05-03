@@ -7,7 +7,7 @@
 /*--- main layout --- */
 .chat-container {
     min-height: 40rem;
-    height: 150vh;
+    height: 100vh;
     width: 100%;
     margin-left: 1rem;
     margin-right: 1rem;
@@ -51,7 +51,7 @@
 }
 
 .contact-list::-webkit-scrollbar-thumb:hover {
-  background: var(--petlink-tan);
+  background:#434343;
   border-radius: 0.625rem;
 }
 
@@ -257,6 +257,11 @@
     flex-direction: column;
     gap: 0.75rem;
     background: var(--social-bg);
+    scrollbar-gutter: stable;
+}
+
+.messages-container > :first-child {
+    margin-top: auto !important;
 }
 
 .message {
