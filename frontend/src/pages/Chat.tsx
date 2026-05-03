@@ -13,8 +13,13 @@ export default function Chat() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+        if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ 
+            behavior: "smooth", 
+            block: "nearest"
+        });
+    }
+};
 
     const contacts = [
         {id: 1, name: "Daniela", role: "animal-sitter"},
