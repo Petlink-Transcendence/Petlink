@@ -1,0 +1,13 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  font-size: 1rem;
+  overflow-y: auto;
+}
+
+.page-content {
+  padding-top: 8.75rem;
+  min-height: 50rem;
+  box-sizing: border-box;
+}
