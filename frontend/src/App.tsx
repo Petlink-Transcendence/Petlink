@@ -3,7 +3,6 @@ import Header from './components/Header';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Chat from './pages/Chat';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import './App.css';
@@ -26,12 +25,6 @@ function App() {
             <PublicOnlyRoute>
               <Register />
             </PublicOnlyRoute>
-          } />
-
-          <Route path="/chat" element={
-            <ProtectedRoute>
-              <Chat />
-            </ProtectedRoute>
           } />
         </Routes>
       </div>
