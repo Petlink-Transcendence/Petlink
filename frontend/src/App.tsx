@@ -29,9 +29,9 @@ function App() {
           } />
 
           <Route path="/chat" element={
-            <PublicOnlyRoute>
+            <ProtectedRoute>
               <Chat />
-            </PublicOnlyRoute>
+            </ProtectedRoute>
           } />
         </Routes>
       </div>
@@ -40,3 +40,4 @@ function App() {
 }
 
 export default App;
+ 
