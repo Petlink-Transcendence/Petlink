@@ -51,7 +51,17 @@ export default function Login() {
 
                 <div className="input-group">
                     <label>Password</label>
-                    <input type="password" placeholder="***************" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <input type="password"
+                            placeholder="***************"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)} 
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleLogin();
+                                }
+                            }}
+                            />
                 </div>
 
                 <button className="login-button" onClick={handleLogin}>Login</button>
