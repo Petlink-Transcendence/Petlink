@@ -10,6 +10,7 @@ import './App.css';
 
 function App() {
   return (
+    <div className="app-container">
     <Router>
       <Header />
       <div className="page-content">
@@ -36,6 +37,7 @@ function App() {
         </Routes>
       </div>
     </Router>
+    </div>
   );
 }
 
