@@ -7,8 +7,6 @@
 .login-page-container {
   min-height: calc(100vh - 4.25rem);
   width: 100%;
-
-  position: absolute;
   top: 6.25rem;
   left: 0;
 
@@ -79,6 +77,11 @@
 .input-group input:focus {
   border-color: var(--petlink-tan);
 }
+
+.input-group input:focus::placeholder {
+    color: transparent;
+}
+
 
 .login-button {
   background-color: var(--petlink-tan);
