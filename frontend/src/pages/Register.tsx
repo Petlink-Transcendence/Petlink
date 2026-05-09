@@ -67,7 +67,15 @@ export default function Register() {
 
                 <div className="input-group">
                     <label>Confirm Password</label>
-                    <input type="password" placeholder="***************" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <input type="password" placeholder="***************" value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleRegister();
+                                }
+                            }}
+                            />
                 </div>
 
                 <button className="login-button" onClick={handleRegister}>Sign Up</button>
