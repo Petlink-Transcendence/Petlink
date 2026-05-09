@@ -50,7 +50,6 @@ export default function Post({ name, tag, text, location, time, tags }: PostProp
       <div className="post-buttons">
         <button className="btn like">❤️ Like</button>
         <button className="btn comment">💬 Comment</button>
-        <button className="btn share">🔗 Share</button>
         <button className="btn apply">🐾 Apply</button>
       </div>
     </div>

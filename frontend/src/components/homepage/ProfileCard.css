@@ -1,25 +1,25 @@
 /* Card styling */
 .profile-card {
-  width: 280px;
-  padding: 20px;
+  width: 17.5rem;
+  padding: 1.25rem;
   background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
 }
 
 /* Profile image */
 .profile-card img {
-  width: 150px;
-  height: 150px;
+  width: 9.375rem;
+  height: 9.375rem;
   object-fit: cover;
   border-radius: 50%;
-  margin-bottom: 5px;
+  margin-bottom: 0.3125rem;
 }
 
 /* Name */
 .profile-card .name {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
   color: var(--petlink-tan);
   text-align: left;
 }
@@ -27,30 +27,30 @@
 /* Username */
 .profile-card .username {
   margin: 0;
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: left;
 }
 
 /* Bio */
 .profile-card .bio {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: black;
-  margin: 10px 0;
+  margin: 0.625rem 0;
   text-align: left;
 }
 
 /* Divider */
 .profile-card .divider {
   border: none;
-  border-top: 1px solid var(--petlink-tan);
-  margin: 15px 0;
+  border-top: 0.0625rem solid var(--petlink-tan);
+  margin: 0.9375rem 0;
 }
 
 /* Stats container */
 .stats {
   display: flex;
   justify-content: space-between;
-  margin-top: 15px;
+  margin-top: 0.9375rem;
 }
 
 /* Each stat block */
@@ -64,4 +64,47 @@
   color: var(--petlink-tan);
   font-weight: bolder;
   margin: 0;
+}
+
+/* ── Responsiveness ── */
+/* Tablet (≤ 768px) */
+@media (max-width: 48rem) {
+  .profile-card {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .profile-card img {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  .profile-card .name {
+    font-size: 1rem;
+  }
+}
+
+/* Mobile (≤ 480px) */
+@media (max-width: 30rem) {
+  .profile-card {
+    padding: 0.875rem;
+    border-radius: 0.5rem;
+  }
+
+  .profile-card img {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+
+  .profile-card .name {
+    font-size: 0.9375rem;
+  }
+
+  .profile-card .bio {
+    font-size: 0.8125rem;
+  }
+
+  .stats {
+    gap: 0.5rem;
+  }
 }
