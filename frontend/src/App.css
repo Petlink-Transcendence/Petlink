@@ -7,6 +7,9 @@ html, body {
 }
 
 .page-content {
-  min-height: 50rem;
+  flex: 1;
+  min-height: 0;
   box-sizing: border-box;
+  overflow-y: auto;
 }
+
