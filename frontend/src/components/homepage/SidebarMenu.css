@@ -1,17 +1,9 @@
 .sidebar-menu {
-<<<<<<< HEAD
   width: 17.5rem;
   background: white;
   padding: 0.9375rem;
   border-radius: 0.75rem;
   box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.08);
-=======
-  width: 280px;
-  background: white;
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
->>>>>>> db31c5e (added menu sidebar)
 }
 
 .menu-list {
@@ -21,17 +13,10 @@
 }
 
 .menu-item {
-<<<<<<< HEAD
   padding: 0.625rem;
   border-radius: 0.5rem;
   cursor: pointer;
   font-size: 0.875rem;
-=======
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
->>>>>>> db31c5e (added menu sidebar)
   transition: 0.2s;
   color: black;
 }
@@ -39,7 +24,6 @@
 .menu-item:hover {
   background: var(--petlink-tan);
   color: white;
-<<<<<<< HEAD
 }
 
 /* ── Responsiveness ── */
@@ -80,6 +64,3 @@
     padding: 0.75rem 0.625rem;
   }
 }
-=======
-}
->>>>>>> db31c5e (added menu sidebar)
