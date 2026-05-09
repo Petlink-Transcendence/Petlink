@@ -7,7 +7,7 @@ export default function Footer() {
         <p className="footer-brand">🐾 PetLink</p>
 
         <p className="footer-team">
-          Built with ❤️ by <span className="team-name">[Team Name]</span>
+          Built with ❤️ by <span className="team-name">PetLink</span>
         </p>
 
         <p className="footer-small">
