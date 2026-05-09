@@ -3,15 +3,15 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 40px;
-  margin-top: 10px;
-  padding: 20px;
+  gap: 2.5rem;
+  margin-top: 6.25rem;
+  padding: 1.25rem;
 }
 
 /* Profile card and menu container */
 .left-sidebar {
   display: flex;
-  gap: 30px;
+  gap: 1.875rem;
   align-items: flex-start;
   flex-direction: column;
 }
@@ -20,7 +20,10 @@
 .home-post-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  width: 600px;
+  gap: 1.25rem;
+  width: 37.5rem;
 }
 
+.home-post-container > :last-child {
+  margin-bottom: 2.5rem;
+}
