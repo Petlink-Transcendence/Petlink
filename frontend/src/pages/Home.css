@@ -6,6 +6,7 @@
   gap: 2.5rem;
   margin-top: 6.25rem;
   padding: 1.25rem;
+  background-color: var(--social-bg);
 }
 
 /* Profile card and menu container */
