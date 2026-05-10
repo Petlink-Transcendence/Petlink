@@ -3,6 +3,7 @@ import './Profile.css';
 import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
+import ProfileContent from '../components/profile/ProfileContent';
 
 const user = {
   name: 'Jane Doe',
@@ -18,6 +19,11 @@ const user = {
 
 const pets = ['Luna | Bengal Cat | 2yr', 'Buddy | Golden Retriever | 4yr'];
 const lookingFor = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
+
+const posts = [
+  { id: 1, text: 'Available sitters for this weekend? DM me 🐱', time: '1h ago', likes: 12 },
+  { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
+];
 
 export default function Profile() {
   useEffect(() => {
@@ -43,6 +49,7 @@ export default function Profile() {
           pets={pets}
           lookingFor={lookingFor}
         />
+        <ProfileContent posts={posts} />
       </div>
     </div>
   );
