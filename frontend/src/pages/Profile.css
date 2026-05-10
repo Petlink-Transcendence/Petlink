@@ -11,3 +11,10 @@
   padding: 1.5rem 5%;
   align-items: flex-start;
 }
+
+@media (max-width: 48rem) {
+  .profile-body {
+    flex-direction: column;
+    padding: 1rem;
+  }
+}
