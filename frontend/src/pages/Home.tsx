@@ -24,6 +24,7 @@ export default function Home() {
         text="Looking for a sitter for my cat Luna next week!"
         location="Porto, PT"
         time="2h ago"
+        likeCount={14}
         tags={[
          "May 1-5",
           "15€-20€/day",
@@ -37,6 +38,7 @@ export default function Home() {
         text="My dog needs walking every morning."
         location="Lisbon, PT"
         time="5h ago"
+        likeCount={7}
         tags={[
          "May 1-5",
           "15€-20€/day",
@@ -50,6 +52,7 @@ export default function Home() {
         text="I'm a sitter with a lot of experience with dogs!"
         location="Rio de Janeiro, BR"
         time="11min ago"
+        likeCount={3}
         tags={[
           "20€-25€/day",
           "Dog experience",

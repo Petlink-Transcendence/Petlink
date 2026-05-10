@@ -20,6 +20,21 @@
   height: 4.375rem;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
+}
+
+.post-avatar-fallback {
+  width: 4.375rem;
+  height: 4.375rem;
+  border-radius: 50%;
+  background-color: rgba(219, 182, 121, 0.15);
+  color: var(--petlink-tan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .post-author-info {
@@ -75,6 +90,12 @@
   text-align: left;
 }
 
+/* Separator */
+.post-separator {
+  border-top: 0.0625rem solid #e5e4e7;
+  margin: 0.875rem 0 0.625rem;
+}
+
 /* Buttons */
 .post-buttons {
   display: flex;
@@ -89,24 +110,42 @@
 
 .btn {
   border: none;
-  background: #f5f5f5;
-  padding: 0.5rem 0.625rem;
-  border-radius: 0.5rem;
+  background: var(--petlink-tan);
+  padding: 0.4rem 0.9rem;
+  border-radius: 1.25rem;
   cursor: pointer;
-  font-size: 0.8125rem;
-  color: black;
+  font-size: 0.75rem;
+  color: white;
+  transition: background 0.2s;
 }
 
 .btn:hover {
-  background: #eaeaea;
+  background: var(--social-bg);
 }
 
-.btn.apply {
-  background: var(--petlink-tan);
+.btn.like.liked {
+  background: #e05575;
 }
 
-.btn.apply:hover {
-  background: #c9a366;
+.btn-remove {
+  width: 2rem;
+  height: 2rem;
+  color: white;
+  background-color: var(--social-bg);
+  border: 0.0625rem solid var(--social-bg);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-remove:hover {
+  background-color: var(--petlink-tan);
+  border: none;
+  transform: scale(1.1);
 }
 
 /* ── Responsiveness ── */

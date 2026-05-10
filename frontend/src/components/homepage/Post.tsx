@@ -1,13 +1,5 @@
+import { useState } from 'react'
 import './Post.css'
-
-const tags = [
-  {
-    name: "Jane Doe",
-    text: "Looking for a sitter...",
-    location: "Porto, PT",
-    time: "2h ago",
-  },
-];
 
 type PostProps = {
   name: string;
@@ -16,16 +8,36 @@ type PostProps = {
   location: string;
   time: string;
   tags?: string[];
+  likeCount?: number;
 };
 
-export default function Post({ name, tag, text, location, time, tags }: PostProps) {
+export default function Post({ name, tag, text, location, time, tags, likeCount = 0 }: PostProps) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(likeCount);
+  const [imgError, setImgError] = useState(false);
+
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const handleLike = () => {
+    setLikes(liked ? likes - 1 : likes + 1);
+    setLiked(!liked);
+  };
+
   return (
     <div className="post-container">
       <div className="post-author">
-        <img src="/profile-pic.png" alt="profile picture" />
+        {imgError ? (
+          <div className="post-avatar-fallback">{initials}</div>
+        ) : (
+          <img
+            src="/profile-pic.png"
+            alt="profile picture"
+            onError={() => setImgError(true)}
+          />
+        )}
 
         <div className="post-author-info">
-        <p className="post-name">{name}</p>
+          <p className="post-name">{name}</p>
 
           <div className="author-tags-container">
             <p className="post-tags">{tag}</p>
@@ -47,10 +59,15 @@ export default function Post({ name, tag, text, location, time, tags }: PostProp
         </div>
       </div>
 
+      <div className="post-separator" />
+
       <div className="post-buttons">
-        <button className="btn like">❤️ Like</button>
+        <button className={`btn like ${liked ? 'liked' : ''}`} onClick={handleLike}>
+          ❤️ {likes}
+        </button>
         <button className="btn comment">💬 Comment</button>
         <button className="btn apply">🐾 Apply</button>
+        <button className="btn-remove" title="Remove post">🗑️</button>
       </div>
     </div>
   );
