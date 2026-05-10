@@ -8,6 +8,11 @@ export default function Profile() {
 
   return (
     <div className="profile-page">
+
+      <div className="profile-cover">
+        <div className="profile-avatar">AC</div>
+      </div>
+
     </div>
   );
 }
