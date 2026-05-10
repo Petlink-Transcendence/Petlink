@@ -25,6 +25,12 @@ const posts = [
   { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
 ];
 
+const reviews = [
+  { id: 1, author: 'Ana C.',   rating: 5, text: 'Jane is a wonderful pet owner. Luna and Buddy are so well behaved!',  time: '2 weeks ago'  },
+  { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.',       time: '1 month ago'  },
+  { id: 3, author: 'Sara M.',  rating: 4, text: 'Great experience. Buddy is a handful but Jane made it easy.',            time: '2 months ago' },
+];
+
 export default function Profile() {
   useEffect(() => {
     document.title = 'Profile | PetLink';
@@ -49,7 +55,7 @@ export default function Profile() {
           pets={pets}
           lookingFor={lookingFor}
         />
-        <ProfileContent posts={posts} />
+        <ProfileContent posts={posts} reviews={reviews} />
       </div>
     </div>
   );
