@@ -1,67 +1,49 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import './Profile.css';
+import ProfileCover from '../components/profile/ProfileCover';
+import ProfileInfoBar from '../components/profile/ProfileInfoBar';
+import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 
 const user = {
   name: 'Jane Doe',
   username: '@janedoe123',
   role: 'Pet Owner',
   bio: 'Dog and cat mom. Always looking for the best care for my fur babies.',
+  location: 'Porto, PT',
+  memberSince: 'March 2023',
   posts: 21,
   followers: 42,
   following: 100,
 };
 
-export default function Profile() {
-  const [imgError, setImgError] = useState(false);
+const pets = ['Luna | Bengal Cat | 2yr', 'Buddy | Golden Retriever | 4yr'];
+const lookingFor = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
 
+export default function Profile() {
   useEffect(() => {
     document.title = 'Profile | PetLink';
   }, []);
 
   return (
     <div className="profile-page">
-
-      <div className="profile-cover">
-        {imgError ? (
-          <div className="profile-avatar">JD</div>
-        ) : (
-          <img
-            className="profile-avatar"
-            src="/profile-pic.png"
-            alt="profile picture"
-            onError={() => setImgError(true)}
-          />
-        )}
+      <ProfileCover initials="JD" />
+      <ProfileInfoBar
+        name={user.name}
+        username={user.username}
+        role={user.role}
+        bio={user.bio}
+        posts={user.posts}
+        followers={user.followers}
+        following={user.following}
+      />
+      <div className="profile-body">
+        <ProfileLeftSidebar
+          memberSince={user.memberSince}
+          location={user.location}
+          pets={pets}
+          lookingFor={lookingFor}
+        />
       </div>
-
-      <div className="profile-info-bar">
-        <div className="profile-identity">
-          <div className="profile-name-row">
-            <h2 className="profile-name">{user.name}</h2>
-            <span className="profile-role-tag">{user.role}</span>
-          </div>
-          <p className="profile-username">{user.username}</p>
-          <p className="profile-bio">{user.bio}</p>
-        </div>
-
-        <div className="profile-stats">
-          <div className="stat-item">
-            <span className="stat-value">{user.posts}</span>
-            <span className="stat-label">Posts</span>
-          </div>
-          <div className="stat-divider" />
-          <div className="stat-item">
-            <span className="stat-value">{user.followers}</span>
-            <span className="stat-label">Followers</span>
-          </div>
-          <div className="stat-divider" />
-          <div className="stat-item">
-            <span className="stat-value">{user.following}</span>
-            <span className="stat-label">Following</span>
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 }
