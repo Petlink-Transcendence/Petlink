@@ -83,3 +83,18 @@
   height: 2rem;
   background: #e5e4e7;
 }
+
+@media (max-width: 48rem) {
+  .profile-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 3.5rem;
+  }
+
+  .profile-stats {
+    width: 100%;
+    justify-content: space-around;
+    padding-bottom: 0;
+  }
+}
