@@ -72,3 +72,41 @@
   color: #e05575;
   font-weight: 600;
 }
+
+.profile-review-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.review-author {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: black;
+}
+
+.review-stars {
+  font-size: 0.7rem;
+}
+
+.review-time {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-left: auto;
+}
+
+.review-text {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+  text-align: left;
+  line-height: 1.4;
+}
