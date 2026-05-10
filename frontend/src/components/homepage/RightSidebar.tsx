@@ -27,7 +27,7 @@ export default function RightSidebar() {
               <div className="rs-avatar">{initials(s.name)}</div>
               <div className="rs-info">
                 <span className="rs-name">{s.name}</span>
-                <span className="rs-meta">{s.role} · {s.location}</span>
+                <span className="rs-info">{s.role} · {s.location}</span>
                 <span className="rs-rating">⭐ {s.rating}</span>
               </div>
               <button className="rs-btn">Connect</button>
@@ -44,7 +44,7 @@ export default function RightSidebar() {
               <div className="rs-avatar rs-avatar--active">{initials(s.name)}</div>
               <div className="rs-info">
                 <span className="rs-name">{s.name}</span>
-                <span className="rs-meta">{s.role} · {s.location}</span>
+                <span className="rs-info">{s.role} · {s.location}</span>
               </div>
             </li>
           ))}
