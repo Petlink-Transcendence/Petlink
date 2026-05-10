@@ -1,0 +1,6 @@
+.profile-page {
+  min-height: 100vh;
+  background-color: var(--social-bg);
+  padding-top: 6.25rem;
+  overflow-y: auto;
+}
