@@ -2,6 +2,7 @@ import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
 import CreatePost from '../components/homepage/CreatePost'
+import RightSidebar from '../components/homepage/RightSidebar'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -59,6 +60,7 @@ export default function Home() {
           ]}
         />
       </div>
+      <RightSidebar />
     </div>
   )
 }
