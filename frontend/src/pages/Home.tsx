@@ -2,7 +2,6 @@ import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
 import CreatePost from '../components/homepage/CreatePost'
-import SidebarMenu from '../components/homepage/SidebarMenu'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -15,7 +14,6 @@ export default function Home() {
     <div className="home-container">
       <div className="left-sidebar">
         <ProfileCard />
-        <SidebarMenu />
       </div>
       <div className="home-post-container">
         <CreatePost />
