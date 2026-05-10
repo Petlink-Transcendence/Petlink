@@ -1,16 +1,16 @@
 import './ProfileInfoBar.css';
 
+type Stat = { value: string | number; label: string };
+
 type ProfileInfoBarProps = {
   name: string;
   username: string;
   role: string;
   bio: string;
-  posts: number;
-  followers: number;
-  following: number;
+  stats: Stat[];
 };
 
-export default function ProfileInfoBar({ name, username, role, bio, posts, followers, following }: ProfileInfoBarProps) {
+export default function ProfileInfoBar({ name, username, role, bio, stats }: ProfileInfoBarProps) {
   return (
     <div className="profile-info-bar">
       <div className="profile-identity">
@@ -23,20 +23,15 @@ export default function ProfileInfoBar({ name, username, role, bio, posts, follo
       </div>
 
       <div className="profile-stats">
-        <div className="stat-item">
-          <span className="stat-value">{posts}</span>
-          <span className="stat-label">Posts</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value">{followers}</span>
-          <span className="stat-label">Followers</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat-item">
-          <span className="stat-value">{following}</span>
-          <span className="stat-label">Following</span>
-        </div>
+        {stats.map((s, i) => (
+          <>
+            {i > 0 && <div key={`div-${i}`} className="stat-divider" />}
+            <div key={s.label} className="stat-item">
+              <span className="stat-value">{s.value}</span>
+              <span className="stat-label">{s.label}</span>
+            </div>
+          </>
+        ))}
       </div>
     </div>
   );

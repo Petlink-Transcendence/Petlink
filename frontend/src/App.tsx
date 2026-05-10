@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import SitterProfile from './pages/SitterProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import './App.css';
@@ -40,6 +41,12 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/sitterprofile" element={
+            <ProtectedRoute>
+              <SitterProfile />
             </ProtectedRoute>
           } />
         </Routes>
