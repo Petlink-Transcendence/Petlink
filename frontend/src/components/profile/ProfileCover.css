@@ -24,3 +24,15 @@
   flex-shrink: 0;
   object-fit: cover;
 }
+
+@media (max-width: 48rem) {
+  .profile-cover {
+    height: 8rem;
+  }
+
+  .profile-avatar {
+    width: 5rem;
+    height: 5rem;
+    font-size: 1.4rem;
+  }
+}
