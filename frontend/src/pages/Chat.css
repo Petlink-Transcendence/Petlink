@@ -6,11 +6,8 @@
 
 /*--- main layout --- */
 .chat-container {
-    min-height: 40rem;
     height: 100vh;
-    width: 100%;
-    margin-left: 1rem;
-    margin-right: 1rem;
+    width: 100%;  
     display: flex;
     background-color: var(--social-bg);
     box-sizing: border-box;
@@ -27,6 +24,7 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    margin-left: 1rem;
 }
 
 /*--- contact list ---*/
@@ -276,16 +274,16 @@
 .message.sent {
     align-self: flex-end;
     text-align: left;
-    background-color: var(--white);
-    border: 0.0625rem solid #eee;
+    background-color: var(--petlink-tan);
+    color: white;
     border-bottom-right-radius: 0.125rem;
 }
 
 .message.received {
     align-self: flex-start;
     text-align: left;
-    color: white;
-    background-color: var(--petlink-tan);
+    background-color: var(--white);
+    border: 0.0625rem solid #eee;
     border-bottom-left-radius: 0.125rem;
 }
 
