@@ -54,3 +54,7 @@
   background-color: #000;
   color: white;
 }
+
+.home-dropdown-wrapper {
+  position: relative;
+}
