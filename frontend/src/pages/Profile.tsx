@@ -44,17 +44,18 @@ export default function Profile() {
   return (
     <div className="profile-page">
       <ProfileToggle active="owner" />
-      <ProfileCover initials="JD" />
+      <ProfileCover initials="JD" imageUrl="/profile-pic.png" />
       <ProfileInfoBar
         name={user.name}
         username={user.username}
         role={user.role}
         bio={user.bio}
         stats={stats}
+        actions={[{ label: 'Edit Profile', variant: 'secondary' }]}
       />
       <div className="profile-body">
         <ProfileLeftSidebar cards={sidebarCards} />
-        <ProfileContent posts={posts} reviews={reviews} />
+        <ProfileContent posts={posts} reviews={reviews} authorName={user.name} authorInitials="JD" />
       </div>
     </div>
   );

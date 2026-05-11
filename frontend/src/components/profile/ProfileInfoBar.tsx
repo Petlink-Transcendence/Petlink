@@ -1,6 +1,7 @@
 import './ProfileInfoBar.css';
 
 type Stat = { value: string | number; label: string };
+type Action = { label: string; variant: 'primary' | 'secondary' };
 
 type ProfileInfoBarProps = {
   name: string;
@@ -8,11 +9,23 @@ type ProfileInfoBarProps = {
   role: string;
   bio: string;
   stats: Stat[];
+  actions?: Action[];
 };
 
-export default function ProfileInfoBar({ name, username, role, bio, stats }: ProfileInfoBarProps) {
+export default function ProfileInfoBar({ name, username, role, bio, stats, actions }: ProfileInfoBarProps) {
   return (
     <div className="profile-info-bar">
+      <div className="profile-info-top">
+        <div className="profile-avatar-offset" />
+        {actions && actions.length > 0 && (
+          <div className="profile-actions">
+            {actions.map(a => (
+              <button key={a.label} className={`action-btn ${a.variant}`}>{a.label}</button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="profile-identity">
         <div className="profile-name-row">
           <h2 className="profile-name">{name}</h2>

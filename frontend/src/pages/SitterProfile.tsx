@@ -53,10 +53,14 @@ export default function SitterProfile() {
         role={user.role}
         bio={user.bio}
         stats={stats}
+        actions={[
+          { label: 'Follow', variant: 'primary' },
+          { label: 'Message', variant: 'secondary' },
+        ]}
       />
       <div className="profile-body">
         <ProfileLeftSidebar cards={sidebarCards} />
-        <ProfileContent posts={posts} reviews={reviews} />
+        <ProfileContent posts={posts} reviews={reviews} authorName={user.name} authorInitials="AC" />
       </div>
     </div>
   );
