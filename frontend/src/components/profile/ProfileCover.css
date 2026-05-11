@@ -1,5 +1,5 @@
 .profile-cover {
-  height: 12rem;
+  height: 16rem;
   background: linear-gradient(135deg, var(--petlink-tan) 0%, #c49a50 100%);
   position: relative;
   display: flex;
@@ -8,31 +8,31 @@
 }
 
 .profile-avatar {
-  width: 6rem;
-  height: 6rem;
+  width: 9rem;
+  height: 9rem;
   border-radius: 50%;
   background: white;
   color: var(--petlink-tan);
-  font-size: 1.75rem;
+  font-size: 2.2rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 0.25rem solid white;
+  border: 0.3rem solid white;
   transform: translateY(50%);
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.375rem 1rem rgba(0, 0, 0, 0.18);
   flex-shrink: 0;
   object-fit: cover;
 }
 
 @media (max-width: 48rem) {
   .profile-cover {
-    height: 8rem;
+    height: 10rem;
   }
 
   .profile-avatar {
-    width: 5rem;
-    height: 5rem;
-    font-size: 1.4rem;
+    width: 6.5rem;
+    height: 6.5rem;
+    font-size: 1.6rem;
   }
 }

@@ -1,18 +1,65 @@
 .profile-info-bar {
   background: white;
-  padding: 1rem 5%;
-  padding-top: 4rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  padding: 0 5% 1.25rem;
   box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-info-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-height: 4.5rem;
+}
+
+.profile-avatar-offset {
+  width: 9rem;
+  flex-shrink: 0;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 0.6rem;
+  padding-bottom: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.45rem 1.2rem;
+  border-radius: 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.action-btn.primary {
+  background: var(--petlink-tan);
+  color: white;
+  border: 0.125rem solid var(--petlink-tan);
+}
+
+.action-btn.primary:hover {
+  background: #c49a50;
+  border-color: #c49a50;
+}
+
+.action-btn.secondary {
+  background: white;
+  color: var(--petlink-tan);
+  border: 0.125rem solid var(--petlink-tan);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(219, 182, 121, 0.08);
 }
 
 .profile-identity {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .profile-name-row {
@@ -45,56 +92,56 @@
 }
 
 .profile-bio {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: #555;
-  margin: 0.25rem 0 0;
-  max-width: 32rem;
+  margin: 0.1rem 0 0;
+  max-width: 36rem;
   text-align: left;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .profile-stats {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding-bottom: 0.5rem;
+  gap: 1.25rem;
+  margin-top: 0.25rem;
 }
 
 .stat-item {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.3rem;
 }
 
 .stat-value {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--petlink-tan);
+  color: black;
 }
 
 .stat-label {
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   color: #888;
 }
 
 .stat-divider {
   width: 0.0625rem;
-  height: 2rem;
+  height: 1.25rem;
   background: #e5e4e7;
 }
 
 @media (max-width: 48rem) {
-  .profile-info-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    padding-top: 3.5rem;
+  .profile-info-top {
+    min-height: 3.25rem;
+  }
+
+  .profile-avatar-offset {
+    width: 6.5rem;
   }
 
   .profile-stats {
-    width: 100%;
-    justify-content: space-around;
-    padding-bottom: 0;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 }
