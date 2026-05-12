@@ -6,6 +6,10 @@ export default function Chat() {
       document.title = "Chat | PetLink";
     }, []);
 
+    function initials(name: string) {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+
     /* CHAT */
 
     const [activeChat, setActiveChat] = useState(null);
@@ -22,12 +26,12 @@ export default function Chat() {
 };
 
     const contacts = [
-        {id: 1, name: "Daniela", role: "animal-sitter"},
-        {id: 2, name: "Filipe", role: "dog-owner"},
-        {id: 3, name: "Rodrigo", role: "cat owner"},
+        {id: 1, name: "Daniela Padilha", role: "animal-sitter"},
+        {id: 2, name: "Filipe Tootill", role: "dog-owner"},
+        {id: 3, name: "Rodrigo Silva", role: "cat owner"},
         {id: 4, name: "Daddy", role: "animal lover"},
-        {id: 5, name: "João", role: "cat-sitter"},
-        {id: 6, name: "Ricardo", role: "cat-owner"},
+        {id: 5, name: "João Vieira", role: "cat-sitter"},
+        {id: 6, name: "Ricardo Oliveira", role: "cat-owner"},
         {id: 7, name: "Dar banho ao gato", role: "animal-sitter"},
     ];
 
@@ -104,6 +108,8 @@ export default function Chat() {
         setMessages(prevMessages => prevMessages.slice(0, -1));
     };
 
+    const activeContact = contacts.find(c => c.id === activeChat);
+
     /* TEXT AREA */
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -151,7 +157,7 @@ export default function Chat() {
                                 onClick={() => setActiveChat(contact.id)}
                                 >
                                 
-                                <div className="contact-avatar">{contact.name[0]}</div>
+                                <div className="contact-avatar">{initials(contact.name)}</div>
 
                                 <div className="contact-info">
                                     <div className="contact-top">
@@ -180,7 +186,7 @@ export default function Chat() {
                     <header className="chat-header">
                         <div className="header-info">
                         <div className="header-avatar">
-                            {contacts.find(c => c.id === activeChat)?.name[0]}
+                            {activeContact ? initials(activeContact.name) : ""}
                         </div>
                         <div>
                             <h3>{contacts.find(c => c.id === activeChat)?.name}, {contacts.find(c => c.id === activeChat)?.role} </h3>
