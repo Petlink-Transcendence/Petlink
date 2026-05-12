@@ -39,22 +39,6 @@
   margin-top: 0.625rem;
 }
 
-/* Button style */
-.btn.post {
-  background: var(--petlink-tan);
-  border: none;
-  padding: 0.625rem 1.25rem;
-  border-radius: 1.25rem;
-  cursor: pointer;
-  font-weight: bold;
-  color: white;
-}
-
-.btn.post:hover {
-  background-color: #000;
-  color: white;
-}
-
 /* ── Responsiveness ── */
 /* Tablet (≤ 768px) */
 @media (max-width: 48rem) {
