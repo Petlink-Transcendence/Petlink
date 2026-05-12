@@ -8,10 +8,6 @@ export default function CreatePost() {
 			className="create-post-input"
 			placeholder="What's on your pet's mind?"
 		/>
-
-	<div className="create-post-btn-container">
-		<button className="btn post">Post</button>
-	</div>
 	</div>
 	);
 }
