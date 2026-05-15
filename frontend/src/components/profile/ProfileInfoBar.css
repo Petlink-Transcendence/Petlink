@@ -41,8 +41,8 @@
 }
 
 .action-btn.primary:hover {
-  background: #c49a50;
-  border-color: #c49a50;
+  background: var(--social-bg);
+  border-color: var(--social-bg);
 }
 
 .action-btn.secondary {
@@ -52,7 +52,8 @@
 }
 
 .action-btn.secondary:hover {
-  background: rgba(219, 182, 121, 0.08);
+  background: var(--petlink-tan);
+  color: white;
 }
 
 .profile-identity {
