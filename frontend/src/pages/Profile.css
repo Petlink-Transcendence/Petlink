@@ -1,0 +1,20 @@
+.profile-page {
+  min-height: 100vh;
+  background-color: var(--social-bg);
+  padding-top: 6.25rem;
+  overflow-y: auto;
+}
+
+.profile-body {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem 5%;
+  align-items: flex-start;
+}
+
+@media (max-width: 48rem) {
+  .profile-body {
+    flex-direction: column;
+    padding: 1rem;
+  }
+}

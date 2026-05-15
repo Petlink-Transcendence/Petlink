@@ -1,0 +1,28 @@
+.profile-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0;
+  background-color: var(--social-bg);
+}
+
+.toggle-btn {
+  text-decoration: none;
+  padding: 0.4rem 1.5rem;
+  border-radius: 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.07);
+  transition: background 0.2s, color 0.2s;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+}
+
+.toggle-btn.active {
+  background: var(--petlink-tan);
+  color: white;
+}
