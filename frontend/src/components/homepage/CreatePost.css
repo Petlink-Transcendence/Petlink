@@ -17,6 +17,7 @@
 .create-post-input {
   flex: 1;
   min-height: 2.5rem;
+  
   border: none;
   outline: none;
   resize: none;
@@ -28,12 +29,10 @@
 }
 
 /* Placeholder readability */
-.create-post-input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.create-post-input:focus::placeholder {
-  color: transparent;
+.create-post-input:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: text;
 }
 
 /* ── Responsiveness ── */
