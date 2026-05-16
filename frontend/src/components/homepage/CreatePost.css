@@ -32,11 +32,8 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Button container */
-.create-post-btn-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0.625rem;
+.create-post-input:focus::placeholder {
+  color: transparent;
 }
 
 /* ── Responsiveness ── */
