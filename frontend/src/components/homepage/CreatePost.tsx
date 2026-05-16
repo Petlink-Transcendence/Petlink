@@ -4,9 +4,10 @@ import './CreatePost.css'
 export default function CreatePost() {
 	return (
 	<div className="create-post">
-		<textarea
+		<div
+			contentEditable
 			className="create-post-input"
-			placeholder="What's on your pet's mind?"
+			data-placeholder="What's on your pet's mind?"
 		/>
 	</div>
 	);
