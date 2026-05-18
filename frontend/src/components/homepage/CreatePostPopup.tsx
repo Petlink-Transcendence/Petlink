@@ -45,13 +45,19 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!text.trim()) {
+            alert("Please write something before posting.");
+            return;
+        }
+
         if (!goal) {
             alert("Please select a main goal for your post.");
             return;
         }
 
         const postData = {
-            text,
+            text: text.trim(),
             goal,
             photo: selectedPhoto,
             filters: {
@@ -62,9 +68,9 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
         };
 
         console.log("Submitting Petlink Post: ", postData);
-        // 👈 Call backend route API here with axios/fetch
+        // Call backend API here...
         
-        onClose(); // 👈 Close the modal ONLY after a successful submit!
+        onClose();
     };
 
     return (
@@ -79,7 +85,7 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
                     <div 
                         contentEditable
                         className='post-text-input'
-                        data-placeholder="What's on your pet's mind?"
+                        data-placeholder="What's on your pet's mind? *"
                         onInput={(e) => setText(e.currentTarget.textContent || '')}
                         onBlur={(e) => {
                             if (!e.currentTarget.textContent?.trim()) {
