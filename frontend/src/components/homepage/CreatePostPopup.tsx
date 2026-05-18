@@ -81,6 +81,12 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
                         className='post-text-input'
                         data-placeholder="What's on your pet's mind?"
                         onInput={(e) => setText(e.currentTarget.textContent || '')}
+                        onBlur={(e) => {
+                            if (!e.currentTarget.textContent?.trim()) {
+                                e.currentTarget.innerHTML = '';
+                                setText('');
+                            }
+                        }}
                     />
 
                     <div className='photo-upload-section'>
