@@ -188,6 +188,18 @@
   cursor: pointer;
 }
 
+.add-photo-btn:hover {
+  background: #e9ecef;
+}
+
+.image-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .uploaded-preview {
   max-width: 100%;
   max-height: 200px;
@@ -199,25 +211,75 @@
   background: #e63946;
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
+  padding: 0.75rem 0.75rem;
   border-radius: 0.25rem;
   cursor: pointer;
   margin-top: 0.5rem;
 }
 
+.remove-photo-btn:hover {
+  background: #c62828;
+}
+
 /* Grids and Controls */
-.post-divider { border: 0; border-top: 1px solid #eee; margin: 0; }
+.post-divider { 
+  border: 0; 
+  border-top: 1px solid var(--petlink-tan); 
+  margin: 0; 
+}
 
-.form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-.form-group label { font-size: 0.85rem; font-weight: 700; color: #555; }
-.required-label::after { content: " *"; color: #d9534f; }
-.form-group select, .form-group input { padding: 0.625rem; border: 1px solid #ccc; border-radius: 0.5rem; }
+.form-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.5rem; 
+}
 
-.tags-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.tags-pill-container { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.form-group label { 
+  font-size: 0.85rem; 
+  font-weight: 700; 
+  color: #555; 
+}
+
+.required-label::after { 
+  content: " *"; 
+  color: #d9534f; 
+}
+
+.form-group select, .form-group input { 
+  padding: 0.625rem; 
+  border: 1px solid #ccc; 
+  border-radius: 1rem; 
+  background-color: var(--social-bg);
+  font-size: 0.85rem;
+}
+
+.form-group input:focus { 
+  outline: 1px solid var(--petlink-tan); 
+  background-color: white;
+  color: #333;
+}
+
+.optional-tags-section h3 {
+  font-size: 0.85rem; 
+  font-weight: 700; 
+  color: #555;
+}
+
+.tags-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 1rem; 
+}
+
+.tags-pill-container { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 0.5rem; 
+  margin-top: 0.5rem; 
+}
 
 .tag-pill {
-  background-color: var(--petlink-tan);
+  background-color: var(--social-bg);
   color: white;
   padding: 0.25rem 0.6rem;
   border-radius: 1rem;
@@ -226,14 +288,27 @@
   align-items: center;
   gap: 0.35rem;
 }
-.tag-pill button { background: none; border: none; color: white; font-weight: bold; cursor: pointer; }
+
+.tag-pill button { 
+  background: none; 
+  border: none; 
+  color: white; 
+  font-weight: bold; 
+  cursor: pointer; 
+}
 
 .submit-post-btn {
-  background-color: #2d2d34;
+  background-color: var(--petlink-tan);
   color: white;
   border: none;
   padding: 0.875rem;
   border-radius: 0.5rem;
+  font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
+}
+
+.submit-post-btn:hover {
+  transform: scale(1.02);
+  transition: transform 0.15s ease;
 }
