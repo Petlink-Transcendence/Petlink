@@ -1,5 +1,5 @@
 import React, {use, useState} from 'react'
-import CreatePostContainer from './Post-popup'
+import CreatePostContainer from './CreatePostPopup'
 import './CreatePost.css'
 
 export default function CreatePost() {

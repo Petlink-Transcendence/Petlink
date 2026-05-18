@@ -1,3 +1,9 @@
+:root {
+  --social-bg: #2d2d34;
+  --petlink-tan: #dbb679;
+  --white: #ffffff;
+}
+
 /* to avoid overflow */
 * {
   box-sizing: border-box;
@@ -17,22 +23,24 @@
 .create-post-input {
   flex: 1;
   min-height: 2.5rem;
-  
-  border: none;
-  outline: none;
-  resize: none;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-size: 1rem;
   background: var(--petlink-tan);
   border-radius: 1.25rem;
   padding: 0.625rem;
   color: white;
 }
 
+.create-post-input:hover {
+  transform: scale(1.02);
+  transition: transform 0.15s ease;
+}
+
 /* Placeholder readability */
 .create-post-input:empty::before {
   content: attr(data-placeholder);
-  color: rgba(255, 255, 255, 0.6);
-  cursor: text;
+  color: white;
+  cursor: pointer;
 }
 
 /* ── Responsiveness ── */
@@ -78,21 +86,20 @@
   }
 }
 
-/* HEEEEEEEERE */
-/* ── Popup Modal Engine Layers ── */
 
+/* ── Post Popup ── */
 .post-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6); /* Dim background */
-  backdrop-filter: blur(4px); /* Blur behind the card */
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Float over EVERYTHING */
+  z-index: 9999;
 }
 
 .post-container {
@@ -111,13 +118,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--petlink-tan);
 }
 
 .post-header h2 {
   margin: 0;
-  font-size: 1.25rem;
-  color: #2d2d34;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--social-bg);
 }
 
 .close-btn {
@@ -125,10 +133,12 @@
   border: none;
   font-size: 1.75rem;
   cursor: pointer;
-  color: #aaa;
+  color: var(--petlink-tan);
 }
 
-.close-btn:hover { color: #333; }
+.close-btn:hover {
+  color: var(--social-bg); 
+}
 
 .post-form {
   padding: 1.25rem;
@@ -136,23 +146,37 @@
   flex-direction: column;
   gap: 1.25rem;
   max-height: 75vh;
-  overflow-y: auto; /* Scroll inside form if filters look long */
+  overflow-y: auto;
 }
 
 /* Text Area inside Popup */
 .post-text-input {
-  min-height: 80px;
-  outline: none;
+  min-height: 6.25rem;
+  max-height: 9.38rem;
+  overflow-y: auto;
+  outline: 0.063rem solid #aaa;
+  border-radius: 1rem;;
   font-size: 1.05rem;
+  text-align: left;
   color: #333;
+  padding: 0.75rem 0.625rem;
 }
 
 .post-text-input:empty::before {
   content: attr(data-placeholder);
   color: #aaa;
+  transition: color 0.15s ease;
 }
 
-/* Photos UI */
+.post-text-input:focus:empty::before {
+  color: transparent;
+}
+
+.post-text-input:focus {
+  outline: 1px solid var(--petlink-tan);
+}
+
+/* Photos */
 .add-photo-btn {
   width: 100%;
   background: #f8f9fa;
