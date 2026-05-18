@@ -103,7 +103,8 @@
 }
 
 .rs-btn:hover {
-  background: var(--petlink-tan);
+  background: var(--bg);
+  border: 0.0625rem solid var(--bg); 
   color: white;
 }
 
