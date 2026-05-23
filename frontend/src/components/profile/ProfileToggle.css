@@ -1,3 +1,4 @@
+/* Toggle bar container */
 .profile-toggle {
   display: flex;
   justify-content: center;
@@ -6,6 +7,7 @@
   background-color: var(--social-bg);
 }
 
+/* Toggle button */
 .toggle-btn {
   text-decoration: none;
   padding: 0.4rem 1.5rem;
@@ -17,11 +19,13 @@
   transition: background 0.2s, color 0.2s;
 }
 
+/* Toggle button hover */
 .toggle-btn:hover {
   background: rgba(255, 255, 255, 0.13);
   color: white;
 }
 
+/* Active toggle button */
 .toggle-btn.active {
   background: var(--petlink-tan);
   color: white;

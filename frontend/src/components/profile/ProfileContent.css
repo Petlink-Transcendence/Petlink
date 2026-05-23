@@ -1,3 +1,4 @@
+/* Right column wrapper */
 .profile-right {
   flex: 1;
   display: flex;
@@ -6,6 +7,7 @@
   min-width: 0;
 }
 
+/* Tab bar */
 .profile-tabs {
   display: flex;
   background: white;
@@ -16,6 +18,7 @@
   overflow: hidden;
 }
 
+/* Tab button */
 .tab-btn {
   background: none;
   border: none;
@@ -29,22 +32,28 @@
   transition: color 0.18s, border-color 0.18s;
 }
 
+/* Active tab */
 .tab-btn.active {
   color: var(--petlink-tan);
   border-bottom-color: var(--petlink-tan);
 }
 
+/* Tab hover */
 .tab-btn:hover:not(.active) {
   color: #555;
   background: rgba(219, 182, 121, 0.05);
 }
 
+/* Tab content area */
 .tab-content {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
+/* ── Posts ── */
+
+/* Post card container */
 .profile-post-card {
   background: white;
   border-radius: 0.75rem;
@@ -58,6 +67,7 @@
   box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.12);
 }
 
+/* Post header with avatar and author info */
 .post-header {
   display: flex;
   align-items: center;
@@ -65,6 +75,7 @@
   margin-bottom: 0.75rem;
 }
 
+/* Post author avatar */
 .post-author-avatar {
   width: 2.25rem;
   height: 2.25rem;
@@ -79,17 +90,20 @@
   flex-shrink: 0;
 }
 
+/* Post author name */
 .post-author-name {
   font-size: 0.85rem;
   font-weight: 700;
   color: black;
 }
 
+/* Post timestamp */
 .post-time {
   font-size: 0.72rem;
   color: #aaa;
 }
 
+/* Post body text */
 .profile-post-text {
   font-size: 0.9rem;
   color: #222;
@@ -98,6 +112,7 @@
   line-height: 1.5;
 }
 
+/* Post footer with time and likes */
 .profile-post-footer {
   display: flex;
   justify-content: space-between;
@@ -108,11 +123,15 @@
   color: #888;
 }
 
+/* Like count */
 .post-likes {
   color: #e05575;
   font-weight: 600;
 }
 
+/* ── Reviews ── */
+
+/* Review card container */
 .profile-review-card {
   background: white;
   border-radius: 0.75rem;
@@ -126,6 +145,7 @@
   box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.12);
 }
 
+/* Review header with avatar, author, stars and timestamp */
 .review-header {
   display: flex;
   align-items: center;
@@ -133,6 +153,7 @@
   margin-bottom: 0.6rem;
 }
 
+/* Reviewer avatar */
 .review-avatar {
   width: 2.25rem;
   height: 2.25rem;
@@ -147,29 +168,34 @@
   flex-shrink: 0;
 }
 
+/* Reviewer name and stars column */
 .review-author-info {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
 }
 
+/* Reviewer name */
 .review-author {
   font-size: 0.85rem;
   font-weight: 700;
   color: black;
 }
 
+/* Star rating */
 .review-stars {
   font-size: 0.65rem;
   line-height: 1;
 }
 
+/* Review timestamp */
 .review-time {
   font-size: 0.72rem;
   color: #aaa;
   margin-left: auto;
 }
 
+/* Review body text */
 .review-text {
   font-size: 0.875rem;
   color: #555;

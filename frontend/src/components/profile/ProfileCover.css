@@ -1,5 +1,6 @@
+/* Cover banner */
 .profile-cover {
-  height: 16rem;
+  height: 10rem;
   background: linear-gradient(135deg, var(--petlink-tan) 0%, #c49a50 100%);
   position: relative;
   display: flex;
@@ -7,6 +8,7 @@
   padding: 0 5%;
 }
 
+/* Avatar circle — overlaps into the info bar below */
 .profile-avatar {
   width: 9rem;
   height: 9rem;
@@ -25,6 +27,7 @@
   object-fit: cover;
 }
 
+/* ── Responsiveness ── */
 @media (max-width: 48rem) {
   .profile-cover {
     height: 10rem;
