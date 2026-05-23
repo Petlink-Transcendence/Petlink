@@ -1,7 +1,7 @@
 import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
-import CreatePost from '../components/homepage/CreatePost'
+import CreatePost from '../components/homepage/CreatePostContainer'
 import RightSidebar from '../components/homepage/RightSidebar'
 import { useEffect } from 'react'
 
