@@ -12,9 +12,9 @@
 /* Text container */
 .create-post {
   display: flex;
-  width: 100%;
+  width: 30.7rem;
   background: white;
-  padding: 0.9375rem;
+  padding: 1rem;
   border-radius: 0.75rem;
   gap: 1.25rem;
 }
@@ -212,7 +212,7 @@
   color: white;
   border: none;
   padding: 0.75rem 0.75rem;
-  border-radius: 0.25rem;
+  border-radius: 0.75rem;
   cursor: pointer;
   margin-top: 0.5rem;
 }
@@ -233,6 +233,7 @@
   flex-direction: column; 
   gap: 0.5rem; 
 }
+
 
 .form-group label { 
   font-size: 0.85rem; 
@@ -263,6 +264,7 @@
   font-size: 0.85rem; 
   font-weight: 700; 
   color: #555;
+  margin: 0;
 }
 
 .tags-grid { 
@@ -275,7 +277,7 @@
   display: flex; 
   flex-wrap: wrap; 
   gap: 0.5rem; 
-  margin-top: 0.5rem; 
+  margin-top: 0.5rem;
 }
 
 .tag-pill {
@@ -290,7 +292,6 @@
 }
 
 .tag-pill button { 
-  background: none; 
   border: none; 
   color: white; 
   font-weight: bold; 
@@ -302,7 +303,7 @@
   color: white;
   border: none;
   padding: 0.875rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
