@@ -8,13 +8,11 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
     const [text, setText] = useState('');
     const [goal, setGoal] = useState('');
 
-    // optional filter tags
     const [petType, setPetType] = useState('');
     const [petSize, setPetSize] = useState('');
     const [customTag, setCustomTag] = useState('');
     const [customTagsList, setCustomTagsList] = useState<string[]>([]);
 
-    // optional photo upload
     const [selectedPhoto, setPhoto] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
