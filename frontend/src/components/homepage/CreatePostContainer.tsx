@@ -1,17 +1,21 @@
+import React, {use, useState} from 'react'
+import CreatePostContainer from './CreatePostPopup'
 import './CreatePost.css'
 
-/* it will send text to Post eventually */
 export default function CreatePost() {
-	return (
-	<div className="create-post">
-		<textarea
-			className="create-post-input"
-			placeholder="What's on your pet's mind?"
-		/>
+	const [isPostOpen, setIsPostOpen] = useState(false);
 
-	<div className="create-post-btn-container">
-		<button className="btn post">Post</button>
-	</div>
-	</div>
+	return (
+		<div className='create-post-container'>
+			<div className="create-post" onClick={() => setIsPostOpen(true)}>
+			<div
+				className="create-post-input"
+				data-placeholder="What's on your pet's mind?"
+			/>
+		</div>
+		{isPostOpen && (
+			<CreatePostContainer onClose={() => setIsPostOpen(false)} />
+		)}
+		</div>
 	);
 }
