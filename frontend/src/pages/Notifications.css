@@ -101,18 +101,13 @@
 }
 
 .notif-btn {
-  padding: 0.4rem 1rem;
-  border-radius: 0.25rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 1.25rem;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: transform 0.2s, opacity 0.2s;
-}
-
-.notif-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-0.0625rem);
+  transition: transform 0.2s, background 0.2s;
 }
 
 .notif-btn.accept {
@@ -120,9 +115,17 @@
   color: white;
 }
 
+
+
 .notif-btn.decline {
   background-color: #e0e0e0;
   color: #555;
+}
+
+.notif-btn:hover {
+  transform: translateY(-0.0625rem);
+  background: var(--social-bg);
+  color: white;
 }
 
 .unread-dot {
