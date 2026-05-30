@@ -19,6 +19,8 @@
 }
 
 .notifications-box {
+    max-height: 90vh;
+    overflow-y: auto;
     background: var(--white);
     padding: 2.5rem;
     border-radius: 0.75rem;
@@ -28,6 +30,21 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.notifications-list::-webkit-scrollbar {
+  width: 6px;
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+
+.notifications-list::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+.notifications-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2); 
+  border-radius: 10px;
 }
 
 .notif-title {
@@ -127,6 +144,18 @@
   background: var(--social-bg);
   color: white;
 }
+
+.connection-status-text {
+  font-size: 0.8rem;
+  font-style: italic;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+.connection-status-text.accepted, .connection-status-text.declined {
+  color: #888;
+}
+
 
 .unread-dot {
   width: 0.5rem;

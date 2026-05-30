@@ -6,9 +6,11 @@ interface Notification {
     id: number;
     type: 'message' | 'review' | 'comment' | 'like' | 'application' | 'booking' | 'connection';
     text: string;
+    senderName: string; // Added to easily reference the sender's name
     senderId: number;
     time: string;
     isUnread: boolean;
+    connectionStatus?: 'accepted' | 'declined'; // Track connection actions
 }
 
 export default function Notifications() {
@@ -19,13 +21,21 @@ export default function Notifications() {
     const navigate = useNavigate();
 
     const [notifications, setNotifications] = useState<Notification[]>([
-        { id: 1, type: 'message', text: 'Daniela sent you a message: "I will be there at 2pm..."', senderId: 1, time: '2m ago', isUnread: true },
-        { id: 2, type: 'booking', text: 'Filipe requested a new dog walking booking for Jack.', senderId: 2, time: '1h ago', isUnread: true },
-        { id: 3, type: 'review', text: 'Rodrigo left you a 5-star review: "Great cat sitter!"', senderId: 3, time: 'Yesterday', isUnread: false },
-        { id: 4, type: 'connection', text: 'João wants to connect with you.', senderId: 4, time: '2 days ago', isUnread: false },
+        { id: 1, type: 'message', text: 'Daniela sent you a message: "I will be there at 2pm..."', senderName: 'Daniela', senderId: 1, time: '1 hour ago', isUnread: true },
+        { id: 2, type: 'review', text: 'Rodrigo left you a 5-star review: "Great cat sitter!"', senderName: 'Rodrigo', senderId: 3, time: '6 hours ago', isUnread: true },
+        { id: 3, type: 'comment', text: 'Daniela left a comment on your post.', senderName: 'Daniela', senderId: 1, time: '6 hours ago', isUnread: true },
+        { id: 4, type: 'like', text: 'Daniela liked your post.', senderName: 'Daniela', senderId: 1, time: 'Yesterday', isUnread: false },
+        { id: 5, type: 'application', text: 'Ricado applied to your service request.', senderName: 'Ricado', senderId: 6, time: 'Yesterday', isUnread: false },
+        { id: 6, type: 'booking', text: 'Filipe booked your service.', senderName: 'Filipe', senderId: 2, time: '2 days ago', isUnread: false },
+        { id: 7, type: 'connection', text: 'João wants to connect with you.', senderName: 'João', senderId: 5, time: '2 days ago', isUnread: true },
     ]);
 
+    // Marks a notification as read instantly before navigating
     const handleNotificationClick = (notification: Notification) => {
+        setNotifications(prev =>
+            prev.map(n => n.id === notification.id ? { ...n, isUnread: false } : n)
+        );
+
         switch (notification.type) {
             case 'message':
                 navigate('/chat', { state: { openChatId: notification.senderId} });
@@ -54,9 +64,14 @@ export default function Notifications() {
     };
 
     const handleConnectionAction = (e: React.MouseEvent, id: number, action: 'accept' | 'decline') => {
-        e.stopPropagation();
-        alert(`You ${action}ed the connection request.`);
-        setNotifications(notifications.filter(n => n.id !== id));
+        e.stopPropagation();         
+        setNotifications(prev =>
+            prev.map(n => 
+                n.id === id 
+                    ? { ...n, isUnread: false, connectionStatus: action === 'accept' ? 'accepted' : 'declined' } 
+                    : n
+            )
+        );
     };
 
     return (
@@ -88,18 +103,24 @@ export default function Notifications() {
 
                                     {notif.type === 'connection' && (
                                         <div className='notif-actions'>
-                                            <button
-                                                className='notif-btn accept'
-                                                onClick={(e) => handleConnectionAction(e, notif.id, 'accept')}
-                                            >
-                                                Accept
-                                            </button>
-                                            <button
-                                                className='notif-btn decline'
-                                                onClick={(e) => handleConnectionAction(e, notif.id, 'decline')}
-                                            >
-                                                Decline
-                                            </button>
+                                            {!notif.connectionStatus ? (
+                                                <>
+                                                    <button
+                                                        className='notif-btn accept'
+                                                        onClick={(e) => handleConnectionAction(e, notif.id, 'accept')} >
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        className='notif-btn decline'
+                                                        onClick={(e) => handleConnectionAction(e, notif.id, 'decline')} >
+                                                        Decline
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span className={`connection-status-text ${notif.connectionStatus}`}>
+                                                    You {notif.connectionStatus} {notif.senderName}'s connection
+                                                </span>
+                                            )}
                                         </div>
                                     )}
                                 </div>
