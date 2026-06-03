@@ -13,11 +13,15 @@ type SearchResultsProps = {
   committedQuery: string;
 };
 
+function initials(name: string) {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
 function ProfileCard({ profile }: { profile: Profile }) {
   return (
     <div className="result-card">
       <div className="result-card-banner" />
-      <div className="result-avatar"></div>
+      <div className="result-avatar">{initials(profile.name)}</div>
       <div className="result-info">
         <span className="result-name">{profile.name}</span>
         <span className="result-role">{profile.role}</span>
@@ -56,3 +60,4 @@ export default function SearchResults({ results, committedQuery}: SearchResultsP
     </div>
   );
 }
+

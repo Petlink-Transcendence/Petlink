@@ -7,6 +7,43 @@
   gap: 1.25rem;
 }
 
+/* ── Empty / welcome state ── */
+
+/* Welcome card */
+.discover-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Large icon */
+.discover-icon {
+  font-size: 2.5rem;
+}
+
+/* Welcome heading */
+.discover-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: black;
+  margin: 0;
+}
+
+/* Welcome subtext */
+.discover-text {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+  max-width: 22rem;
+  line-height: 1.5;
+}
+
 /* ── Results section ── */
 
 .results-section {
@@ -139,5 +176,9 @@
   color: white;
 }
 
-
-
+/* ── Responsiveness ── */
+@media (max-width: 48rem) {
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  }
+}
