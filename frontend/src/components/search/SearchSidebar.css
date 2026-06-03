@@ -102,3 +102,34 @@
 .search-btn:hover {
   background: var(--social-bg);
 }
+
+/* Filter pill row */
+.filter-pills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Filter pill button */
+.filter-pill {
+  background: #f5f5f5;
+  border: none;
+  padding: 0.35rem 0.85rem;
+  border-radius: 1.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.filter-pill:hover {
+  background: rgba(219, 182, 121, 0.15);
+  color: var(--petlink-tan);
+}
+
+/* Active filter pill */
+.filter-pill.active {
+  background: var(--petlink-tan);
+  color: white;
+}

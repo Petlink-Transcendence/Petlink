@@ -17,6 +17,7 @@ const allProfiles = [
 export default function Search() {
   const [query, setQuery] = useState('');
   const [committedQuery, setCommittedQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
     document.title = 'Search | PetLink';
@@ -38,8 +39,13 @@ export default function Search() {
       p.name.toLowerCase().includes(q) ||
       p.role.toLowerCase().includes(q) ||
       p.location.toLowerCase().includes(q);
+    
+      const matchesFilter =
+      activeFilter === 'All' ||
+      (activeFilter === 'Sitters' && /sitter|walker/i.test(p.role)) ||
+      (activeFilter === 'Owners'  && /owner/i.test(p.role));
 
-    return matchesQuery;
+    return matchesQuery && matchesFilter;
   });
 
   return (
@@ -49,6 +55,8 @@ export default function Search() {
           query={query}
           onQueryChange={setQuery}
           onCommit={commitSearch}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
            />
         <SearchResults
           results={filteredResults}
