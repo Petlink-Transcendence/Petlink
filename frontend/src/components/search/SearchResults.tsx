@@ -81,4 +81,3 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
     </div>
   );
 }
-

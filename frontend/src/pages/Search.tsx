@@ -49,8 +49,8 @@ export default function Search() {
       p.name.toLowerCase().includes(q) ||
       p.role.toLowerCase().includes(q) ||
       p.location.toLowerCase().includes(q);
-    
-      const matchesFilter =
+
+    const matchesFilter =
       activeFilter === 'All' ||
       (activeFilter === 'Sitters' && /sitter|walker/i.test(p.role)) ||
       (activeFilter === 'Owners'  && /owner/i.test(p.role));
