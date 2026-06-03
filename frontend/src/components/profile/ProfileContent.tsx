@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './ProfileContent.css';
+import CreatePost from '../homepage/CreatePostContainer.tsx'
 
 type Post = {
   id: number;
@@ -37,6 +38,7 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
 
   return (
     <div className="profile-right">
+      <CreatePost></CreatePost>
       <div className="profile-tabs">
         <button
           className={`tab-btn ${activeTab === 'posts' ? 'active' : ''}`}

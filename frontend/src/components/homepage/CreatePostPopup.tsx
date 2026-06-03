@@ -83,7 +83,7 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
                     <div 
                         contentEditable
                         className='post-text-input'
-                        data-placeholder="What's on your pet's mind? *"
+                        data-placeholder="What's on your mind? *"
                         onInput={(e) => setText(e.currentTarget.textContent || '')}
                         onBlur={(e) => {
                             if (!e.currentTarget.textContent?.trim()) {

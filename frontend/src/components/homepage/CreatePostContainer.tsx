@@ -10,7 +10,7 @@ export default function CreatePost() {
 			<div className="create-post" onClick={() => setIsPostOpen(true)}>
 			<div
 				className="create-post-input"
-				data-placeholder="What's on your pet's mind?"
+				data-placeholder="What's on your mind?"
 			/>
 		</div>
 		{isPostOpen && (
