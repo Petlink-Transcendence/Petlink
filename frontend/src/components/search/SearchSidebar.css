@@ -62,6 +62,7 @@
   border-color: var(--petlink-tan);
   box-shadow: 0 0 0 0.125rem rgba(219, 182, 121, 0.2);
   background: white;
+  color: black;
 }
 
 .search-input::placeholder {
@@ -190,6 +191,23 @@
   gap: 0.4rem;
 }
 
+/* Suggestion chip */
+.suggestion-chip {
+  background: rgba(219, 182, 121, 0.1);
+  border: none;
+  color: var(--petlink-tan);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.suggestion-chip:hover {
+  background: var(--petlink-tan);
+  color: white;
+}
 
 /* ── Responsiveness ── */
 @media (max-width: 48rem) {

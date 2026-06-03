@@ -25,6 +25,7 @@ export default function SearchSidebar({
   onSelectRecent,
   onRemoveRecent,
   suggestions,
+  onSelectSuggestion,
 }: SearchSidebarProps) {
   return (
     <aside className="search-sidebar">
@@ -79,6 +80,20 @@ export default function SearchSidebar({
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {query === '' && (
+        <div className="search-card">
+          <h3 className="search-card-title">Try searching for</h3>
+          <div className="suggestion-list">
+            {suggestions.map((s, i) => (
+              <button key={i} className="suggestion-chip" onClick={() => onSelectSuggestion(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
