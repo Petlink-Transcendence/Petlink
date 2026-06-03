@@ -101,7 +101,6 @@
 
 .search-btn:hover {
   background: var(--social-bg);
-<<<<<<< HEAD
 }
 
 /* Filter pill row */
@@ -216,6 +215,3 @@
     width: 100%;
   }
 }
-=======
-}
->>>>>>> caa15d2 (created search bar)
