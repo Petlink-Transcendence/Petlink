@@ -16,7 +16,7 @@
 
 /* --- sidebar --- */
 .chat-sidebar {
-    width: 18rem;
+    width: 25rem;
     height: 100%;
     position: sticky;
     padding-top: 6.25rem;
@@ -56,9 +56,10 @@
 /*--- sidebar title ---*/
 .title {
   color: white;
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   padding-top: 1.875rem;
   padding-bottom: 1.875rem;
+  font-weight: 800;
 }
 
 .title-messages {
