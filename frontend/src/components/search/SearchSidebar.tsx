@@ -29,6 +29,8 @@ export default function SearchSidebar({
 }: SearchSidebarProps) {
   return (
     <aside className="search-sidebar">
+
+      {/* Search input */}
       <div className="search-card">
         <h3 className="search-card-title">Search</h3>
         <div className="search-input-wrapper">
