@@ -4,20 +4,26 @@ import SearchSidebar from '../components/search/SearchSidebar';
 import SearchResults from '../components/search/SearchResults';
 
 const allProfiles = [
-  { id: 1, name: 'Isa Tootill',       role: 'Cat Sitter',  location: 'Porto, PT',   rating: '4.9' },
-  { id: 2, name: 'Gabriel LaRocque',  role: 'Dog Walker',  location: 'Lisbon, PT',  rating: '4.7' },
-  { id: 3, name: 'Ricardo Garcia',    role: 'Pet Sitter',  location: 'Braga, PT',   rating: '5.0' },
-  { id: 4, name: 'Jane Doe',          role: 'Pet Owner',   location: 'Porto, PT'                  },
-  { id: 5, name: 'João Silva',        role: 'Cat Sitter',  location: 'Porto, PT',   rating: '4.8' },
-  { id: 6, name: 'João Vieira',       role: 'Dog Sitter',  location: 'Porto, PT',   rating: '4.6' },
-  { id: 7, name: 'Inês Sousa',        role: 'Cat Walker',  location: 'Lisbon, PT',  rating: '4.5' },
-  { id: 8, name: 'John Smith',        role: 'Pet Owner',   location: 'Lisbon, PT'                 },
+  { id: 1, name: 'Ana Costa',    role: 'Cat Sitter',  location: 'Porto, PT',   rating: '4.9' },
+  { id: 2, name: 'Miguel Reis',  role: 'Dog Walker',  location: 'Lisbon, PT',  rating: '4.7' },
+  { id: 3, name: 'Sara Mendes',  role: 'Pet Sitter',  location: 'Braga, PT',   rating: '5.0' },
+  { id: 4, name: 'Jane Doe',     role: 'Pet Owner',   location: 'Porto, PT'                  },
+  { id: 5, name: 'João Silva',   role: 'Cat Sitter',  location: 'Porto, PT',   rating: '4.8' },
+  { id: 6, name: 'Rui Faria',    role: 'Dog Sitter',  location: 'Porto, PT',   rating: '4.6' },
+  { id: 7, name: 'Inês Sousa',   role: 'Cat Walker',  location: 'Lisbon, PT',  rating: '4.5' },
+  { id: 8, name: 'John Smith',   role: 'Pet Owner',   location: 'Lisbon, PT'                 },
 ];
+
+const featuredProfiles = allProfiles.slice(0, 4);
+
+const suggestions = ['Cat Sitter', 'Dog Walker', 'Porto', 'Lisbon', 'Grooming', 'Overnight Stay', 'Rabbits'];
 
 export default function Search() {
   const [query, setQuery] = useState('');
   const [committedQuery, setCommittedQuery] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
     document.title = 'Search | PetLink';
@@ -28,6 +34,10 @@ export default function Search() {
     if (!trimmed) return;
     setQuery(trimmed);
     setCommittedQuery(trimmed);
+    setHasSearched(true);
+    setRecentSearches(prev =>
+      [trimmed, ...prev.filter(s => s !== trimmed)].slice(0, 5)
+    );
   };
 
   const handleRemoveRecent = (s: string) =>
@@ -39,8 +49,8 @@ export default function Search() {
       p.name.toLowerCase().includes(q) ||
       p.role.toLowerCase().includes(q) ||
       p.location.toLowerCase().includes(q);
-    
-      const matchesFilter =
+
+    const matchesFilter =
       activeFilter === 'All' ||
       (activeFilter === 'Sitters' && /sitter|walker/i.test(p.role)) ||
       (activeFilter === 'Owners'  && /owner/i.test(p.role));
@@ -57,10 +67,17 @@ export default function Search() {
           onCommit={commitSearch}
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
-           />
+          recentSearches={recentSearches}
+          onSelectRecent={commitSearch}
+          onRemoveRecent={handleRemoveRecent}
+          suggestions={suggestions}
+          onSelectSuggestion={commitSearch}
+        />
         <SearchResults
           results={filteredResults}
           committedQuery={committedQuery}
+          hasSearched={hasSearched}
+          featuredProfiles={featuredProfiles}
         />
       </div>
     </div>

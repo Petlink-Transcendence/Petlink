@@ -6,6 +6,11 @@ type SearchSidebarProps = {
   onCommit: (q: string) => void;
   activeFilter: string;
   onFilterChange: (f: string) => void;
+  recentSearches: string[];
+  onSelectRecent: (s: string) => void;
+  onRemoveRecent: (s: string) => void;
+  suggestions: string[];
+  onSelectSuggestion: (s: string) => void;
 };
 
 const filters = ['All', 'Sitters', 'Owners'];
@@ -16,6 +21,10 @@ export default function SearchSidebar({
   onCommit,
   activeFilter,
   onFilterChange,
+  recentSearches,
+  onSelectRecent,
+  onRemoveRecent,
+  suggestions,
 }: SearchSidebarProps) {
   return (
     <aside className="search-sidebar">
@@ -55,6 +64,24 @@ export default function SearchSidebar({
           ))}
         </div>
       </div>
+
+      {/* Recent searches */}
+      {recentSearches.length > 0 && (
+        <div className="search-card">
+          <h3 className="search-card-title">Recent Searches</h3>
+          <ul className="recent-list">
+            {recentSearches.map((s, i) => (
+              <li key={i} className="recent-item">
+                <button className="recent-text" onClick={() => onSelectRecent(s)}>
+                  🕐 {s}
+                </button>
+                <button className="recent-remove" onClick={() => onRemoveRecent(s)} title="Remove">✕</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
     </aside>
   );
 }

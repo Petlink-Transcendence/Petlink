@@ -11,6 +11,8 @@ type Profile = {
 type SearchResultsProps = {
   results: Profile[];
   committedQuery: string;
+  hasSearched: boolean;
+  featuredProfiles: Profile[];
 };
 
 function initials(name: string) {
@@ -33,7 +35,26 @@ function ProfileCard({ profile }: { profile: Profile }) {
   );
 }
 
-export default function SearchResults({ results, committedQuery}: SearchResultsProps) {
+export default function SearchResults({ results, committedQuery, hasSearched, featuredProfiles }: SearchResultsProps) {
+
+  if (!hasSearched) {
+    return (
+      <div className="search-results">
+        <div className="discover-card">
+          <span className="discover-icon">🐾</span>
+          <h3 className="discover-title">Find your perfect match</h3>
+          <p className="discover-text">Search for pet sitters, dog walkers, and pet owners near you.</p>
+        </div>
+
+        <div className="results-section">
+          <h3 className="section-title">People you might know</h3>
+          <div className="results-grid">
+            {featuredProfiles.map(p => <ProfileCard key={p.id} profile={p} />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (results.length === 0) {
     return (
@@ -60,4 +81,3 @@ export default function SearchResults({ results, committedQuery}: SearchResultsP
     </div>
   );
 }
-
