@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import './Search.css';
+import SearchSidebar from '../components/search/SearchSidebar';
+
 
 export default function Search() {
 
@@ -9,7 +11,9 @@ export default function Search() {
 
     return (
     <div className="search-page">
-      <div className="search-body"></div>
+      <div className="search-body">
+        <SearchSidebar/>
+      </div>
     </div>
     );
 }
