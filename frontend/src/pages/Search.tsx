@@ -55,11 +55,6 @@ export default function Search() {
       (activeFilter === 'Sitters' && /sitter|walker/i.test(p.role)) ||
       (activeFilter === 'Owners'  && /owner/i.test(p.role));
 
-    const matchesFilter =
-      activeFilter === 'All' ||
-      (activeFilter === 'Sitters' && /sitter|walker/i.test(p.role)) ||
-      (activeFilter === 'Owners'  && /owner/i.test(p.role));
-
     return matchesQuery && matchesFilter;
   });
 
