@@ -1,4 +1,7 @@
 import './ProfileInfoBar.css';
+import React from 'react'; 
+import { useState } from 'react'
+import FollowsContainer from '../Follows.tsx'
 
 type Stat = { value: string | number; label: string };
 type Action = { label: string; variant: 'primary' | 'secondary' };
@@ -13,6 +16,20 @@ type ProfileInfoBarProps = {
 };
 
 export default function ProfileInfoBar({ name, username, role, bio, stats, actions }: ProfileInfoBarProps) {
+  const [isFollowsOpen, setisFollowsOpen] = useState(false);
+
+  const handleStatClick = (label: string) => {
+    const lowerLabel = label.toLocaleLowerCase();
+
+    if (lowerLabel === 'posts' ||
+        lowerLabel === 'rating' ||
+        lowerLabel === 'reviews' ||
+        lowerLabel === 'bookings') { 
+      return; 
+    }    
+    setisFollowsOpen(true);
+  }
+
   return (
     <div className="profile-info-bar">
       <div className="profile-info-top">
@@ -36,16 +53,29 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
       </div>
 
       <div className="profile-stats">
-        {stats.map((s, i) => (
-          <>
-            {i > 0 && <div key={`div-${i}`} className="stat-divider" />}
-            <div key={s.label} className="stat-item">
-              <span className="stat-value">{s.value}</span>
-              <span className="stat-label">{s.label}</span>
-            </div>
-          </>
-        ))}
+        {stats.map((s, i) => {
+          const isPosts = s.label.toLowerCase() === 'posts';
+          const isReviews = s.label.toLowerCase() === 'reviews';
+          const isRating = s.label.toLowerCase() === 'rating';
+          const isBookings = s.label.toLowerCase() === 'bookings';
+          
+          return (
+            <React.Fragment key={`stat-group-${s.label}`}>
+              {i > 0 && <div className="stat-divider" />}
+              <div 
+                className={`stat-item ${(isPosts || isReviews || isRating || isBookings) ? 'non-clickable' : 'clickable'}`} 
+                onClick={() => handleStatClick(s.label)}
+              >
+                <span className="stat-value">{s.value}</span>
+                <span className="stat-label">{s.label}</span>
+              </div>
+            </React.Fragment>
+          );
+        })}  
       </div>
+      {isFollowsOpen && (
+        <FollowsContainer onClose={() => setisFollowsOpen(false)} />
+      )}
     </div>
   );
 }
