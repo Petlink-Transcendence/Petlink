@@ -68,11 +68,14 @@
 }
 
 /* Post header with avatar and author info */
-.post-header {
+.profile-post-card .post-header {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.6rem;
   margin-bottom: 0.75rem;
+  padding: 0;
+  border-bottom: 0;
 }
 
 /* Post author avatar */
