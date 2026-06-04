@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
+import Reviews from './pages/Reviews';
 import SitterProfile from './pages/SitterProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
@@ -53,6 +54,12 @@ function App() {
           <Route path="/notifications" element={
             <ProtectedRoute>
               <Notifications />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/reviews" element={
+            <ProtectedRoute>
+              <Reviews />
             </ProtectedRoute>
           } />
         </Routes>
