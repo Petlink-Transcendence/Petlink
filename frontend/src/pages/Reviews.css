@@ -122,3 +122,33 @@
   background: var(--petlink-tan);
   color: white;
 }
+
+@media (max-width: 64rem) {
+  .reviews-page {
+    padding-top: 6.25rem;
+  }
+
+  .reviews-shell {
+    padding: 1rem;
+  }
+
+  .reviews-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 42rem) {
+  .reviews-hero h1 {
+    font-size: 1.25rem;
+  }
+
+  .reviews-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reviews-filters {
+    justify-content: flex-start;
+  }
+
+}

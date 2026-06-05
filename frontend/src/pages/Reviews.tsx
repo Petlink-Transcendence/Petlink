@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import './Reviews.css';
 import ReviewCard, { type Review } from '../components/reviews/ReviewCard';
+import ReviewsSummary from '../components/reviews/ReviewsSummary';
+
 
 type RatingFilter = 'all' | '5' | '4' | '3';
 
@@ -69,6 +71,14 @@ export default function Reviews() {
       : reviews.filter(review => review.rating === rating);
   }, [activeFilter, reviews]);
 
+    const averageRating = useMemo(() => {
+    const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+    return (total / reviews.length).toFixed(1);
+  }, [reviews]);
+
+  const fiveStarReviews = reviews.filter(review => review.rating === 5).length;
+
+
   return (
     <div className="reviews-page">
       <main className="reviews-shell">
@@ -77,6 +87,12 @@ export default function Reviews() {
             <h2>My <span>Reviews</span></h2>
           </div>
         </section>
+
+        <ReviewsSummary
+          averageRating={averageRating}
+          totalReviews={reviews.length}
+          fiveStarReviews={fiveStarReviews}
+        />
 
         <div className="reviews-layout">
           <section className="reviews-list-panel">
