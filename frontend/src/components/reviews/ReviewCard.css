@@ -99,3 +99,13 @@
   line-height: 1.5;
   text-align: left;
 }
+
+@media (max-width: 42rem) {
+  .reviews-card-header {
+    align-items: flex-start;
+  }
+
+  .reviews-time {
+    margin-left: 0;
+  }
+}
