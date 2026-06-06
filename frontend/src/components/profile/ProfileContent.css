@@ -146,7 +146,7 @@
 }
 
 /* Review header with avatar, author, stars and timestamp */
-.review-header {
+.profile-review-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -154,7 +154,7 @@
 }
 
 /* Reviewer avatar */
-.review-avatar {
+.profile-review-avatar {
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 50%;
@@ -169,34 +169,34 @@
 }
 
 /* Reviewer name and stars column */
-.review-author-info {
+.profile-review-author-info {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
 }
 
 /* Reviewer name */
-.review-author {
+.profile-review-author {
   font-size: 0.85rem;
   font-weight: 700;
   color: black;
 }
 
 /* Star rating */
-.review-stars {
+.profile-review-stars {
   font-size: 0.65rem;
   line-height: 1;
 }
 
 /* Review timestamp */
-.review-time {
+.profile-review-time {
   font-size: 0.72rem;
   color: #aaa;
   margin-left: auto;
 }
 
 /* Review body text */
-.review-text {
+.profile-review-text {
   font-size: 0.875rem;
   color: #555;
   margin: 0;

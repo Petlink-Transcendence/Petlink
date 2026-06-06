@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import './Reviews.css';
 import ReviewCard, { type Review } from '../components/reviews/ReviewCard';
+import ReviewForm from '../components/reviews/ReviewForm';
 import ReviewsSummary from '../components/reviews/ReviewsSummary';
-
+import './Reviews.css';
 
 type RatingFilter = 'all' | '5' | '4' | '3';
 
@@ -53,7 +53,7 @@ const filterOptions: { label: string; value: RatingFilter }[] = [
 ];
 
 export default function Reviews() {
-  const [reviews] = useState(initialReviews);
+  const [reviews, setReviews] = useState(initialReviews);
   const [activeFilter, setActiveFilter] = useState<RatingFilter>('all');
 
   useEffect(() => {
@@ -71,13 +71,12 @@ export default function Reviews() {
       : reviews.filter(review => review.rating === rating);
   }, [activeFilter, reviews]);
 
-    const averageRating = useMemo(() => {
+  const averageRating = useMemo(() => {
     const total = reviews.reduce((sum, review) => sum + review.rating, 0);
     return (total / reviews.length).toFixed(1);
   }, [reviews]);
 
   const fiveStarReviews = reviews.filter(review => review.rating === 5).length;
-
 
   return (
     <div className="reviews-page">
@@ -122,6 +121,10 @@ export default function Reviews() {
               ))}
             </div>
           </section>
+
+          <aside className="reviews-side-panel">
+            <ReviewForm onAddReview={review => setReviews(currentReviews => [review, ...currentReviews])} />
+          </aside>
         </div>
       </main>
     </div>
