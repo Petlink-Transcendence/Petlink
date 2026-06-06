@@ -29,9 +29,30 @@ export default function Search() {
     document.title = 'Search | PetLink';
   }, []);
 
+  const resetSearch = () => {
+    setQuery('');
+    setCommittedQuery('');
+    setHasSearched(false);
+    setActiveFilter('All');
+  };
+
+  const handleQueryChange = (term: string) => {
+    setQuery(term);
+
+    if (term.trim() === '') {
+      setCommittedQuery('');
+      setHasSearched(false);
+      setActiveFilter('All');
+    }
+  };
+
   const commitSearch = (term: string) => {
     const trimmed = term.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      resetSearch();
+      return;
+    }
+
     setQuery(trimmed);
     setCommittedQuery(trimmed);
     setHasSearched(true);
@@ -63,7 +84,7 @@ export default function Search() {
       <div className="search-body">
         <SearchSidebar
           query={query}
-          onQueryChange={setQuery}
+          onQueryChange={handleQueryChange}
           onCommit={commitSearch}
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
