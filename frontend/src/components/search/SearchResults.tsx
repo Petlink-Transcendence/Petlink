@@ -36,15 +36,12 @@ function ProfileCard({ profile }: { profile: Profile }) {
 }
 
 export default function SearchResults({ results, committedQuery, hasSearched, featuredProfiles }: SearchResultsProps) {
+  const resultCount = results.length;
 
   if (!hasSearched) {
     return (
       <div className="search-results">
-        <div className="discover-card">
-          <span className="discover-icon">🐾</span>
-          <h3 className="discover-title">Find your perfect match</h3>
-          <p className="discover-text">Search for pet sitters, dog walkers, and pet owners near you.</p>
-        </div>
+        <DiscoverCard />
 
         <div className="results-section">
           <h3 className="section-title">People you might know</h3>
@@ -59,10 +56,11 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
   if (results.length === 0) {
     return (
       <div className="search-results">
-        <div className="discover-card">
-          <span className="discover-icon">🔍</span>
-          <h3 className="discover-title">No results for "{committedQuery}"</h3>
-          <p className="discover-text">Try a different name, role, or location.</p>
+        <DiscoverCard />
+        <div className="empty-results-card">
+          <span className="empty-results-icon">🔍</span>
+          <h3 className="empty-results-title">No results for "{committedQuery}"</h3>
+          <p className="empty-results-text">Try a different name, role, or location.</p>
         </div>
       </div>
     );
@@ -70,14 +68,25 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
 
   return (
     <div className="search-results">
+      <DiscoverCard />
       <div className="results-section">
         <h3 className="section-title">
-          {results.length} result{results.length !== 1 ? 's' : ''} for "{committedQuery}"
+          {resultCount} result{resultCount !== 1 ? 's' : ''} for "{committedQuery}"
         </h3>
         <div className="results-grid">
           {results.map(p => <ProfileCard key={p.id} profile={p} />)}
         </div>
       </div>
+    </div>
+  );
+}
+
+function DiscoverCard() {
+  return (
+    <div className="discover-card">
+      <span className="discover-icon">🐾</span>
+      <h3 className="discover-title">Find your perfect match</h3>
+      <p className="discover-text">Search for pet sitters, dog walkers, and pet owners near you.</p>
     </div>
   );
 }
