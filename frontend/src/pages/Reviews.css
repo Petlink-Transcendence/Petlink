@@ -41,7 +41,7 @@
   font-weight: 800;
 }
 
-/* Review Card */
+/* Layout */
 
 .reviews-layout {
   display: grid;
@@ -50,7 +50,8 @@
   align-items: start;
 }
 
-.reviews-list-panel {
+.reviews-list-panel,
+.reviews-side-panel {
   min-width: 0;
 }
 
@@ -105,16 +106,13 @@
 .reviews-filters button {
   border: none;
   border-radius: 1.25rem;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-}
-
-.reviews-filters button {
   padding: 0.4rem 0.8rem;
   background: rgba(219, 182, 121, 0.12);
   color: var(--petlink-tan);
+  cursor: pointer;
   font-size: 0.75rem;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
 }
 
 .reviews-filters button:hover,
@@ -138,7 +136,7 @@
 }
 
 @media (max-width: 42rem) {
-  .reviews-hero h1 {
+  .reviews-hero h2 {
     font-size: 1.25rem;
   }
 
@@ -150,5 +148,4 @@
   .reviews-filters {
     justify-content: flex-start;
   }
-
 }

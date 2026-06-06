@@ -76,15 +76,15 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
         <div className="tab-content">
           {reviews.map(r => (
             <div key={r.id} className="profile-review-card">
-              <div className="review-header">
-                <div className="review-avatar">{reviewerInitials(r.author)}</div>
-                <div className="review-author-info">
-                  <span className="review-author">{r.author}</span>
-                  <span className="review-stars">{'⭐'.repeat(r.rating)}</span>
+              <div className="profile-review-header">
+                <div className="profile-review-avatar">{reviewerInitials(r.author)}</div>
+                <div className="profile-review-author-info">
+                  <span className="profile-review-author">{r.author}</span>
+                  <span className="profile-review-stars">{'⭐'.repeat(r.rating)}</span>
                 </div>
-                <span className="review-time">{r.time}</span>
+                <span className="profile-review-time">{r.time}</span>
               </div>
-              <p className="review-text">{r.text}</p>
+              <p className="profile-review-text">{r.text}</p>
             </div>
           ))}
         </div>
