@@ -10,6 +10,21 @@ type BookingFilter = 'all' | BookingStatus;
 const ownerBookings: Booking[] = [
   {
     id: 1,
+    personName: 'Daniela Padilha',
+    personRole: 'animal-sitter',
+    petName: 'Jack',
+    petType: 'Dog',
+    service: 'Dog walking',
+    date: '16 Jun 2026',
+    time: '14:00 - 15:00',
+    location: 'Porto, PT',
+    status: 'confirmed',
+    price: '14 EUR',
+    note: 'Daniela is confirmed for Jack\'s afternoon walk. Open the existing chat for the latest details.',
+    chatContactId: 1,
+  },
+  {
+    id: 2,
     personName: 'Ana Costa',
     personRole: 'Cat sitter',
     petName: 'Luna',
@@ -23,7 +38,7 @@ const ownerBookings: Booking[] = [
     note: 'Ana will visit twice and send photo updates after each visit.',
   },
   {
-    id: 2,
+    id: 3,
     personName: 'Miguel Ramos',
     personRole: 'Dog walker',
     petName: 'Buddy',
@@ -37,7 +52,7 @@ const ownerBookings: Booking[] = [
     note: 'Waiting for Miguel to confirm the evening walk.',
   },
   {
-    id: 3,
+    id: 4,
     personName: 'Sara Martins',
     personRole: 'Overnight sitter',
     petName: 'Luna and Buddy',
@@ -49,6 +64,21 @@ const ownerBookings: Booking[] = [
     status: 'completed',
     price: '45 EUR',
     note: 'Completed stay with feeding, walk, and bedtime updates.',
+  },
+  {
+    id: 5,
+    personName: 'Rodrigo Silva',
+    personRole: 'cat owner',
+    petName: 'Quiwi',
+    petType: 'Cat',
+    service: 'Home visits',
+    date: '10 Jun 2026',
+    time: '11:00 - 11:30',
+    location: 'Porto, PT',
+    status: 'cancelled',
+    price: '10 EUR',
+    note: 'Cancelled after Rodrigo changed travel plans. No further action is needed.',
+    chatContactId: 3,
   },
 ];
 
@@ -102,6 +132,7 @@ const filterOptions: { label: string; value: BookingFilter }[] = [
   { label: 'Confirmed', value: 'confirmed' },
   { label: 'Pending', value: 'pending' },
   { label: 'Completed', value: 'completed' },
+  { label: 'Cancelled', value: 'cancelled' },
 ];
 
 function countUpcoming(bookings: Booking[]) {
