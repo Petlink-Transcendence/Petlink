@@ -174,3 +174,143 @@
   color: white;
   transform: translateY(-0.0625rem);
 }
+
+.bookings-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(45, 45, 52, 0.64);
+  box-sizing: border-box;
+}
+
+.bookings-detail-modal {
+  width: min(100%, 42rem);
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.24);
+  padding: 1.25rem;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.bookings-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.125rem solid #f0eeeb;
+}
+
+.bookings-detail-label {
+  color: var(--petlink-tan);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bookings-detail-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.bookings-detail-title h2 {
+  margin: 0;
+  color: black;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.bookings-detail-title .bookings-status {
+  margin-left: 0;
+}
+
+.bookings-detail-close {
+  border: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #f0eeeb;
+  color: var(--social-bg);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: background 0.2s, color 0.2s;
+}
+
+.bookings-detail-close:hover {
+  background: var(--social-bg);
+  color: white;
+}
+
+.bookings-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.bookings-detail-grid div {
+  min-width: 0;
+  padding: 0.8rem;
+  background: #f9f9f9;
+  border-radius: 0.5rem;
+}
+
+.bookings-detail-grid dt {
+  margin: 0 0 0.25rem;
+  color: #888;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bookings-detail-grid dd {
+  margin: 0;
+  color: #333;
+  font-size: 0.875rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.bookings-detail-note {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(219, 182, 121, 0.12);
+  border-radius: 0.5rem;
+}
+
+.bookings-detail-note h3 {
+  margin: 0 0 0.45rem;
+  color: black;
+  font-size: 0.9rem;
+}
+
+.bookings-detail-note p {
+  margin: 0;
+  color: #555;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 42rem) {
+  .bookings-detail-overlay {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .bookings-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
