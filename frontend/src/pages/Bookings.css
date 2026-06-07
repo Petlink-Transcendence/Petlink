@@ -38,3 +38,64 @@
   color: var(--petlink-tan);
   font-weight: 800;
 }
+
+.bookings-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.bookings-list-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  border-bottom: 0.125rem solid #f0eeeb;
+}
+
+.bookings-list-header h2 {
+  margin: 0;
+  color: black;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.bookings-list-header p {
+  margin: 0.25rem 0 0;
+  color: #888;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 64rem) {
+  .bookings-page {
+    padding-top: 6.25rem;
+  }
+
+  .bookings-shell {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 42rem) {
+  .bookings-hero h2 {
+    font-size: 1.25rem;
+  }
+
+  .bookings-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
