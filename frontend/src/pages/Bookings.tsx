@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import BookingCard, { type Booking, type BookingStatus } from '../components/bookings/BookingCard';
 import BookingsSidePanel from '../components/bookings/BookingsSidePanel';
 import BookingsSummary from '../components/bookings/BookingsSummary';
+import NewBookingPopup, { type NewBookingFormData } from '../components/bookings/NewBookingPopup';
 import './Bookings.css';
 
 type BookingLayout = 'owner' | 'sitter';
@@ -139,15 +140,28 @@ function countUpcoming(bookings: Booking[]) {
   return bookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending').length;
 }
 
+function formatBookingDate(value: string) {
+  const [year, month, day] = value.split('-');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  return `${Number(day)} ${monthNames[Number(month) - 1]} ${year}`;
+}
+
 export default function Bookings() {
   const [activeLayout, setActiveLayout] = useState<BookingLayout>('owner');
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
+  const [ownerBookingList, setOwnerBookingList] = useState(ownerBookings);
+  const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
   }, []);
 
-  const bookings = activeLayout === 'owner' ? ownerBookings : sitterBookings;
+  const bookings = activeLayout === 'owner' ? ownerBookingList : sitterBookings;
 
   const filteredBookings = useMemo(() => {
     if (activeFilter === 'all') {
@@ -166,6 +180,33 @@ export default function Bookings() {
 
   const handleLayoutChange = (layout: BookingLayout) => {
     setActiveLayout(layout);
+    setActiveFilter('all');
+  };
+
+  const handleCreateBooking = (booking: NewBookingFormData) => {
+    setOwnerBookingList(currentBookings => {
+      const nextId = Math.max(0, ...currentBookings.map(currentBooking => currentBooking.id)) + 1;
+
+      return [
+        {
+          id: nextId,
+          personName: booking.sitter,
+          personRole: 'Pet sitter',
+          petName: booking.pet,
+          petType: 'Pet',
+          service: booking.service,
+          date: formatBookingDate(booking.date),
+          time: booking.time,
+          location: booking.location,
+          status: 'pending',
+          price: 'Pending',
+          note: booking.notes || 'No notes added.',
+        },
+        ...currentBookings,
+      ];
+    });
+
+    setActiveLayout('owner');
     setActiveFilter('all');
   };
 
@@ -233,9 +274,20 @@ export default function Bookings() {
           </section>
 
           <section className="bookings-side-panel">
-            <BookingsSidePanel layout={activeLayout} nextBooking={bookings[0]} />
+            <BookingsSidePanel
+              layout={activeLayout}
+              nextBooking={bookings[0]}
+              onNewBookingClick={() => setIsNewBookingOpen(true)}
+            />
           </section>
         </div>
+
+        {isNewBookingOpen && (
+          <NewBookingPopup
+            onClose={() => setIsNewBookingOpen(false)}
+            onCreateBooking={handleCreateBooking}
+          />
+        )}
       </main>
     </div>
   );
