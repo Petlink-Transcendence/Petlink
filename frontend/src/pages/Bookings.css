@@ -1,0 +1,40 @@
+.bookings-page {
+  min-height: 100vh;
+  background-color: var(--social-bg);
+  padding: 6.25rem 0 0;
+  box-sizing: border-box;
+}
+
+.bookings-shell {
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 5% 2.5rem;
+  box-sizing: border-box;
+}
+
+.bookings-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.bookings-hero h2 {
+  font-size: 2.25rem;
+  color: var(--social-bg);
+  margin: 0;
+  text-align: left;
+  font-weight: 800;
+  padding-bottom: 1rem;
+}
+
+.bookings-hero h2 span {
+  color: var(--petlink-tan);
+  font-weight: 800;
+}
