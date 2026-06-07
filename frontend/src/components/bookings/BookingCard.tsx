@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import './BookingCard.css';
 
 export type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
@@ -15,6 +16,7 @@ export type Booking = {
   status: BookingStatus;
   price: string;
   note: string;
+  chatContactId?: number;
 };
 
 type BookingCardProps = {
@@ -38,6 +40,20 @@ function initials(name: string): string {
 }
 
 export default function BookingCard({ booking }: BookingCardProps) {
+  const navigate = useNavigate();
+
+  const handleMessageClick = () => {
+    navigate('/chat', {
+      state: {
+        contact: {
+          id: booking.chatContactId,
+          name: booking.personName,
+          role: booking.personRole,
+        },
+      },
+    });
+  };
+
   return (
     <article className="bookings-card">
       <header className="bookings-card-header">
@@ -78,7 +94,7 @@ export default function BookingCard({ booking }: BookingCardProps) {
       <p className="bookings-note">{booking.note}</p>
 
       <div className="bookings-actions" aria-label="Booking actions">
-        <button type="button">Message</button>
+        <button type="button" onClick={handleMessageClick}>Message</button>
         <button type="button" className="secondary">View Details</button>
       </div>
     </article>
