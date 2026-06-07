@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import BookingCard, { type Booking, type BookingStatus } from '../components/bookings/BookingCard';
+import BookingsSidePanel from '../components/bookings/BookingsSidePanel';
 import './Bookings.css';
 
 type BookingFilter = 'all' | BookingStatus;
+type BookingLayout = 'owner' | 'sitter';
 
 const initialBookings: Booking[] = [
   {
@@ -87,6 +89,7 @@ const filterOptions: { label: string; value: BookingFilter }[] = [
 
 export default function Bookings() {
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
+  const [bookingLayout, setBookingLayout] = useState<BookingLayout>('sitter');
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
@@ -100,6 +103,11 @@ export default function Bookings() {
     return initialBookings.filter(booking => booking.status === activeFilter);
   }, [activeFilter]);
 
+  const nextBooking = useMemo(
+    () => initialBookings.find(booking => booking.status === 'confirmed' || booking.status === 'pending'),
+    []
+  );
+
   return (
     <div className="bookings-page">
       <main className="bookings-shell">
@@ -107,35 +115,60 @@ export default function Bookings() {
           <div>
             <h2>My <span>Bookings</span></h2>
           </div>
+
+          <div className="bookings-view-toggle" aria-label="Choose booking view">
+            <button
+              type="button"
+              className={bookingLayout === 'owner' ? 'active' : ''}
+              aria-pressed={bookingLayout === 'owner'}
+              onClick={() => setBookingLayout('owner')}
+            >
+              Pet Owner
+            </button>
+            <button
+              type="button"
+              className={bookingLayout === 'sitter' ? 'active' : ''}
+              aria-pressed={bookingLayout === 'sitter'}
+              onClick={() => setBookingLayout('sitter')}
+            >
+              Pet Sitter
+            </button>
+          </div>
         </section>
 
-        <section className="bookings-list-panel">
-          <div className="bookings-list-header">
-            <div>
-              <h2>Recent Bookings</h2>
-              <p>{filteredBookings.length} matching bookings</p>
+        <div className="bookings-layout">
+          <section className="bookings-list-panel">
+            <div className="bookings-list-header">
+              <div>
+                <h2>Recent Bookings</h2>
+                <p>{filteredBookings.length} matching bookings</p>
+              </div>
+
+              <div className="bookings-filters" aria-label="Filter bookings by status">
+                {filterOptions.map(option => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={activeFilter === option.value ? 'active' : ''}
+                    onClick={() => setActiveFilter(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="bookings-filters" aria-label="Filter bookings by status">
-              {filterOptions.map(option => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={activeFilter === option.value ? 'active' : ''}
-                  onClick={() => setActiveFilter(option.value)}
-                >
-                  {option.label}
-                </button>
+            <div className="bookings-list">
+              {filteredBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} />
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className="bookings-list">
-            {filteredBookings.map(booking => (
-              <BookingCard key={booking.id} booking={booking} />
-            ))}
+          <div className="bookings-side-panel">
+            <BookingsSidePanel layout={bookingLayout} nextBooking={nextBooking} />
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );

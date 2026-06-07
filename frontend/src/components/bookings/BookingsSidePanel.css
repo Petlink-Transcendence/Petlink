@@ -1,0 +1,118 @@
+.bookings-side-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  position: sticky;
+  top: 7.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.bookings-side-heading h2 {
+  margin: 0;
+  color: black;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.bookings-side-heading p {
+  margin: 0.35rem 0 0;
+  color: #777;
+  font-size: 0.8125rem;
+}
+
+.bookings-next {
+  padding: 1rem;
+  background: rgba(219, 182, 121, 0.12);
+  border-radius: 0.5rem;
+}
+
+.bookings-next-label {
+  color: var(--petlink-tan);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bookings-next h3 {
+  margin: 0.35rem 0 0.45rem;
+  color: black;
+  font-size: 0.95rem;
+}
+
+.bookings-next p {
+  margin: 0.2rem 0 0;
+  color: #555;
+  font-size: 0.8125rem;
+}
+
+.bookings-checklist {
+  border-top: 1px solid #f0eeeb;
+  padding-top: 1rem;
+}
+
+.bookings-checklist h3 {
+  margin: 0 0 0.65rem;
+  color: black;
+  font-size: 0.9rem;
+}
+
+.bookings-checklist ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bookings-checklist li {
+  color: #555;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.bookings-checklist li::before {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--petlink-tan);
+  vertical-align: 0.1rem;
+}
+
+.bookings-panel-action {
+  border: none;
+  border-radius: 1.25rem;
+  align-self: flex-start;
+  padding: 0.55rem 1rem;
+  background: var(--petlink-tan);
+  color: white;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.bookings-panel-action:hover {
+  background: var(--social-bg);
+  transform: translateY(-0.0625rem);
+}
+
+@media (max-width: 64rem) {
+  .bookings-side-card {
+    position: static;
+  }
+}
+
+@media (max-width: 42rem) {
+  .bookings-panel-action {
+    width: 100%;
+  }
+}

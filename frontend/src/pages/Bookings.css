@@ -39,10 +39,48 @@
   font-weight: 800;
 }
 
+.bookings-view-toggle {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: #f0eeeb;
+  border-radius: 1.5rem;
+}
+
+.bookings-view-toggle button {
+  border: none;
+  border-radius: 1.25rem;
+  min-width: 6.75rem;
+  padding: 0.45rem 0.9rem;
+  background: transparent;
+  color: #777;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.bookings-view-toggle button:hover,
+.bookings-view-toggle button.active {
+  background: var(--petlink-tan);
+  color: white;
+}
+
+.bookings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: 1.25rem;
+  align-items: start;
+}
+
 .bookings-list-panel {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-width: 0;
+}
+
+.bookings-side-panel {
   min-width: 0;
 }
 
@@ -112,11 +150,30 @@
   .bookings-shell {
     padding: 1rem;
   }
+
+  .bookings-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 42rem) {
+  .bookings-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .bookings-hero h2 {
     font-size: 1.25rem;
+  }
+
+  .bookings-view-toggle {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .bookings-view-toggle button {
+    flex: 1;
+    min-width: 0;
   }
 
   .bookings-list-header {
