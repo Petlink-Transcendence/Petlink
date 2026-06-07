@@ -79,6 +79,31 @@
   gap: 1rem;
 }
 
+.bookings-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.bookings-filters button {
+  border: none;
+  border-radius: 1.25rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(219, 182, 121, 0.12);
+  color: var(--petlink-tan);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.bookings-filters button:hover,
+.bookings-filters button.active {
+  background: var(--petlink-tan);
+  color: white;
+}
+
 @media (max-width: 64rem) {
   .bookings-page {
     padding-top: 6.25rem;
@@ -97,5 +122,9 @@
   .bookings-list-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .bookings-filters {
+    justify-content: flex-start;
   }
 }

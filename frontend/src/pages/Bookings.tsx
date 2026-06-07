@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
-import BookingCard, { type Booking } from '../components/bookings/BookingCard';
+import { useEffect, useMemo, useState } from 'react';
+import BookingCard, { type Booking, type BookingStatus } from '../components/bookings/BookingCard';
 import './Bookings.css';
+
+type BookingFilter = 'all' | BookingStatus;
 
 const initialBookings: Booking[] = [
   {
@@ -59,12 +61,44 @@ const initialBookings: Booking[] = [
     price: '€45',
     note: 'Overnight care with hay refill, enclosure cleaning, and medication before bedtime.',
   },
+  {
+    id: 5,
+    personName: 'Beatriz Costa',
+    personRole: 'Pet owner',
+    petName: 'Milo',
+    petType: 'Dog',
+    service: 'Dog walking',
+    date: 'June 24, 2026',
+    time: '5:00 PM',
+    location: 'Lisbon, PT',
+    status: 'cancelled',
+    price: '€16',
+    note: 'Cancelled by the owner after a schedule change. No action is needed.',
+  },
+];
+
+const filterOptions: { label: string; value: BookingFilter }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Confirmed', value: 'confirmed' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Completed', value: 'completed' },
+  { label: 'Cancelled', value: 'cancelled' },
 ];
 
 export default function Bookings() {
+  const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
+
   useEffect(() => {
     document.title = 'Bookings | PetLink';
   }, []);
+
+  const filteredBookings = useMemo(() => {
+    if (activeFilter === 'all') {
+      return initialBookings;
+    }
+
+    return initialBookings.filter(booking => booking.status === activeFilter);
+  }, [activeFilter]);
 
   return (
     <div className="bookings-page">
@@ -79,12 +113,25 @@ export default function Bookings() {
           <div className="bookings-list-header">
             <div>
               <h2>Recent Bookings</h2>
-              <p>{initialBookings.length} bookings</p>
+              <p>{filteredBookings.length} matching bookings</p>
+            </div>
+
+            <div className="bookings-filters" aria-label="Filter bookings by status">
+              {filterOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={activeFilter === option.value ? 'active' : ''}
+                  onClick={() => setActiveFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
 
           <div className="bookings-list">
-            {initialBookings.map(booking => (
+            {filteredBookings.map(booking => (
               <BookingCard key={booking.id} booking={booking} />
             ))}
           </div>
