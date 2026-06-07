@@ -1,81 +1,99 @@
 import { useEffect, useMemo, useState } from 'react';
 import BookingCard, { type Booking, type BookingStatus } from '../components/bookings/BookingCard';
 import BookingsSidePanel from '../components/bookings/BookingsSidePanel';
+import BookingsSummary from '../components/bookings/BookingsSummary';
 import './Bookings.css';
 
-type BookingFilter = 'all' | BookingStatus;
 type BookingLayout = 'owner' | 'sitter';
+type BookingFilter = 'all' | BookingStatus;
 
-const initialBookings: Booking[] = [
+const ownerBookings: Booking[] = [
   {
     id: 1,
-    personName: 'Rodrigo Silva',
-    personRole: 'Cat owner',
+    personName: 'Ana Costa',
+    personRole: 'Cat sitter',
     petName: 'Luna',
-    petType: 'Cat',
+    petType: 'Bengal Cat',
     service: 'Cat sitting',
-    date: 'June 12, 2026',
-    time: '6:00 PM',
-    location: 'Lisbon, PT',
+    date: '18 Jun 2026',
+    time: '09:00 - 18:00',
+    location: 'Porto, PT',
     status: 'confirmed',
-    price: '€28',
-    note: 'Evening visit with feeding, litter refresh, and a short photo update after the visit.',
+    price: '20 EUR',
+    note: 'Ana will visit twice and send photo updates after each visit.',
   },
   {
     id: 2,
-    personName: 'Jane Doe',
-    personRole: 'Pet owner',
+    personName: 'Miguel Ramos',
+    personRole: 'Dog walker',
     petName: 'Buddy',
-    petType: 'Dog',
+    petType: 'Golden Retriever',
     service: 'Dog walking',
-    date: 'June 14, 2026',
-    time: '9:30 AM',
-    location: 'Oeiras, PT',
+    date: '22 Jun 2026',
+    time: '17:30 - 18:30',
+    location: 'Cedofeita, Porto',
     status: 'pending',
-    price: '€18',
-    note: 'Morning walk near the park. Buddy should stay on leash and avoid crowded dog areas.',
+    price: '12 EUR',
+    note: 'Waiting for Miguel to confirm the evening walk.',
   },
   {
     id: 3,
-    personName: 'Miguel Ramos',
-    personRole: 'Dog owner',
-    petName: 'Max',
-    petType: 'Dog',
-    service: 'Home visits',
-    date: 'June 18, 2026',
-    time: '1:00 PM',
-    location: 'Almada, PT',
-    status: 'completed',
-    price: '€22',
-    note: 'Lunch visit completed with water refill, food, and a quick check-in message.',
-  },
-  {
-    id: 4,
-    personName: 'Sofia Martins',
-    personRole: 'Rabbit owner',
-    petName: 'Nina',
-    petType: 'Rabbit',
+    personName: 'Sara Martins',
+    personRole: 'Overnight sitter',
+    petName: 'Luna and Buddy',
+    petType: 'Cat and Dog',
     service: 'Overnight stay',
-    date: 'June 22, 2026',
-    time: '8:00 PM',
-    location: 'Cascais, PT',
+    date: '02 May 2026',
+    time: '20:00 - 09:00',
+    location: 'Home stay',
+    status: 'completed',
+    price: '45 EUR',
+    note: 'Completed stay with feeding, walk, and bedtime updates.',
+  },
+];
+
+const sitterBookings: Booking[] = [
+  {
+    id: 1,
+    personName: 'Jane Doe',
+    personRole: 'Pet owner',
+    petName: 'Luna',
+    petType: 'Bengal Cat',
+    service: 'Cat sitting',
+    date: '18 Jun 2026',
+    time: '09:00 - 18:00',
+    location: 'Porto, PT',
     status: 'confirmed',
-    price: '€45',
-    note: 'Overnight care with hay refill, enclosure cleaning, and medication before bedtime.',
+    price: '20 EUR',
+    note: 'Jane requested two visits, wet food at noon, and photo updates.',
   },
   {
-    id: 5,
-    personName: 'Beatriz Costa',
+    id: 2,
+    personName: 'Filipe Rocha',
+    personRole: 'Pet owner',
+    petName: 'Nori',
+    petType: 'Rabbit',
+    service: 'Home visits',
+    date: '24 Jun 2026',
+    time: '12:00 - 12:45',
+    location: 'Boavista, Porto',
+    status: 'pending',
+    price: '15 EUR',
+    note: 'Filipe is waiting for confirmation before sharing key pickup details.',
+  },
+  {
+    id: 3,
+    personName: 'Sofia Pereira',
     personRole: 'Pet owner',
     petName: 'Milo',
-    petType: 'Dog',
-    service: 'Dog walking',
-    date: 'June 24, 2026',
-    time: '5:00 PM',
-    location: 'Lisbon, PT',
-    status: 'cancelled',
-    price: '€16',
-    note: 'Cancelled by the owner after a schedule change. No action is needed.',
+    petType: 'British Shorthair',
+    service: 'Grooming',
+    date: '29 Apr 2026',
+    time: '14:00 - 15:30',
+    location: 'Client home',
+    status: 'completed',
+    price: '18 EUR',
+    note: 'Completed grooming appointment and coat brushing.',
   },
 ];
 
@@ -84,29 +102,41 @@ const filterOptions: { label: string; value: BookingFilter }[] = [
   { label: 'Confirmed', value: 'confirmed' },
   { label: 'Pending', value: 'pending' },
   { label: 'Completed', value: 'completed' },
-  { label: 'Cancelled', value: 'cancelled' },
 ];
 
+function countUpcoming(bookings: Booking[]) {
+  return bookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending').length;
+}
+
 export default function Bookings() {
+  const [activeLayout, setActiveLayout] = useState<BookingLayout>('owner');
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
-  const [bookingLayout, setBookingLayout] = useState<BookingLayout>('sitter');
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
   }, []);
 
+  const bookings = activeLayout === 'owner' ? ownerBookings : sitterBookings;
+
   const filteredBookings = useMemo(() => {
     if (activeFilter === 'all') {
-      return initialBookings;
+      return bookings;
     }
 
-    return initialBookings.filter(booking => booking.status === activeFilter);
-  }, [activeFilter]);
+    return bookings.filter(booking => booking.status === activeFilter);
+  }, [activeFilter, bookings]);
 
-  const nextBooking = useMemo(
-    () => initialBookings.find(booking => booking.status === 'confirmed' || booking.status === 'pending'),
-    []
-  );
+  const pendingBookings = bookings.filter(booking => booking.status === 'pending').length;
+  const upcomingBookings = countUpcoming(bookings);
+  const listTitle = activeLayout === 'owner' ? 'Bookings You Booked' : 'Bookings With You';
+  const listDescription = activeLayout === 'owner'
+    ? 'pet care services you booked'
+    : 'pet care services owners booked with you';
+
+  const handleLayoutChange = (layout: BookingLayout) => {
+    setActiveLayout(layout);
+    setActiveFilter('all');
+  };
 
   return (
     <div className="bookings-page">
@@ -119,29 +149,35 @@ export default function Bookings() {
           <div className="bookings-view-toggle" aria-label="Choose booking view">
             <button
               type="button"
-              className={bookingLayout === 'owner' ? 'active' : ''}
-              aria-pressed={bookingLayout === 'owner'}
-              onClick={() => setBookingLayout('owner')}
+              className={activeLayout === 'owner' ? 'active' : ''}
+              aria-pressed={activeLayout === 'owner'}
+              onClick={() => handleLayoutChange('owner')}
             >
               Pet Owner
             </button>
             <button
               type="button"
-              className={bookingLayout === 'sitter' ? 'active' : ''}
-              aria-pressed={bookingLayout === 'sitter'}
-              onClick={() => setBookingLayout('sitter')}
+              className={activeLayout === 'sitter' ? 'active' : ''}
+              aria-pressed={activeLayout === 'sitter'}
+              onClick={() => handleLayoutChange('sitter')}
             >
               Pet Sitter
             </button>
           </div>
         </section>
 
+        <BookingsSummary
+          totalBookings={bookings.length}
+          upcomingBookings={upcomingBookings}
+          pendingBookings={pendingBookings}
+        />
+
         <div className="bookings-layout">
           <section className="bookings-list-panel">
             <div className="bookings-list-header">
-              <div>
-                <h2>Recent Bookings</h2>
-                <p>{filteredBookings.length} matching bookings</p>
+              <div className="bookings-list-heading">
+                <h2>{listTitle}</h2>
+                <p>{filteredBookings.length} matching {listDescription}</p>
               </div>
 
               <div className="bookings-filters" aria-label="Filter bookings by status">
@@ -165,9 +201,9 @@ export default function Bookings() {
             </div>
           </section>
 
-          <div className="bookings-side-panel">
-            <BookingsSidePanel layout={bookingLayout} nextBooking={nextBooking} />
-          </div>
+          <section className="bookings-side-panel">
+            <BookingsSidePanel layout={activeLayout} nextBooking={bookings[0]} />
+          </section>
         </div>
       </main>
     </div>

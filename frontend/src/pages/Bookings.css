@@ -73,27 +73,33 @@
   align-items: start;
 }
 
-.bookings-list-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-width: 0;
-}
-
+.bookings-list-panel,
 .bookings-side-panel {
   min-width: 0;
 }
 
+.bookings-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .bookings-list-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-start;
   padding: 1rem 1.25rem;
   background: white;
   border-radius: 0.75rem;
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
   border-bottom: 0.125rem solid #f0eeeb;
+}
+
+.bookings-list-heading {
+  flex: 1 1 14rem;
+  min-width: 0;
 }
 
 .bookings-list-header h2 {
@@ -109,6 +115,7 @@
   color: #888;
   font-size: 0.875rem;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .bookings-list {
@@ -119,6 +126,7 @@
 
 .bookings-filters {
   display: flex;
+  flex: 0 1 22rem;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
@@ -133,6 +141,7 @@
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
   transition: background 0.2s, color 0.2s, transform 0.2s;
 }
 
@@ -182,6 +191,7 @@
   }
 
   .bookings-filters {
+    flex: 1 1 auto;
     justify-content: flex-start;
   }
 }
