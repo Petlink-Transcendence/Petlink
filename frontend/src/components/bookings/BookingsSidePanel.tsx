@@ -4,9 +4,14 @@ import './BookingsSidePanel.css';
 type BookingsSidePanelProps = {
   layout: 'owner' | 'sitter';
   nextBooking?: Booking;
+  onNewBookingClick?: () => void;
 };
 
-export default function BookingsSidePanel({ layout, nextBooking }: BookingsSidePanelProps) {
+export default function BookingsSidePanel({
+  layout,
+  nextBooking,
+  onNewBookingClick,
+}: BookingsSidePanelProps) {
   const isOwner = layout === 'owner';
 
   return (
@@ -38,7 +43,11 @@ export default function BookingsSidePanel({ layout, nextBooking }: BookingsSideP
         </ul>
       </div>
 
-      <button className="bookings-panel-action" type="button">
+      <button
+        className="bookings-panel-action"
+        type="button"
+        onClick={isOwner ? onNewBookingClick : undefined}
+      >
         {isOwner ? 'New Booking' : 'Update Availability'}
       </button>
     </aside>
