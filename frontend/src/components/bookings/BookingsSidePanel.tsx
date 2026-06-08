@@ -5,12 +5,14 @@ type BookingsSidePanelProps = {
   layout: 'owner' | 'sitter';
   nextBooking?: Booking;
   onNewBookingClick?: () => void;
+  onUpdateAvailabilityClick?: () => void;
 };
 
 export default function BookingsSidePanel({
   layout,
   nextBooking,
   onNewBookingClick,
+  onUpdateAvailabilityClick,
 }: BookingsSidePanelProps) {
   const isOwner = layout === 'owner';
 
@@ -46,7 +48,7 @@ export default function BookingsSidePanel({
       <button
         className="bookings-panel-action"
         type="button"
-        onClick={isOwner ? onNewBookingClick : undefined}
+        onClick={isOwner ? onNewBookingClick : onUpdateAvailabilityClick}
       >
         {isOwner ? 'New Booking' : 'Update Availability'}
       </button>
