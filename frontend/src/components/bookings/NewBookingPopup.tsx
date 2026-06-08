@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import './NewBookingPopup.css';
 
+const MIN_BOOKING_DATE = '2026-01-01';
+
 export type NewBookingFormData = {
   service: string;
   pet: string;
@@ -28,7 +30,15 @@ export default function NewBookingPopup({ onClose, onCreateBooking }: NewBooking
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!service || !pet.trim() || !sitter.trim() || !date || !time.trim() || !location.trim()) {
+    if (
+      !service ||
+      !pet.trim() ||
+      !sitter.trim() ||
+      !date ||
+      date < MIN_BOOKING_DATE ||
+      !time.trim() ||
+      !location.trim()
+    ) {
       return;
     }
 
@@ -98,6 +108,7 @@ export default function NewBookingPopup({ onClose, onCreateBooking }: NewBooking
                 type="date"
                 value={date}
                 onChange={event => setDate(event.target.value)}
+                min={MIN_BOOKING_DATE}
                 required
               />
             </label>

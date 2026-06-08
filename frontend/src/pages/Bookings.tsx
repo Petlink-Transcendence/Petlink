@@ -3,6 +3,7 @@ import BookingCard, { type Booking, type BookingStatus } from '../components/boo
 import BookingsSidePanel from '../components/bookings/BookingsSidePanel';
 import BookingsSummary from '../components/bookings/BookingsSummary';
 import NewBookingPopup, { type NewBookingFormData } from '../components/bookings/NewBookingPopup';
+import UpdateAvailabilityPopup from '../components/bookings/UpdateAvailabilityPopup';
 import './Bookings.css';
 
 type BookingLayout = 'owner' | 'sitter';
@@ -156,6 +157,7 @@ export default function Bookings() {
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
   const [ownerBookingList, setOwnerBookingList] = useState(ownerBookings);
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
@@ -181,6 +183,8 @@ export default function Bookings() {
   const handleLayoutChange = (layout: BookingLayout) => {
     setActiveLayout(layout);
     setActiveFilter('all');
+    setIsNewBookingOpen(false);
+    setIsAvailabilityOpen(false);
   };
 
   const handleCreateBooking = (booking: NewBookingFormData) => {
@@ -278,6 +282,7 @@ export default function Bookings() {
               layout={activeLayout}
               nextBooking={bookings[0]}
               onNewBookingClick={() => setIsNewBookingOpen(true)}
+              onUpdateAvailabilityClick={() => setIsAvailabilityOpen(true)}
             />
           </section>
         </div>
@@ -287,6 +292,10 @@ export default function Bookings() {
             onClose={() => setIsNewBookingOpen(false)}
             onCreateBooking={handleCreateBooking}
           />
+        )}
+
+        {isAvailabilityOpen && (
+          <UpdateAvailabilityPopup onClose={() => setIsAvailabilityOpen(false)} />
         )}
       </main>
     </div>
