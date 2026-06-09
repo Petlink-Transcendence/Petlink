@@ -17,6 +17,7 @@ type ProfileInfoBarProps = {
 
 export default function ProfileInfoBar({ name, username, role, bio, stats, actions }: ProfileInfoBarProps) {
   const [isFollowsOpen, setisFollowsOpen] = useState(false);
+  const [activeFollowsTab, setActiveFollowsTab] = useState<'followers' | 'following'>('followers');
 
   const handleStatClick = (label: string) => {
     const lowerLabel = label.toLocaleLowerCase();
@@ -26,7 +27,13 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
         lowerLabel === 'reviews' ||
         lowerLabel === 'bookings') { 
       return; 
-    }    
+    }
+    if (lowerLabel == 'following'){
+      setActiveFollowsTab('following');
+    } else {
+      setActiveFollowsTab('followers');
+    }
+    
     setisFollowsOpen(true);
   }
 
@@ -73,8 +80,11 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
           );
         })}  
       </div>
+
       {isFollowsOpen && (
-        <FollowsContainer onClose={() => setisFollowsOpen(false)} />
+        <FollowsContainer 
+        initialTab={activeFollowsTab} 
+        onClose={() => setisFollowsOpen(false)} />
       )}
     </div>
   );

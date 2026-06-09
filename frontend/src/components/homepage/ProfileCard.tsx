@@ -4,8 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import FollowsContainer from '../Follows.tsx'
 
 export default function ProfileCard() {
-  const [isFollowsOpen, setisFollowsOpen] = useState(false);
+  const [isFollowsOpen, setIsFollowsOpen] = useState(false);
+  const [followsTab, setFollowsTab] = useState<'followers' | 'following'>('followers');
   const navigate = useNavigate();
+
+  const openFollowsPopup = (tabName: 'followers' | 'following') => {
+    setFollowsTab(tabName);
+    setIsFollowsOpen(true);
+  };
 
 	return (
 		<div className="profile-card-container">
@@ -20,18 +26,21 @@ export default function ProfileCard() {
                 <p className="nbr">21</p>
                 <p className='stats-label'>Posts</p>
               </div>
-              <div className='stats-group' onClick={() => setisFollowsOpen(true)}>
+              <div className='stats-group' onClick={() => openFollowsPopup('followers')}>
                 <p className='nbr'>42</p>
                 <p className='stats-label'>Followers</p>
               </div>              
-              <div className='stats-group' onClick={() => setisFollowsOpen(true)}>
+              <div className='stats-group' onClick={() => openFollowsPopup('following')}>
                 <p className='nbr'>100</p>                  
                 <p className='stats-label'>Following</p>
                 </div>
               </div>
             </div>
+
       {isFollowsOpen && (
-        <FollowsContainer onClose={() => setisFollowsOpen(false)} />
+        <FollowsContainer 
+        initialTab={followsTab}
+        onClose={() => setIsFollowsOpen(false)} />
       )}
     </div>
 	);

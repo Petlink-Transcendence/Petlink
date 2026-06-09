@@ -4,6 +4,7 @@ import './Follows.css'
 
 interface FollowsProps {
     onClose: () => void;
+    initialTab?: 'followers' | 'following';
 }
 
 interface FollowUser {
@@ -14,8 +15,8 @@ interface FollowUser {
     hasJustFollowed?: boolean;
 }
 
-export default function FollowsContainer({ onClose }: FollowsProps) {
-    const [activeTab, setActiveTab] = useState<'followers' | 'following'>('followers');
+export default function FollowsContainer({ onClose, initialTab = 'followers' }: FollowsProps) {
+    const [activeTab, setActiveTab] = useState<'followers' | 'following'>(initialTab);
     const navigate = useNavigate();
 
     const [followers, setFollowers] = useState<FollowUser[]>([
