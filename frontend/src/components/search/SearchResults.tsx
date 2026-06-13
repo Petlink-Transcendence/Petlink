@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './SearchResults.css';
 
 type Profile = {
@@ -6,6 +7,7 @@ type Profile = {
   role: string;
   location: string;
   rating?: string;
+  profileType: 'owner' | 'sitter';
 };
 
 type SearchResultsProps = {
@@ -20,8 +22,10 @@ function initials(name: string) {
 }
 
 function ProfileCard({ profile }: { profile: Profile }) {
+  const profilePath = profile.profileType === 'sitter' ? `/sitterprofile/${profile.id}` : `/profile/${profile.id}`;
+
   return (
-    <div className="result-card">
+    <Link to={profilePath} className="result-card" aria-label={`Open ${profile.name}'s profile`}>
       <div className="result-card-banner" />
       <div className="result-avatar">{initials(profile.name)}</div>
       <div className="result-info">
@@ -30,8 +34,8 @@ function ProfileCard({ profile }: { profile: Profile }) {
         <span className="result-location">📍 {profile.location}</span>
         {profile.rating && <span className="result-rating">⭐ {profile.rating}</span>}
       </div>
-      <button className="result-btn">Connect</button>
-    </div>
+      <span className="result-btn">View profile</span>
+    </Link>
   );
 }
 

@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
+import Reviews from './pages/Reviews';
+import Bookings from './pages/Bookings';
 import SitterProfile from './pages/SitterProfile';
 import Search from './pages/Search';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -45,8 +47,18 @@ function App() {
               <Profile />
             </ProtectedRoute>
           } />
+          <Route path="/profile/:profileId" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
           <Route path="/sitterprofile" element={
+            <ProtectedRoute>
+              <SitterProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="/sitterprofile/:profileId" element={
             <ProtectedRoute>
               <SitterProfile />
             </ProtectedRoute>
@@ -60,6 +72,18 @@ function App() {
           <Route path="/search" element={
             <ProtectedRoute>
               <Search />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/reviews" element={
+            <ProtectedRoute>
+              <Reviews />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/bookings" element={
+            <ProtectedRoute>
+              <Bookings />
             </ProtectedRoute>
           } />
         </Routes>

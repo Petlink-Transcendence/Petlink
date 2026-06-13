@@ -1,0 +1,56 @@
+import './ReviewCard.css';
+
+export type Review = {
+  id: number;
+  reviewer: string;
+  role: string;
+  service: string;
+  rating: number;
+  text: string;
+  time: string;
+};
+
+type ReviewCardProps = {
+  review: Review;
+};
+
+function initials(name: string): string {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function ratingStars(rating: number) {
+  return Array.from({ length: 5 }, (_, index) => (
+    <span key={index} className={index < rating ? 'reviews-star filled' : 'reviews-star'}>
+      {index < rating ? '★' : '☆'}
+    </span>
+  ));
+}
+
+export default function ReviewCard({ review }: ReviewCardProps) {
+  return (
+    <article className="reviews-card">
+      <header className="reviews-card-header">
+        <div className="reviews-avatar">{initials(review.reviewer)}</div>
+        <div className="reviews-person">
+          <h3>{review.reviewer}</h3>
+          <p>{review.role}</p>
+        </div>
+        <span className="reviews-time">{review.time}</span>
+      </header>
+
+      <div className="reviews-card-meta">
+        <div className="reviews-rating" aria-label={`${review.rating} out of 5 stars`}>
+          {ratingStars(review.rating)}
+        </div>
+        <span className="reviews-service">{review.service}</span>
+      </div>
+
+      <p className="reviews-text">{review.text}</p>
+    </article>
+  );
+}

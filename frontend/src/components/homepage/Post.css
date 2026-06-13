@@ -14,18 +14,37 @@
   gap: 0.625rem;
 }
 
-/* Author img */
-.post-author img {
+/* Author avatar link */
+.post-avatar-link {
   width: 4.375rem;
   height: 4.375rem;
   border-radius: 50%;
-  object-fit: cover;
   flex-shrink: 0;
+  display: flex;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.post-avatar-link:hover {
+  transform: translateY(-0.0625rem);
+  box-shadow: 0 0.25rem 0.625rem rgba(0, 0, 0, 0.12);
+}
+
+.post-avatar-link:focus-visible {
+  outline: 0.1875rem solid rgba(219, 182, 121, 0.45);
+  outline-offset: 0.1875rem;
+}
+
+.post-avatar-link img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .post-avatar-fallback {
-  width: 4.375rem;
-  height: 4.375rem;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   background-color: rgba(219, 182, 121, 0.15);
   color: var(--petlink-tan);
@@ -34,7 +53,6 @@
   justify-content: center;
   font-size: 1.25rem;
   font-weight: 600;
-  flex-shrink: 0;
 }
 
 .post-author-info {
@@ -156,7 +174,7 @@
     border-radius: 0.625rem;
   }
 
-  .post-author img {
+  .post-avatar-link {
     width: 3.5rem;
     height: 3.5rem;
   }
@@ -173,7 +191,7 @@
     border-radius: 0.5rem;
   }
 
-  .post-author img {
+  .post-avatar-link {
     width: 2.75rem;
     height: 2.75rem;
   }

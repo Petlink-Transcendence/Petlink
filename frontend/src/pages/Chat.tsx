@@ -1,5 +1,6 @@
 import './Chat.css'
 import { useEffect, useState, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 
 interface Message {
     id: number;
@@ -10,7 +11,34 @@ interface Message {
     attachment?: string;
 }
 
+interface Contact {
+    id: number;
+    name: string;
+    role: string;
+}
+
+interface ChatRouteState {
+    contact?: {
+        id?: number;
+        name: string;
+        role: string;
+    };
+}
+
+const initialContacts: Contact[] = [
+    {id: 1, name: "Daniela Padilha", role: "animal-sitter"},
+    {id: 2, name: "Filipe Tootill", role: "dog-owner"},
+    {id: 3, name: "Rodrigo Silva", role: "cat owner"},
+    {id: 4, name: "Daddy", role: "animal lover"},
+    {id: 5, name: "João Vieira", role: "cat-sitter"},
+    {id: 6, name: "Ricardo Oliveira", role: "cat-owner"},
+    {id: 7, name: "Dar banho ao gato", role: "animal-sitter"},
+];
+
 export default function Chat() {
+    const location = useLocation();
+    const routeContact = (location.state as ChatRouteState | null)?.contact;
+
     useEffect(() => {
       document.title = "Chat | PetLink";
     }, []);
@@ -21,6 +49,9 @@ export default function Chat() {
 
     /* CHAT */
     const [activeChat, setActiveChat] = useState<number | null>(null);
+    const [contacts, setContacts] = useState<Contact[]>(initialContacts);
+    const [searchTermContacts, setSearchTermContacts] = useState("");
+    const openedRouteContactRef = useRef<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,17 +64,47 @@ export default function Chat() {
         }
     };
 
-    const contacts = [
-        {id: 1, name: "Daniela Padilha", role: "animal-sitter"},
-        {id: 2, name: "Filipe Tootill", role: "dog-owner"},
-        {id: 3, name: "Rodrigo Silva", role: "cat owner"},
-        {id: 4, name: "Daddy", role: "animal lover"},
-        {id: 5, name: "João Vieira", role: "cat-sitter"},
-        {id: 6, name: "Ricardo Oliveira", role: "cat-owner"},
-        {id: 7, name: "Dar banho ao gato", role: "animal-sitter"},
-    ];
+    useEffect(() => {
+        if (!routeContact?.name || !routeContact?.role) {
+            return;
+        }
 
-    const [searchTermContacts, setSearchTermContacts] = useState("");
+        const contactKey = `${routeContact.id ?? 'new'}|${routeContact.name}|${routeContact.role}`;
+        if (openedRouteContactRef.current === contactKey) {
+            return;
+        }
+
+        openedRouteContactRef.current = contactKey;
+        setSearchTermContacts("");
+        setContacts(currentContacts => {
+            const existingContact = currentContacts.find(contact =>
+                contact.name === routeContact.name && contact.role === routeContact.role
+            );
+
+            if (existingContact) {
+                setActiveChat(existingContact.id);
+                return currentContacts;
+            }
+
+            if (routeContact.id !== undefined) {
+                const contactById = currentContacts.find(contact => contact.id === routeContact.id);
+
+                if (contactById) {
+                    setActiveChat(contactById.id);
+                    return currentContacts;
+                }
+            }
+
+            const newContact = {
+                id: Math.max(0, ...currentContacts.map(contact => contact.id)) + 1,
+                name: routeContact.name,
+                role: routeContact.role,
+            };
+
+            setActiveChat(newContact.id);
+            return [newContact, ...currentContacts];
+        });
+    }, [routeContact?.id, routeContact?.name, routeContact?.role]);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLocaleLowerCase().includes(searchTermContacts.toLocaleLowerCase())
@@ -220,7 +281,9 @@ export default function Chat() {
 
                     {/* Messages Area */}
                     <div className="messages-container">
-                        {filteredMessages.length > 0 ? (
+                        {chatHistory.length === 0 ? (
+                            <p className='no-results'>No messages yet.</p>
+                        ) : filteredMessages.length > 0 ? (
                             filteredMessages.map((msg) => (
                                 <div key={msg.id} className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}>
                                     {msg.attachment && (

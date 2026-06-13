@@ -1,7 +1,7 @@
 import './ProfileInfoBar.css';
 
 type Stat = { value: string | number; label: string };
-type Action = { label: string; variant: 'primary' | 'secondary' };
+type Action = { label: string; variant: 'primary' | 'secondary'; onClick?: () => void };
 
 type ProfileInfoBarProps = {
   name: string;
@@ -20,7 +20,14 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
         {actions && actions.length > 0 && (
           <div className="profile-actions">
             {actions.map(a => (
-              <button key={a.label} className={`action-btn ${a.variant}`}>{a.label}</button>
+              <button
+                key={a.label}
+                type="button"
+                className={`action-btn ${a.variant}`}
+                onClick={a.onClick}
+              >
+                {a.label}
+              </button>
             ))}
           </div>
         )}

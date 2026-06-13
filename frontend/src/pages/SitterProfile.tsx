@@ -1,67 +1,164 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 import ProfileToggle from '../components/profile/ProfileToggle';
+import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPanel';
+import NewBookingPopup from '../components/bookings/NewBookingPopup';
+import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
+import { currentSitterProfileId, getSitterProfile } from '../data/profileData';
 
-const user = {
-  name: 'Ana Costa',
-  username: '@anacosta_sitter',
-  role: 'Cat Sitter',
-  bio: 'Passionate animal lover with 5+ years of experience caring for cats and small pets. Available for sitting, grooming, and daily visits.',
-};
+function formatServiceName(service: string) {
+  return service.replace(/\b\w/g, letter => letter.toUpperCase());
+}
 
-const stats = [
-  { value: '4.9', label: 'Rating'   },
-  { value: 38,    label: 'Reviews'  },
-  { value: 124,   label: 'Bookings' },
-];
+function formatServiceDetail(availability: AvailabilityFormData) {
+  if (availability.notes) {
+    return availability.notes;
+  }
 
-const sidebarCards = [
-  { title: 'About',      type: 'meta' as const, items: ['📅 Member since January 2022', '📍 Porto, PT', '⭐ 5+ years experience', '💶 15€–20€ / hour'] },
-  { title: 'Services',   type: 'tags' as const, items: ['Cat Sitting', 'Home Visits', 'Grooming', 'Overnight Stay'] },
-  { title: 'Pet Types',  type: 'tags' as const, items: ['Cats', 'Small Pets', 'Rabbits'] },
-];
-
-const posts = [
-  { id: 1, text: 'Available for sitting this weekend! DM me 🐱',                      time: '2h ago',     likes: 19 },
-  { id: 2, text: 'Just finished a week with two beautiful Bengals. Such a joy! 🐈',   time: '4 days ago', likes: 34 },
-  { id: 3, text: 'Reminder: I offer overnight stays for cats with special needs 🏠',  time: '1 week ago', likes: 22 },
-];
-
-const reviews = [
-  { id: 1, author: 'Jane D.',  rating: 5, text: 'Ana was wonderful with Luna. She sent daily updates and photos. Would definitely book again!', time: '2 weeks ago'  },
-  { id: 2, author: 'Mark S.',  rating: 5, text: 'Very professional and caring. My cats loved her. The house was spotless when I came back.',    time: '1 month ago'  },
-  { id: 3, author: 'Sofia R.', rating: 4, text: 'Great service, very communicative throughout the stay. Will book again for sure.',             time: '2 months ago' },
-  { id: 4, author: 'Tiago F.', rating: 5, text: 'Ana took amazing care of my rabbit. Highly recommend her to anyone looking for a sitter.',     time: '3 months ago' },
-];
+  return `${availability.timeSlots} from ${availability.startDate} to ${availability.endDate}`;
+}
 
 export default function SitterProfile() {
+  const { profileId } = useParams();
+  const navigate = useNavigate();
+  const profile = getSitterProfile(profileId);
+  const isOwnProfile = !profileId || profileId === currentSitterProfileId;
+  const [connections, setConnections] = useState<Record<string, boolean>>({});
+  const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
+  const [availabilityStatus, setAvailabilityStatus] = useState<'Accepting' | 'Not available'>(profile.availability.status);
+  const [currentServiceRates, setCurrentServiceRates] = useState(profile.availability.services);
+  const isConnected = Boolean(connections[profile.id]);
+
+  const handleConnectionToggle = () => {
+    setConnections(currentConnections => ({
+      ...currentConnections,
+      [profile.id]: !currentConnections[profile.id],
+    }));
+  };
+
+  const handleMessageClick = () => {
+    navigate('/chat', {
+      state: {
+        contact: {
+          id: Number(profile.id),
+          name: profile.name,
+          role: profile.role,
+        },
+      },
+    });
+  };
+
   useEffect(() => {
-    document.title = 'Ana Costa | PetLink';
-  }, []);
+    document.title = `${profile.name} | PetLink`;
+    setAvailabilityStatus(profile.availability.status);
+    setCurrentServiceRates(profile.availability.services);
+  }, [profile]);
+
+  const handleAvailabilitySave = (availability: AvailabilityFormData) => {
+    const detail = formatServiceDetail(availability);
+    const updatedServices = availability.serviceTypes.map(formatServiceName);
+
+    setCurrentServiceRates(currentServices => {
+      const nextServices = currentServices.map(service => {
+        const matchingService = updatedServices.find(
+          updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
+        );
+
+        if (!matchingService) {
+          return service;
+        }
+
+        return {
+          name: matchingService,
+          rate: availability.price,
+          detail,
+        };
+      });
+
+      const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
+      const newServices = updatedServices
+        .filter(service => !existingServices.has(service.toLowerCase()))
+        .map(service => ({
+          name: service,
+          rate: availability.price,
+          detail,
+        }));
+
+      return [...nextServices, ...newServices];
+    });
+
+    setAvailabilityStatus('Accepting');
+  };
 
   return (
     <div className="profile-page">
-      <ProfileToggle active="sitter" />
-      <ProfileCover initials="AC" />
+      {isOwnProfile && <ProfileToggle active="sitter" />}
+      <ProfileCover initials={profile.initials} imageUrl={profile.imageUrl} />
       <ProfileInfoBar
-        name={user.name}
-        username={user.username}
-        role={user.role}
-        bio={user.bio}
-        stats={stats}
-        actions={[
-          { label: 'Follow', variant: 'primary' },
-          { label: 'Message', variant: 'secondary' },
-        ]}
+        name={profile.name}
+        username={profile.username}
+        role={profile.role}
+        bio={profile.bio}
+        stats={profile.stats}
+        actions={isOwnProfile
+          ? [{ label: 'Edit Profile', variant: 'secondary' }]
+          : [
+            { label: 'Make a booking', variant: 'primary', onClick: () => setIsNewBookingOpen(true) },
+            {
+              label: isConnected ? 'Disconnect' : 'Connect',
+              variant: 'secondary',
+              onClick: handleConnectionToggle,
+            },
+            { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
+          ]
+        }
       />
       <div className="profile-body">
-        <ProfileLeftSidebar cards={sidebarCards} />
-        <ProfileContent posts={posts} reviews={reviews} authorName={user.name} authorInitials="AC" />
+        <ProfileLeftSidebar cards={profile.sidebarCards}>
+          <SitterAvailabilityPanel
+            status={availabilityStatus}
+            location={profile.availability.location}
+            responseTime={profile.availability.responseTime}
+            capacity={profile.availability.capacity}
+            windows={profile.availability.windows}
+            services={currentServiceRates}
+            canEdit={isOwnProfile}
+            onAvailabilityToggle={() => {
+              setAvailabilityStatus(currentStatus =>
+                currentStatus === 'Accepting' ? 'Not available' : 'Accepting'
+              );
+            }}
+            onUpdateAvailability={() => setIsAvailabilityOpen(true)}
+          />
+        </ProfileLeftSidebar>
+        <ProfileContent
+          posts={profile.posts}
+          reviews={profile.reviews}
+          authorName={profile.name}
+          authorInitials={profile.initials}
+          showCreatePost={isOwnProfile}
+        />
       </div>
+      {isNewBookingOpen && (
+        <NewBookingPopup
+          onClose={() => setIsNewBookingOpen(false)}
+          onCreateBooking={() => undefined}
+          initialSitter={profile.name}
+        />
+      )}
+      {isAvailabilityOpen && (
+        <UpdateAvailabilityPopup
+          onClose={() => setIsAvailabilityOpen(false)}
+          onSaveAvailability={handleAvailabilitySave}
+        />
+      )}
     </div>
   );
 }

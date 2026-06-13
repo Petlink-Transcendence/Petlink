@@ -1,0 +1,172 @@
+.availability-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  box-sizing: border-box;
+}
+
+.availability-container {
+  width: min(100%, 34rem);
+  max-height: calc(100vh - 2.5rem);
+  overflow: hidden;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.availability-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--petlink-tan);
+}
+
+.availability-header h2 {
+  margin: 0;
+  color: var(--social-bg);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.availability-close {
+  border: none;
+  background: none;
+  color: var(--petlink-tan);
+  cursor: pointer;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.availability-close:hover {
+  color: var(--social-bg);
+}
+
+.availability-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.availability-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.availability-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.availability-field span,
+.availability-services legend {
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.availability-field .required-label::after,
+.availability-services .required-label::after {
+  content: " *";
+  color: #d9534f;
+}
+
+.availability-field input,
+.availability-field textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 0.75rem;
+  padding: 0.7rem;
+  background: white;
+  color: #333;
+  font: inherit;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.availability-field textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.availability-field input:focus,
+.availability-field textarea:focus {
+  border-color: var(--petlink-tan);
+  outline: 1px solid var(--petlink-tan);
+}
+
+.availability-services {
+  border: 1px solid #f0eeeb;
+  border-radius: 0.75rem;
+  padding: 0.85rem;
+  margin: 0;
+  text-align: left;
+}
+
+.availability-services legend {
+  padding: 0 0.25rem;
+}
+
+.availability-service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+}
+
+.availability-service-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.availability-service-option input {
+  accent-color: var(--petlink-tan);
+}
+
+.availability-submit {
+  border: none;
+  border-radius: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--petlink-tan);
+  color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.availability-submit:hover {
+  background: var(--social-bg);
+  transform: translateY(-0.0625rem);
+}
+
+@media (max-width: 42rem) {
+  .availability-overlay {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .availability-row,
+  .availability-service-grid {
+    grid-template-columns: 1fr;
+  }
+}
