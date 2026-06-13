@@ -8,7 +8,6 @@ import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
 import Reviews from './pages/Reviews';
-import OtherPersonReviews from './pages/OtherPersonReviews';
 import SitterProfile from './pages/SitterProfile';
 import Search from './pages/Search';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -68,12 +67,6 @@ function App() {
           <Route path="/reviews" element={
             <ProtectedRoute>
               <Reviews />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/reviews/:personName" element={
-            <ProtectedRoute>
-              <OtherPersonReviews />
             </ProtectedRoute>
           } />
         </Routes>
