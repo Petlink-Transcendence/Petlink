@@ -78,13 +78,21 @@ export default function Chat() {
         setSearchTermContacts("");
         setContacts(currentContacts => {
             const existingContact = currentContacts.find(contact =>
-                contact.id === routeContact.id ||
-                (contact.name === routeContact.name && contact.role === routeContact.role)
+                contact.name === routeContact.name && contact.role === routeContact.role
             );
 
             if (existingContact) {
                 setActiveChat(existingContact.id);
                 return currentContacts;
+            }
+
+            if (routeContact.id !== undefined) {
+                const contactById = currentContacts.find(contact => contact.id === routeContact.id);
+
+                if (contactById) {
+                    setActiveChat(contactById.id);
+                    return currentContacts;
+                }
             }
 
             const newContact = {

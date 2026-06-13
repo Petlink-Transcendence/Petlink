@@ -22,6 +22,7 @@ type ProfileContentProps = {
   reviews: Review[];
   authorName: string;
   authorInitials: string;
+  showCreatePost?: boolean;
 };
 
 function reviewerInitials(name: string): string {
@@ -33,7 +34,7 @@ function reviewerInitials(name: string): string {
     .toUpperCase();
 }
 
-export default function ProfileContent({ posts, reviews, authorName, authorInitials }: ProfileContentProps) {
+export default function ProfileContent({ posts, reviews, authorName, authorInitials, showCreatePost = true }: ProfileContentProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
   const [profileReviews, setProfileReviews] = useState(reviews);
   const [isReviewPopupOpen, setIsReviewPopupOpen] = useState(false);
@@ -78,7 +79,7 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
 
   return (
     <div className="profile-right">
-      <CreatePost></CreatePost>
+      {showCreatePost && <CreatePost />}
       <div className="profile-tabs">
         <button
           className={`tab-btn ${activeTab === 'posts' ? 'active' : ''}`}

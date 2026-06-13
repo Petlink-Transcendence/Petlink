@@ -47,8 +47,18 @@ function App() {
               <Profile />
             </ProtectedRoute>
           } />
+          <Route path="/profile/:profileId" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
           <Route path="/sitterprofile" element={
+            <ProtectedRoute>
+              <SitterProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="/sitterprofile/:profileId" element={
             <ProtectedRoute>
               <SitterProfile />
             </ProtectedRoute>

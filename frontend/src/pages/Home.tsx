@@ -20,6 +20,8 @@ export default function Home() {
         <CreatePost />
 
         <Post
+        authorId="4"
+        authorType="owner"
         name="Jane Doe"
         tag="NEED SITTER"
         text="Looking for a sitter for my cat Luna next week!"
@@ -34,6 +36,8 @@ export default function Home() {
           ]}
         />
         <Post
+        authorId="8"
+        authorType="owner"
         name="John Smith"
         tag="NEED WALKER"
         text="My dog needs walking every morning."
@@ -48,6 +52,8 @@ export default function Home() {
           ]}
         />
         <Post
+        authorId="9"
+        authorType="sitter"
         name="Junior Silva"
         tag="SITTER"
         text="I'm a sitter with a lot of experience with dogs!"

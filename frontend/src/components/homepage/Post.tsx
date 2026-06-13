@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import './Post.css'
 
 type PostProps = {
+  authorId: string;
+  authorType: 'owner' | 'sitter';
   name: string;
   tag: string;
   text: string;
@@ -11,12 +14,13 @@ type PostProps = {
   likeCount?: number;
 };
 
-export default function Post({ name, tag, text, location, time, tags, likeCount = 0 }: PostProps) {
+export default function Post({ authorId, authorType, name, tag, text, location, time, tags, likeCount = 0 }: PostProps) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(likeCount);
   const [imgError, setImgError] = useState(false);
 
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const profilePath = authorType === 'sitter' ? `/sitterprofile/${authorId}` : `/profile/${authorId}`;
 
   const handleLike = () => {
     setLikes(liked ? likes - 1 : likes + 1);
@@ -26,15 +30,21 @@ export default function Post({ name, tag, text, location, time, tags, likeCount 
   return (
     <div className="post-container">
       <div className="post-author">
-        {imgError ? (
-          <div className="post-avatar-fallback">{initials}</div>
-        ) : (
-          <img
-            src="/profile-pic.png"
-            alt="profile picture"
-            onError={() => setImgError(true)}
-          />
-        )}
+        <Link
+          to={profilePath}
+          className="post-avatar-link"
+          aria-label={`Open ${name}'s profile`}
+        >
+          {imgError ? (
+            <div className="post-avatar-fallback">{initials}</div>
+          ) : (
+            <img
+              src="/profile-pic.png"
+              alt={`${name}'s profile`}
+              onError={() => setImgError(true)}
+            />
+          )}
+        </Link>
 
         <div className="post-author-info">
           <p className="post-name">{name}</p>

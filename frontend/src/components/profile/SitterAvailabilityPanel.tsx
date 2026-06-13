@@ -20,6 +20,7 @@ type SitterAvailabilityPanelProps = {
   capacity: string;
   windows: AvailabilityWindow[];
   services: ServiceRate[];
+  canEdit?: boolean;
   onAvailabilityToggle: () => void;
   onUpdateAvailability: () => void;
 };
@@ -31,6 +32,7 @@ export default function SitterAvailabilityPanel({
   capacity,
   windows,
   services,
+  canEdit = true,
   onAvailabilityToggle,
   onUpdateAvailability,
 }: SitterAvailabilityPanelProps) {
@@ -44,16 +46,18 @@ export default function SitterAvailabilityPanel({
           <span className={`sitter-availability-status ${isAccepting ? 'is-accepting' : 'is-unavailable'}`}>
             {status}
           </span>
-          <label className="sitter-availability-toggle">
-            <span>Available</span>
-            <input
-              type="checkbox"
-              checked={isAccepting}
-              onChange={onAvailabilityToggle}
-              aria-label="Change current availability"
-            />
-            <span className="sitter-availability-switch" aria-hidden="true" />
-          </label>
+          {canEdit && (
+            <label className="sitter-availability-toggle">
+              <span>Available</span>
+              <input
+                type="checkbox"
+                checked={isAccepting}
+                onChange={onAvailabilityToggle}
+                aria-label="Change current availability"
+              />
+              <span className="sitter-availability-switch" aria-hidden="true" />
+            </label>
+          )}
         </div>
       </div>
 
@@ -99,13 +103,15 @@ export default function SitterAvailabilityPanel({
         </div>
       </div>
 
-      <button
-        className="sitter-availability-action"
-        type="button"
-        onClick={onUpdateAvailability}
-      >
-        Update Availability
-      </button>
+      {canEdit && (
+        <button
+          className="sitter-availability-action"
+          type="button"
+          onClick={onUpdateAvailability}
+        >
+          Update Availability
+        </button>
+      )}
     </div>
   );
 }
