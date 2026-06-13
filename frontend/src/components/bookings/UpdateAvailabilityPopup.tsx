@@ -4,11 +4,21 @@ import './UpdateAvailabilityPopup.css';
 const MIN_AVAILABILITY_DATE = '2026-01-01';
 const serviceOptions = ['Dog walking', 'Cat sitting', 'Home visits', 'Overnight stay', 'Grooming'];
 
-type UpdateAvailabilityPopupProps = {
-  onClose: () => void;
+export type AvailabilityFormData = {
+  startDate: string;
+  endDate: string;
+  timeSlots: string;
+  serviceTypes: string[];
+  price: string;
+  notes: string;
 };
 
-export default function UpdateAvailabilityPopup({ onClose }: UpdateAvailabilityPopupProps) {
+type UpdateAvailabilityPopupProps = {
+  onClose: () => void;
+  onSaveAvailability?: (availability: AvailabilityFormData) => void;
+};
+
+export default function UpdateAvailabilityPopup({ onClose, onSaveAvailability }: UpdateAvailabilityPopupProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [timeSlots, setTimeSlots] = useState('');
@@ -39,6 +49,14 @@ export default function UpdateAvailabilityPopup({ onClose }: UpdateAvailabilityP
       return;
     }
 
+    onSaveAvailability?.({
+      startDate,
+      endDate,
+      timeSlots: timeSlots.trim(),
+      serviceTypes,
+      price: price.trim(),
+      notes: notes.trim(),
+    });
     onClose();
   };
 

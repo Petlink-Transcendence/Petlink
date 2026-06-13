@@ -16,12 +16,13 @@ export type NewBookingFormData = {
 type NewBookingPopupProps = {
   onClose: () => void;
   onCreateBooking: (booking: NewBookingFormData) => void;
+  initialSitter?: string;
 };
 
-export default function NewBookingPopup({ onClose, onCreateBooking }: NewBookingPopupProps) {
+export default function NewBookingPopup({ onClose, onCreateBooking, initialSitter = '' }: NewBookingPopupProps) {
   const [service, setService] = useState('');
   const [pet, setPet] = useState('');
-  const [sitter, setSitter] = useState('');
+  const [sitter, setSitter] = useState(initialSitter);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
