@@ -1,0 +1,23 @@
+/* Page wrapper */
+.search-page {
+  min-height: 100vh;
+  background-color: var(--social-bg);
+  padding-top: 6.25rem;
+  overflow-y: auto;
+}
+
+/* Main layout */
+.search-body {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem 5%;
+  align-items: flex-start;
+}
+
+/* ── Responsiveness ── */
+@media (max-width: 48rem) {
+  .search-body {
+    flex-direction: column;
+    padding: 1rem;
+  }
+}

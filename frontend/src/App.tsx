@@ -8,6 +8,7 @@ import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
 import SitterProfile from './pages/SitterProfile';
+import Search from './pages/Search';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import './App.css';
@@ -53,6 +54,12 @@ function App() {
           <Route path="/notifications" element={
             <ProtectedRoute>
               <Notifications />
+              </ProtectedRoute>
+          } />
+
+          <Route path="/search" element={
+            <ProtectedRoute>
+              <Search />
             </ProtectedRoute>
           } />
         </Routes>
