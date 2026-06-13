@@ -8,6 +8,7 @@ type RatingFilter = 'all' | '5' | '4' | '3';
 type ReviewsContentProps = {
   title: ReactNode;
   initialReviews: Review[];
+  showReviewForm?: boolean;
 };
 
 const filterOptions: { label: string; value: RatingFilter }[] = [
@@ -17,7 +18,11 @@ const filterOptions: { label: string; value: RatingFilter }[] = [
   { label: '3+ Stars', value: '3' },
 ];
 
-export default function ReviewsContent({ title, initialReviews }: ReviewsContentProps) {
+export default function ReviewsContent({
+  title,
+  initialReviews,
+  showReviewForm = true,
+}: ReviewsContentProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [activeFilter, setActiveFilter] = useState<RatingFilter>('all');
 
@@ -57,7 +62,7 @@ export default function ReviewsContent({ title, initialReviews }: ReviewsContent
         fiveStarReviews={fiveStarReviews}
       />
 
-      <div className="reviews-layout">
+      <div className={`reviews-layout ${showReviewForm ? '' : 'reviews-layout-full'}`}>
         <section className="reviews-list-panel">
           <div className="reviews-list-header">
             <div>
@@ -86,9 +91,11 @@ export default function ReviewsContent({ title, initialReviews }: ReviewsContent
           </div>
         </section>
 
-        <aside className="reviews-side-panel">
-          <ReviewForm onAddReview={review => setReviews(currentReviews => [review, ...currentReviews])} />
-        </aside>
+        {showReviewForm && (
+          <aside className="reviews-side-panel">
+            <ReviewForm onAddReview={review => setReviews(currentReviews => [review, ...currentReviews])} />
+          </aside>
+        )}
       </div>
     </main>
   );

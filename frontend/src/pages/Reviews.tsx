@@ -15,6 +15,7 @@ export default function Reviews() {
       <ReviewsContent
         title={<>My <span>Reviews</span></>}
         initialReviews={initialReviews}
+        showReviewForm={false}
       />
     </div>
   );
