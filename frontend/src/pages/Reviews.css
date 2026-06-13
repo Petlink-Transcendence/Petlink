@@ -50,6 +50,10 @@
   align-items: start;
 }
 
+.reviews-layout-full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .reviews-list-panel,
 .reviews-side-panel {
   min-width: 0;
