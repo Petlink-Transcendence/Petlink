@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './Profile.css';
 import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 import ProfileToggle from '../components/profile/ProfileToggle';
+import NewBookingPopup from '../components/bookings/NewBookingPopup';
 
 const user = {
   name: 'Ana Costa',
@@ -39,6 +40,8 @@ const reviews = [
 ];
 
 export default function SitterProfile() {
+  const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
+
   useEffect(() => {
     document.title = 'Ana Costa | PetLink';
   }, []);
@@ -54,7 +57,7 @@ export default function SitterProfile() {
         bio={user.bio}
         stats={stats}
         actions={[
-          { label: 'Follow', variant: 'primary' },
+          { label: 'Make a booking', variant: 'primary', onClick: () => setIsNewBookingOpen(true) },
           { label: 'Message', variant: 'secondary' },
         ]}
       />
@@ -62,6 +65,12 @@ export default function SitterProfile() {
         <ProfileLeftSidebar cards={sidebarCards} />
         <ProfileContent posts={posts} reviews={reviews} authorName={user.name} authorInitials="AC" />
       </div>
+      {isNewBookingOpen && (
+        <NewBookingPopup
+          onClose={() => setIsNewBookingOpen(false)}
+          onCreateBooking={() => undefined}
+        />
+      )}
     </div>
   );
 }
