@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import BookingCard, { type Booking, type BookingStatus } from '../components/bookings/BookingCard';
 import BookingsSidePanel from '../components/bookings/BookingsSidePanel';
 import BookingsSummary from '../components/bookings/BookingsSummary';
-import UpdateAvailabilityPopup from '../components/bookings/UpdateAvailabilityPopup';
 import './Bookings.css';
 
 type BookingLayout = 'owner' | 'sitter';
@@ -143,7 +142,6 @@ function countUpcoming(bookings: Booking[]) {
 export default function Bookings() {
   const [activeLayout, setActiveLayout] = useState<BookingLayout>('owner');
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
-  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
@@ -169,7 +167,6 @@ export default function Bookings() {
   const handleLayoutChange = (layout: BookingLayout) => {
     setActiveLayout(layout);
     setActiveFilter('all');
-    setIsAvailabilityOpen(false);
   };
 
   return (
@@ -239,14 +236,9 @@ export default function Bookings() {
             <BookingsSidePanel
               layout={activeLayout}
               nextBooking={bookings[0]}
-              onUpdateAvailabilityClick={() => setIsAvailabilityOpen(true)}
             />
           </section>
         </div>
-
-        {isAvailabilityOpen && (
-          <UpdateAvailabilityPopup onClose={() => setIsAvailabilityOpen(false)} />
-        )}
       </main>
     </div>
   );

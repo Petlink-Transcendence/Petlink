@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import './ProfileLeftSidebar.css';
 
 type Card =
@@ -6,11 +7,13 @@ type Card =
 
 type ProfileLeftSidebarProps = {
   cards: Card[];
+  children?: ReactNode;
 };
 
-export default function ProfileLeftSidebar({ cards }: ProfileLeftSidebarProps) {
+export default function ProfileLeftSidebar({ cards, children }: ProfileLeftSidebarProps) {
   return (
     <aside className="profile-left">
+      {children}
       {cards.map(card => (
         <div key={card.title} className="profile-card">
           <h3 className="card-title">{card.title}</h3>

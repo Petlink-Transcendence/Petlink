@@ -87,32 +87,8 @@
   vertical-align: 0.1rem;
 }
 
-.bookings-panel-action {
-  border: none;
-  border-radius: 1.25rem;
-  align-self: flex-start;
-  padding: 0.55rem 1rem;
-  background: var(--petlink-tan);
-  color: white;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 700;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-}
-
-.bookings-panel-action:hover {
-  background: var(--social-bg);
-  transform: translateY(-0.0625rem);
-}
-
 @media (max-width: 64rem) {
   .bookings-side-card {
     position: static;
-  }
-}
-
-@media (max-width: 42rem) {
-  .bookings-panel-action {
-    width: 100%;
   }
 }
