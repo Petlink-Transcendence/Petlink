@@ -13,7 +13,7 @@ class User(AbstractUser):
     class UserType(models.TextChoices):
         OWNER = 'owner', 'Owner'
         PROVIDER = 'provider', 'Provider'
-        BOTH = 'both', 'Both'
+        # A opção BOTH foi removida daqui
 
     class Role(models.TextChoices):
         ADMIN = 'admin', 'Admin'

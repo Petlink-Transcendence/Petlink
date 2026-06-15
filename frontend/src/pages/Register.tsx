@@ -114,7 +114,6 @@ export default function Register() {
                     >
                         <option value="owner">Find a sitter for my pet</option>
                         <option value="provider">Offer pet sitting services</option>
-                        <option value="both">Do both</option>
                     </select>
                 </div>
 
