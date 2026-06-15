@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
                 ('name', models.CharField(max_length=100)),
-                ('user_type', models.CharField(choices=[('owner', 'Owner'), ('provider', 'Provider'), ('both', 'Both')], max_length=10)),
+                ('user_type', models.CharField(choices=[('owner', 'Owner'), ('provider', 'Provider')], max_length=10)),
                 ('role', models.CharField(choices=[('admin', 'Admin'), ('moderator', 'Moderator'), ('user', 'User'), ('guest', 'Guest')], default='user', max_length=10)),
                 ('avatar', models.URLField(blank=True, max_length=500, null=True)),
                 ('banner', models.URLField(blank=True, max_length=500, null=True)),
