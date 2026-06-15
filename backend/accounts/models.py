@@ -1,14 +1,56 @@
-# backend/accounts/models.py
-
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
-class User(AbstractUser):
+class ActiveUserManager(UserManager):
     """
-    Custom user model for the application.
-    It inherits from AbstractUser to gain all default auth fields.
+    Manager customizado para o Soft Delete.
+    Sempre que chamarmos User.objects.all(), ele vai ignorar os deletados.
     """
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
 
+class User(AbstractUser):
+    class UserType(models.TextChoices):
+        OWNER = 'owner', 'Owner'
+        PROVIDER = 'provider', 'Provider'
+        BOTH = 'both', 'Both'
+
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'Admin'
+        MODERATOR = 'moderator', 'Moderator'
+        USER = 'user', 'User'
+        GUEST = 'guest', 'Guest'
+
+    # Mandatory fields
+    name = models.CharField(max_length=100)
+    user_type = models.CharField(max_length=10, choices=UserType.choices)
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.USER)
+
+    # username, email, password and is_active already exists in AbstractUser
+
+    # Optional fields/ profile
+    avatar = models.URLField(max_length=500, null=True, blank=True)
+    banner = models.URLField(max_length=500, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
+
+    # Status && Realtime
+    online_status = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(null=True, blank=True)
+
+    # OAuth (42 Intranet)
+    oauth_provider = models.CharField(max_length=50, null=True, blank=True)
+    oauth_id = models.CharField(max_length=255, null=True, blank=True)
+
+    # Soft Delete
+    created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    # Managers configuration
+    objects = ActiveUserManager() # Default: ignore deleteds
+    all_objects = UserManager()   # Extra: admins can see deleteds if needed
 
     def __str__(self):
-        return self.username
+        return f"{self.username} ({self.user_type})"
