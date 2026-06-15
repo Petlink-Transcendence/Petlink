@@ -15,7 +15,7 @@ export default function Login() {
     const handleLogin = async () => {
         setError('');
         try {
-            const response = await fetch('http://localhost:8000/login/', {
+            const response = await fetch('http://localhost/auth/login/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -54,7 +54,7 @@ export default function Login() {
                     <input type="password"
                             placeholder="***************"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)} 
+                            onChange={(e) => setPassword(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
