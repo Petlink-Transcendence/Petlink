@@ -217,3 +217,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 db.sqlite3
+
+# Doc
+db_schema.md
+plan.md
+en.subject.pdf
