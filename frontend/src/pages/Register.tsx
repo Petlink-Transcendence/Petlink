@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 
 export default function Register() {
     // States to control data
+    const [name, setName] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [userType, setUserType] = useState('owner'); // Default to 'owner'
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -23,17 +25,36 @@ export default function Register() {
         }
 
         try {
-            const response = await fetch('http://localhost:8000/register/', {
+            const response = await fetch('http://localhost/auth/register/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password,
+                    name,
+                    user_type: userType
+                })
             });
 
             if (response.ok) {
                 alert("Account created successfully!");
                 window.location.href = "/login";
             } else {
-                setError("Error creating account.");
+                // Extract the exact error message from Django (e.g., password regex failure)
+                const data = await response.json();
+
+                // If the backend sent a list of password errors, display the first one.
+                // Otherwise, stringify the error object for debugging.
+                if (data.password) {
+                    setError(data.password[0]);
+                } else if (data.username) {
+                    setError("Username already exists.");
+                } else if (data.email) {
+                    setError("Email already in use.");
+                } else {
+                    setError(JSON.stringify(data));
+                }
             }
         } catch (err) {
             setError("Error connecting to server.");
@@ -49,6 +70,11 @@ export default function Register() {
             <div className="login-box">
                 <h2 className="login-title">Sign Up</h2>
                 {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
+
+                <div className="input-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
 
                 <div className="input-group">
                     <label>Username</label>
@@ -76,6 +102,20 @@ export default function Register() {
                                 }
                             }}
                             />
+                </div>
+
+                {/* New Dropdown for User Type */}
+                <div className="input-group">
+                    <label>I want to...</label>
+                    <select
+                        value={userType}
+                        onChange={(e) => setUserType(e.target.value)}
+                        style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    >
+                        <option value="owner">Find a sitter for my pet</option>
+                        <option value="provider">Offer pet sitting services</option>
+                        <option value="both">Do both</option>
+                    </select>
                 </div>
 
                 <button className="login-button" onClick={handleRegister}>Sign Up</button>
