@@ -128,19 +128,36 @@
   flex-direction: row;
   align-items: baseline;
   gap: 0.3rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
+
+.stat-item.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.stat-item.clickable:hover {
+  opacity: 0.7;
+  transform: translateY(-2px);
+}
+
+.stat-item.non-clickable {
+  cursor: default; 
+}
+
 
 /* Stat number */
 .stat-value {
   font-size: 1rem;
   font-weight: 700;
-  color: black;
+  color: var(--petlink-tan);
 }
 
 /* Stat label */
 .stat-label {
   font-size: 0.78rem;
-  color: #888;
+  color: #514f4f;
 }
 
 /* Vertical divider between stats */

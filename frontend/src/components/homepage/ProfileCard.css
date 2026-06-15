@@ -49,21 +49,36 @@
 /* Stats container */
 .stats {
   display: flex;
-  justify-content: space-between;
-  margin-top: 0.9375rem;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 1rem;
 }
 
 /* Each stat block */
-.stats-nbrs {
-  text-align: center;
-  color: black;
+.stats-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-/* Number */
+.stats-group:hover {
+  transform: translateY(-2px);
+  opacity: 0.85;
+}
+
 .nbr {
-  color: var(--petlink-tan);
-  font-weight: bolder;
+  font-weight: bold;
+  font-size: 1.15rem;
   margin: 0;
+  color: var(--petlink-tan);
+}
+
+.stats-label {
+  font-size: 0.85rem;
+  margin: 0;
+  color: black;
 }
 
 /* ── Responsiveness ── */

@@ -1,4 +1,4 @@
-import React, {use, useState} from 'react'
+import { useState } from 'react'
 import CreatePostContainer from './CreatePostPopup'
 import './CreatePost.css'
 
