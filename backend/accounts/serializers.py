@@ -32,3 +32,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             user_type=validated_data['user_type']
         )
         return user
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """Serializer to return user profile data (safe fields only)"""
+    class Meta:
+        model = User
+        # Excludes sensitive data like password_hash, oauth_id, etc.
+        fields = (
+            'id', 'username', 'email', 'name', 'user_type', 'role',
+            'avatar', 'banner', 'description', 'rating', 'online_status'
+        )
+        # Ensures no one can accidentally modify data using a GET view
+        read_only_fields = fields
