@@ -62,3 +62,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         fields = (
             'name', 'description', 'country', 'city'
         )
+
+class AvatarUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('avatar' ,)
