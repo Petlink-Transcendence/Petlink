@@ -54,3 +54,11 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'city', 'user_type', 'rating'
         )
         read_only_fields = fields
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """update profile serializer"""
+    class Meta:
+        model = User
+        fields = (
+            'name', 'description', 'country', 'city'
+        )

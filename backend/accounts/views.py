@@ -3,7 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
-from .serializers import UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer
+from .serializers import UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer, UserProfileUpdateSerializer
+from .permissions import IsOwnerOrReadOnly
 
 User = get_user_model()
 
@@ -23,8 +24,12 @@ class UserMeView(APIView):
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
 
-class UserPublicProfileView(generics.RetrieveAPIView):
-    """API view to to handle public user requests"""
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    """API view to handle public user requests"""
     queryset = User.objects.all()
-    permission_classes = [AllowAny]
-    serializer_class = UserPublicProfileSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UserPublicProfileSerializer
+        return UserProfileUpdateSerializer
