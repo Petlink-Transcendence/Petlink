@@ -67,3 +67,8 @@ class AvatarUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('avatar' ,)
+
+class BannerUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('banner' ,)

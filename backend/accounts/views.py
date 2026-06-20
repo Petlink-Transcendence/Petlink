@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer, 
-    UserProfileUpdateSerializer, AvatarUploadSerializer
+    UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer
 )
 from .permissions import IsOwnerOrReadOnly
 from django.shortcuts import get_object_or_404
@@ -48,6 +48,19 @@ class AvatarUploadView(APIView):
         user = get_object_or_404(User, pk=pk)
         self.check_object_permissions(request, user)
         serializer = AvatarUploadSerializer(user, data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+class BannerUploadView(APIView):
+    """View to upload files"""
+    permission_classes = [IsOwnerOrReadOnly]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        self.check_object_permissions(request, user)
+        serializer = BannerUploadSerializer(user, data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
