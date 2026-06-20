@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
-from .serializers import UserRegistrationSerializer, UserProfileSerializer
+from .serializers import UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer
 
 User = get_user_model()
 
@@ -22,3 +22,9 @@ class UserMeView(APIView):
         # request.user is automatically populated by SimpleJWT if the token is valid
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
+
+class UserPublicProfileView(generics.RetrieveAPIView):
+    """API view to to handle public user requests"""
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = UserPublicProfileSerializer
