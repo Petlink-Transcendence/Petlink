@@ -64,5 +64,21 @@ services:
     depends_on:
       - core-service
 
+  realtime-service:
+    build: ./realtime-service
+    container_name: petlink_realtime
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8001"
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./realtime-service:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - core-service
+
 volumes:
   postgres_data:
