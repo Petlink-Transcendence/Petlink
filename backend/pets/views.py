@@ -2,6 +2,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Pet, UserPet
 from .serializers import PetSerializer
+from .permissions import IsPetOwnerOrReadOnly
 
 class PetCreateView(generics.CreateAPIView):
     """View for Create Pet"""
@@ -22,3 +23,9 @@ class UserPetListView(generics.ListAPIView):
         user_pet_links = UserPet.objects.filter(user_id=self.kwargs['pk'])
         pet_ids = user_pet_links.values_list('pet_id', flat=True)
         return Pet.objects.filter(id__in=pet_ids)
+    
+class PetDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """View for update/delete pet"""
+    queryset = Pet.objects.all()
+    serializer_class = PetSerializer
+    permission_classes = [IsPetOwnerOrReadOnly]

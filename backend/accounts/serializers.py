@@ -54,6 +54,13 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'city', 'user_type', 'rating'
         )
         read_only_fields = fields
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not data['avatar']:
+            data['avatar'] = '/static/avatars/profile-pic.png'
+        return data
+
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     """update profile serializer"""
