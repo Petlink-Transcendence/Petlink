@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import OAuthCallback from './pages/OAuthCallback'; // <-- New OAuth Callback import
 import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
@@ -35,6 +36,10 @@ function App() {
               <Register />
             </PublicOnlyRoute>
           } />
+
+          {/* 42 OAuth Callback Route */}
+          {/* We leave this route standard (without PublicOnlyRoute) to avoid state conflicts while saving tokens */}
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
 
           <Route path="/chat" element={
             <ProtectedRoute>

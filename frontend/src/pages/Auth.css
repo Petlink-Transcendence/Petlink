@@ -82,7 +82,6 @@
     color: transparent;
 }
 
-
 .login-button {
   background-color: var(--petlink-tan);
   color: white;
@@ -119,4 +118,35 @@
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* --- 42 OAuth Styles --- */
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0.5rem 0;
+  color: #aaa;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.divider span {
+  padding: 0 10px;
+  font-size: 0.875rem;
+}
+
+.oauth-42-button {
+  background-color: #00babc;
+  color: white;
+  margin-top: 0;
+}
+
+.oauth-42-button:hover {
+  background-color: #009ba0;
 }

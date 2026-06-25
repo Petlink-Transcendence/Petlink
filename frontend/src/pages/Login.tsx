@@ -12,6 +12,7 @@ export default function Login() {
         document.title = "Login | PetLink";
     }, []);
 
+    // Traditional local authentication
     const handleLogin = async () => {
         setError('');
         try {
@@ -28,6 +29,23 @@ export default function Login() {
                 navigate('/');
             } else {
                 setError("Invalid username or password.");
+            }
+        } catch (err) {
+            setError("Error connecting to server.");
+        }
+    };
+
+    // 42 Intranet OAuth authentication
+    const handle42Login = async () => {
+        setError('');
+        try {
+            const response = await fetch('http://localhost:8080/auth/42/login/');
+            if (response.ok) {
+                const data = await response.json();
+                // Redirect the browser to the official 42 authorization URL
+                window.location.href = data.url;
+            } else {
+                setError("Failed to initialize 42 login.");
             }
         } catch (err) {
             setError("Error connecting to server.");
@@ -65,6 +83,15 @@ export default function Login() {
                 </div>
 
                 <button className="login-button" onClick={handleLogin}>Login</button>
+
+                {/* 42 Login Section */}
+                <div className="divider">
+                    <span>or</span>
+                </div>
+
+                <button className="login-button oauth-42-button" onClick={handle42Login}>
+                    Login with 42 Intranet
+                </button>
 
                 <div className="sign-up-container">
                     <span className="sign-up-text">Don't have an account?</span>

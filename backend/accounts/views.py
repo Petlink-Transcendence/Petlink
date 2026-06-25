@@ -1,3 +1,7 @@
+import os
+import requests
+from django.shortcuts import redirect
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -22,3 +26,81 @@ class UserMeView(APIView):
         # request.user is automatically populated by SimpleJWT if the token is valid
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
+
+class OAuth42LoginView(APIView):
+    """
+    Outbound Route: React calls this view to discover the official
+    42 login URL. We build the URL and return it.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        client_id = os.environ.get('FT_CLIENT_ID')
+        redirect_uri = os.environ.get('FT_REDIRECT_URI')
+
+        # Build the 42 authorization link
+        url = f"https://api.intra.42.fr/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
+
+        return Response({"url": url})
+
+
+class OAuth42CallbackView(APIView):
+    """
+    Inbound Route: 42 redirects the user here with a 'code'.
+    We exchange this 'code' for the student's data and generate our JWT.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.GET.get('code')
+        if not code:
+            return Response({"error": "Code not provided by 42"}, status=400)
+
+        # 1. Exchange the 'code' for the 42 Access Token
+        token_data = {
+            'grant_type': 'authorization_code',
+            'client_id': os.environ.get('FT_CLIENT_ID'),
+            'client_secret': os.environ.get('FT_CLIENT_SECRET'),
+            'code': code,
+            'redirect_uri': os.environ.get('FT_REDIRECT_URI'),
+        }
+        token_res = requests.post("https://api.intra.42.fr/oauth/token", data=token_data)
+
+        if not token_res.ok:
+            return Response({"error": "Failed to authenticate with 42"}, status=400)
+
+        access_token = token_res.json().get('access_token')
+
+        # 2. Use the 42 token to fetch cadet data
+        headers = {'Authorization': f'Bearer {access_token}'}
+        user_res = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
+        user_data = user_res.json()
+
+        # 3. Create or get the user in OUR database (PetLink)
+        ft_login = user_data.get('login')
+        email = user_data.get('email')
+
+        # get_or_create is perfect here: if it doesn't exist, it creates it!
+        user, created = User.objects.get_or_create(
+            username=ft_login,
+            defaults={
+                'email': email,
+                'name': user_data.get('displayname', ft_login),
+                'user_type': 'owner',  # Everyone from 42 starts as 'owner' by default
+                'oauth_provider': '42',
+                'oauth_id': str(user_data.get('id')),
+            }
+        )
+
+        if created:
+            # Since they log in via 42, they don't have a local password!
+            user.set_unusable_password()
+            user.save()
+
+        # 4. Generate OUR PetLink JWT token for this user
+        refresh = RefreshToken.for_user(user)
+
+        # 5. Redirect back to React delivering the tokens!
+        # Here we assume React is running on port 5173
+        frontend_url = f"http://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
+        return redirect(frontend_url)
