@@ -25,4 +25,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.update_online_status(False)
 
     async def receive(self, text_data):
-        await self.send(text_data=text_data)
+        data = json.loads(text_data)
+        recipient_id = data['recipient_id']
+        content = data['content']
+
+        await self.save_message(recipient_id, content)
+
+        await self.channel_layer.group_send(
+            f'chat_{recipient_id}',
+            {
+                'type': 'chat_message',
+                'sender_id': self.user_id,
+                'content': content,
+            }
+        )
