@@ -18,7 +18,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.update_online_status(True)
 
     async def disconnect(self, close_code):
-        pass
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.update_online_status(False)
 
     async def receive(self, text_data):
         await self.send(text_data=text_data)
