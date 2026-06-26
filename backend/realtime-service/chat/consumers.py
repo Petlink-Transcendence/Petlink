@@ -39,3 +39,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'content': content,
             }
         )
+
+    async def chat_message(self, event):
+        await self.send(text_data=json.dumps({
+            'sender_id': event['sender_id'],
+            'content': event['content'],
+        }))
+
+    @database_sync_to_async
+    def save_message(self, recipient_id, content):
+        Message.objects.create(
+            sender_id=self.user_id,
+            recipient_id=recipient_id,
+            content=content
+        )
+
+    @database_sync_to_async
+    def update_online_status(self, status):
+        from django.db import connection
+        with connection.cursor() as cursor:
+            if status:
+                cursor.execute(
+                    'UPDATE "user" SET online_status = %s, WHERE user_id = %s',
+                    [True, self.user_id]
+                )
+            else:
+                cursor.execute(
+                    'UPDATE "user" SET online_status = %s, last_seen = %s WHERE user_id = %s',
+                    [False, timezone.now(), self.user_id]
+                )
