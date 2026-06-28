@@ -10,7 +10,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'name', 'user_type')
+        fields = ('id', 'username', 'email', 'password', 'name', 'user_type')
 
     def validate_password(self, value):
         """Validates user password minimum requirements"""
@@ -44,3 +44,38 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
         # Ensures no one can accidentally modify data using a GET view
         read_only_fields = fields
+
+class UserPublicProfileSerializer(serializers.ModelSerializer):
+    """Public User Serializer"""
+    class Meta:
+        model = User
+        fields = (
+            'id', 'name', 'avatar', 'banner', 'description',
+            'city', 'user_type', 'rating'
+        )
+        read_only_fields = fields
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not data['avatar']:
+            data['avatar'] = '/static/avatars/profile-pic.png'
+        return data
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """update profile serializer"""
+    class Meta:
+        model = User
+        fields = (
+            'name', 'description', 'country', 'city'
+        )
+
+class AvatarUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('avatar' ,)
+
+class BannerUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('banner' ,)

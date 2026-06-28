@@ -28,8 +28,8 @@ class User(AbstractUser):
     # username, email, password and is_active already exists in AbstractUser
 
     # Optional fields/ profile
-    avatar = models.URLField(max_length=500, null=True, blank=True)
-    banner = models.URLField(max_length=500, null=True, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    banner = models.ImageField(upload_to='banners/', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)

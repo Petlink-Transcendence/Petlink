@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from rest_framework import permissions
 
 class IsAdmin(BasePermission):
     """Allows access for admin only"""
@@ -15,7 +16,6 @@ class IsModerator(BasePermission):
             request.user.role in ['admin', 'moderator']
         )
 
-
 class IsOwnerOrAdmin(BasePermission):
     """
     Permission in object level: The user can only view/edit
@@ -25,4 +25,13 @@ class IsOwnerOrAdmin(BasePermission):
         if request.user.role == 'admin':
             return True
 
+        return obj == request.user
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """check if the request needs owner permissions"""
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        """return true if the user is equal to the obj"""
         return obj == request.user
