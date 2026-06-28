@@ -12,7 +12,7 @@ export default function Login() {
         document.title = "Login | PetLink";
     }, []);
 
-    // Traditional local authentication
+    // Local authentication
     const handleLogin = async () => {
         setError('');
         try {

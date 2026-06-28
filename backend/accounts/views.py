@@ -99,7 +99,6 @@ class OAuth42CallbackView(APIView):
         )
 
         if created:
-            # Since they log in via 42, they don't have a local password!
             user.set_unusable_password()
             user.save()
 
@@ -107,7 +106,6 @@ class OAuth42CallbackView(APIView):
         refresh = RefreshToken.for_user(user)
 
         # 5. Redirect back to React delivering the tokens!
-        # Here we assume React is running on port 5173
         frontend_url = f"http://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
         return redirect(frontend_url)
 class UserProfileView(generics.RetrieveUpdateAPIView):
