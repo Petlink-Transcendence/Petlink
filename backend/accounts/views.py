@@ -11,7 +11,7 @@ from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
     UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer
 )
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerAdminModeratorOrReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser
 
@@ -29,7 +29,6 @@ class UserMeView(APIView):
 
     def get(self, request):
         """Returns the serialized data of the user making the request"""
-        # request.user is automatically populated by SimpleJWT if the token is valid
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
 
@@ -43,12 +42,8 @@ class OAuth42LoginView(APIView):
     def get(self, request):
         client_id = os.environ.get('FT_CLIENT_ID')
         redirect_uri = os.environ.get('FT_REDIRECT_URI')
-
-        # Build the 42 authorization link
         url = f"https://api.intra.42.fr/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code"
-
         return Response({"url": url})
-
 
 class OAuth42CallbackView(APIView):
     """
@@ -62,7 +57,6 @@ class OAuth42CallbackView(APIView):
         if not code:
             return Response({"error": "Code not provided by 42"}, status=400)
 
-        # 1. Exchange the 'code' for the 42 Access Token
         token_data = {
             'grant_type': 'authorization_code',
             'client_id': os.environ.get('FT_CLIENT_ID'),
@@ -77,22 +71,19 @@ class OAuth42CallbackView(APIView):
 
         access_token = token_res.json().get('access_token')
 
-        # 2. Use the 42 token to fetch cadet data
         headers = {'Authorization': f'Bearer {access_token}'}
         user_res = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
         user_data = user_res.json()
 
-        # 3. Create or get the user in OUR database (PetLink)
         ft_login = user_data.get('login')
         email = user_data.get('email')
 
-        # get_or_create is perfect here: if it doesn't exist, it creates it!
         user, created = User.objects.get_or_create(
             username=ft_login,
             defaults={
                 'email': email,
                 'name': user_data.get('displayname', ft_login),
-                'user_type': 'owner',  # Everyone from 42 starts as 'owner' by default
+                'user_type': 'owner',
                 'oauth_provider': '42',
                 'oauth_id': str(user_data.get('id')),
             }
@@ -102,16 +93,15 @@ class OAuth42CallbackView(APIView):
             user.set_unusable_password()
             user.save()
 
-        # 4. Generate OUR PetLink JWT token for this user
         refresh = RefreshToken.for_user(user)
 
-        # 5. Redirect back to React delivering the tokens!
         frontend_url = f"http://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
         return redirect(frontend_url)
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    """API view to handle public user requests"""
+    """API view to handle public user profile requests"""
     queryset = User.objects.all()
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerAdminModeratorOrReadOnly]
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -119,8 +109,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return UserProfileUpdateSerializer
 
 class AvatarUploadView(APIView):
-    """View to upload files"""
-    permission_classes = [IsOwnerOrReadOnly]
+    """View to handle user avatar uploads"""
+    permission_classes = [IsOwnerAdminModeratorOrReadOnly]
     parser_classes = [MultiPartParser]
 
     def post(self, request, pk):
@@ -132,8 +122,8 @@ class AvatarUploadView(APIView):
         return Response(serializer.data)
 
 class BannerUploadView(APIView):
-    """View to upload files"""
-    permission_classes = [IsOwnerOrReadOnly]
+    """View to handle user profile banner uploads"""
+    permission_classes = [IsOwnerAdminModeratorOrReadOnly]
     parser_classes = [MultiPartParser]
 
     def post(self, request, pk):
