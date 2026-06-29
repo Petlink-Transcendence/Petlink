@@ -51,7 +51,7 @@ services:
     container_name: petlink_redis
     restart: always
     ports:
-      - "6380:6379"
+      - "6379:6379"
 
   nginx:
     image: nginx:alpine
@@ -62,6 +62,22 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
+      - core-service
+
+  realtime-service:
+    build: ./realtime-service
+    container_name: petlink_realtime
+    command: >
+      sh -c "python manage.py migrate &&
+             daphne -b 0.0.0.0 -p 8001 core.asgi:application"
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./realtime-service:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
       - core-service
 
 volumes:
