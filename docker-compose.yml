@@ -51,7 +51,7 @@ services:
     container_name: petlink_redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   nginx:
     image: nginx:alpine
