@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import './Post.css'
 import '../Comments.css'
 
@@ -23,6 +24,7 @@ type PostProps = {
 };
 
 export default function Post({ authorId, authorType, name, tag, text, location, time, tags, likeCount = 0 }: PostProps) {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(likeCount);
   const [imgError, setImgError] = useState(false);
@@ -60,6 +62,20 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
   const getCommentInitials = (authorName: string) => {
     return authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
+
+  const handleMessageClick = () => {
+    const parsedAuthorId = Number(authorId);
+
+    navigate('/chat', {
+      state: {
+        contact: {
+          id: Number.isFinite(parsedAuthorId) ? parsedAuthorId : undefined,
+          name,
+          role: authorType,
+        },
+      },
+    });
+  };
 
   return (
     <div className="post-container">
@@ -109,12 +125,7 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
         <button className={`btn like ${liked ? 'liked' : ''}`} onClick={handleLike}>
           ❤️ {likes}
         </button>
-        <button 
-          className={`btn comment ${showComments ? 'active' : ''}`} 
-          onClick={() => setShowComments(!showComments)}
-        >
-          💬 Comment
-        </button>
+        <button className="btn comment">💬 Comment</button>
         <button className="btn apply">🐾 Apply</button>
         <button className="btn-remove" title="Remove post">🗑️</button>
       </div>
