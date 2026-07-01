@@ -18,6 +18,7 @@ interface Contact {
 }
 
 interface ChatRouteState {
+    openChatId?: number;
     contact?: {
         id?: number;
         name: string;
@@ -37,6 +38,7 @@ const initialContacts: Contact[] = [
 
 export default function Chat() {
     const location = useLocation();
+    const routeOpenChatId = (location.state as ChatRouteState | null)?.openChatId;
     const routeContact = (location.state as ChatRouteState | null)?.contact;
 
     useEffect(() => {
@@ -63,6 +65,18 @@ export default function Chat() {
             });
         }
     };
+
+    useEffect(() => {
+        if (routeOpenChatId === undefined) {
+            return;
+        }
+
+        const contactById = contacts.find(contact => contact.id === routeOpenChatId);
+        if (contactById) {
+            setSearchTermContacts("");
+            setActiveChat(contactById.id);
+        }
+    }, [routeOpenChatId, contacts]);
 
     useEffect(() => {
         if (!routeContact?.name || !routeContact?.role) {
