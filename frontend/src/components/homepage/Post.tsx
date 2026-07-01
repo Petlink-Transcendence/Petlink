@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import './Post.css'
 
 type PostProps = {
@@ -15,6 +16,7 @@ type PostProps = {
 };
 
 export default function Post({ authorId, authorType, name, tag, text, location, time, tags, likeCount = 0 }: PostProps) {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(likeCount);
   const [imgError, setImgError] = useState(false);
@@ -25,6 +27,20 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
   const handleLike = () => {
     setLikes(liked ? likes - 1 : likes + 1);
     setLiked(!liked);
+  };
+
+  const handleMessageClick = () => {
+    const parsedAuthorId = Number(authorId);
+
+    navigate('/chat', {
+      state: {
+        contact: {
+          id: Number.isFinite(parsedAuthorId) ? parsedAuthorId : undefined,
+          name,
+          role: authorType,
+        },
+      },
+    });
   };
 
   return (
@@ -75,8 +91,8 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
         <button className={`btn like ${liked ? 'liked' : ''}`} onClick={handleLike}>
           ❤️ {likes}
         </button>
-        <button className="btn comment">💬 Comment</button>
-        <button className="btn apply">🐾 Apply</button>
+        <button className="btn comment">📢 Comment</button>
+        <button className="btn apply" onClick={handleMessageClick}>💬 Message</button>
         <button className="btn-remove" title="Remove post">🗑️</button>
       </div>
     </div>
