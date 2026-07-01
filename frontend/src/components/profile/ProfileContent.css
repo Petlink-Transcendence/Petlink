@@ -101,9 +101,17 @@
 }
 
 /* Post timestamp */
-.post-time {
+.profile-post-time-wrapper {
+  text-align: left;
+  margin-top: -0.25rem;    /* Pulls it slightly closer to the post body text */
+  margin-bottom: 0.5rem;   /* Leaves some breathing room above the separator bar */
+}
+
+/* Ensures the time text styling remains clean and muted */
+.profile-post-time-wrapper .post-time {
   font-size: 0.72rem;
   color: #aaa;
+  display: inline-block;
 }
 
 /* Post body text */
@@ -115,15 +123,19 @@
   line-height: 1.5;
 }
 
-/* Post footer with time and likes */
+/* Post footer with time, comments and likes */
 .profile-post-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: flex-start;
   border-top: 0.0625rem solid #f0eeeb;
   padding-top: 0.5rem;
-  font-size: 0.78rem;
-  color: #888;
+  margin-top: 0.5rem;
+}
+
+.profile-post-actions-group {
+  display: flex;
+  gap: 0.9375rem;
 }
 
 /* Like count */
