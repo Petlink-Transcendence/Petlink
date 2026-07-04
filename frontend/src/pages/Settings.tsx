@@ -1,6 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import './Settings.css';
 
+interface Pet {
+  id: string;
+  name: string;
+  type: 'dog' | 'cat' | 'rabbit' | 'other';
+  breed: string;
+  age: string;
+}
+
 interface SettingsForm {
   displayName: string;
   username: string;
@@ -17,6 +25,12 @@ interface SettingsForm {
   showAbout: boolean;
   showPets: boolean;
   showLookingFor: boolean;
+  ownerPetTypes: string[];
+  petsList: Pet[];
+  lookingForServices: string[];
+  yearsOfExperience: string;
+  hourlyRate: string;
+  sitterPetTypes: string[];
 }
 
 const initialSettings: SettingsForm = {
@@ -35,16 +49,32 @@ const initialSettings: SettingsForm = {
   showAbout: true,
   showPets: true,
   showLookingFor: true,
+  ownerPetTypes: ['dogs', 'cats'],
+  petsList: [{ id: '1', name: 'Luna', type: 'cat', breed: 'Siamese', age: '2 years old' }],
+  lookingForServices: ['Cat Sitter', 'Dog Walker'],
+  sitterPetTypes: ['dogs', 'cats', 'small pets'],
 };
 
-const services = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
+const ownerPetTypeOptions = ['dogs', 'cats', 'rabbits', 'other'];
+const lookingForOptions = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
+const sitterPetTypeOptions = ['dogs', 'cats', 'rabbits', 'small pets', 'big pets'];
+
+const ageOptions = [
+  '<1 yr',
+  '1 yr',
+  ...Array.from({ length: 11 }, (_, i) => `${i + 2} yrs`),
+  '>12 yrs'
+];
 
 export default function Settings() {
   const [form, setForm] = useState<SettingsForm>(initialSettings);
-  const [selectedServices, setSelectedServices] = useState<string[]>(['Cat Sitter', 'Dog Walker']);
-  const [saved, setSaved] = useState(false);
-  
   const [activeSection, setActiveSection] = useState<string>('profile');
+  const [saved, setSaved] = useState(false);
+
+  const [newPetName, setNewPetName] = useState('');
+  const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
+  const [newPetBreed, setNewPetBreed] = useState('');
+  const [newPetAge, setNewPetAge] = useState('<1 yr');
 
   useEffect(() => {
     document.title = 'Settings | PetLink';
@@ -54,12 +84,38 @@ export default function Settings() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function toggleService(service: string) {
-    setSelectedServices((current) =>
-      current.includes(service)
-        ? current.filter((item) => item !== service)
-        : [...current, service]
-    );
+  function toggleTagField(key: 'ownerPetTypes' | 'lookingForServices' | 'sitterPetTypes', tag: string) {
+    setForm((current) => {
+      const currentTags = current[key] as string[];
+      const updatedTags = currentTags.includes(tag)
+        ? currentTags.filter((item) => item !== tag)
+        : [...currentTags, tag];
+      return { ...current, [key]: updatedTags };
+    });
+  }
+
+  function handleAddPet() {
+    if (!newPetName.trim()) return;
+    
+    const formattedAge = newPetAge.includes('yr') ? newPetAge.replace('yr', 'year old').replace('yrs', 'years old') : newPetAge;
+
+    const newPet: Pet = {
+      id: Date.now().toString(),
+      name: newPetName.trim(),
+      type: newPetType,
+      breed: newPetBreed.trim() || 'Unknown',
+      age: formattedAge,
+    };
+
+    updateField('petsList', [...form.petsList, newPet]);
+    setNewPetName('');
+    setNewPetBreed('');
+    setNewPetType('dog');
+    setNewPetAge('<1 yr');
+  }
+
+  function handleRemovePet(id: string) {
+    updateField('petsList', form.petsList.filter((pet) => pet.id !== id));
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -70,7 +126,6 @@ export default function Settings() {
 
   function handleReset() {
     setForm(initialSettings);
-    setSelectedServices(['Cat Sitter', 'Dog Walker']);
     setActiveSection('profile');
     setSaved(false);
   }
@@ -79,9 +134,7 @@ export default function Settings() {
     <div className="settings-page">
       <div className="settings-heading">
         <p className="settings-kicker">Account</p>
-        <h1>
-          My <span>Settings</span>
-        </h1>
+        <h1>My <span>Settings</span></h1>
       </div>
 
       <form className="settings-layout" onSubmit={handleSubmit}>
@@ -94,34 +147,10 @@ export default function Settings() {
             </div>
           </div>
 
-          <a 
-            className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} 
-            href="#profile"
-            onClick={() => setActiveSection('profile')}
-          >
-            Profile
-          </a>
-          <a 
-            className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} 
-            href="#care"
-            onClick={() => setActiveSection('care')}
-          >
-            Pet care
-          </a>
-          <a 
-            className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} 
-            href="#notifications"
-            onClick={() => setActiveSection('notifications')}
-          >
-            Notifications
-          </a>
-          <a 
-            className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} 
-            href="#privacy"
-            onClick={() => setActiveSection('privacy')}
-          >
-            Privacy
-          </a>
+          <a className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} href="#profile" onClick={() => setActiveSection('profile')}>Profile</a>
+          <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
+          <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
+          <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
         </aside>
 
         <main className="settings-main">
@@ -136,48 +165,25 @@ export default function Settings() {
             <div className="settings-grid">
               <label className="settings-field">
                 <span>Display name</span>
-                <input
-                  type="text"
-                  value={form.displayName}
-                  onChange={(event) => updateField('displayName', event.target.value)}
-                />
+                <input type="text" value={form.displayName} onChange={(e) => updateField('displayName', e.target.value)} />
               </label>
-
               <label className="settings-field">
                 <span>Username</span>
-                <input
-                  type="text"
-                  value={form.username}
-                  onChange={(event) => updateField('username', event.target.value)}
-                />
+                <input type="text" value={form.username} onChange={(e) => updateField('username', e.target.value)} />
               </label>
-
               <label className="settings-field">
                 <span>Email</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(event) => updateField('email', event.target.value)}
-                />
+                <input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} />
               </label>
-
               <label className="settings-field">
                 <span>Location</span>
-                <input
-                  type="text"
-                  value={form.location}
-                  onChange={(event) => updateField('location', event.target.value)}
-                />
+                <input type="text" value={form.location} onChange={(e) => updateField('location', e.target.value)} />
               </label>
             </div>
 
             <label className="settings-field">
               <span>Bio</span>
-              <textarea
-                value={form.bio}
-                rows={4}
-                onChange={(event) => updateField('bio', event.target.value)}
-              />
+              <textarea value={form.bio} rows={4} onChange={(e) => updateField('bio', e.target.value)} />
             </label>
           </section>
 
@@ -197,23 +203,145 @@ export default function Settings() {
                   type="button"
                   onClick={() => updateField('accountMode', mode)}
                 >
-                  {mode === 'owner' ? 'Owner' : mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  {mode === 'owner' ? 'Owner' : 'Sitter'}
                 </button>
               ))}
             </div>
 
-            <div className="settings-service-list">
-              {services.map((service) => (
-                <label className="settings-check-row" key={service}>
-                  <input
-                    type="checkbox"
-                    checked={selectedServices.includes(service)}
-                    onChange={() => toggleService(service)}
-                  />
-                  <span>{service}</span>
-                </label>
-              ))}
-            </div>
+            {form.accountMode === 'owner' && (
+              <div className="mode-specific-fields owner-mode animate-fade-in">
+                
+                <div className="settings-input-group">
+                  <span className="settings-group-label">My Pets are:</span>
+                  <div className="settings-service-list">
+                    {ownerPetTypeOptions.map((type) => (
+                      <label className="settings-check-row" key={type}>
+                        <input
+                          type="checkbox"
+                          checked={form.ownerPetTypes.includes(type)}
+                          onChange={() => toggleTagField('ownerPetTypes', type)}
+                        />
+                        <span className="capitalize-text">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="settings-input-group">
+                  <span className="settings-group-label">Manage My Pets:</span>
+                  
+                  <div className="add-pet-inline-form">
+                    <input 
+                      type="text" 
+                      placeholder="Pet name" 
+                      value={newPetName}
+                      onChange={(e) => setNewPetName(e.target.value)}
+                      className="pet-input-field pet-name-input"
+                    />
+                    <select 
+                      value={newPetType} 
+                      onChange={(e) => setNewPetType(e.target.value as Pet['type'])}
+                      className="pet-input-field pet-type-select"
+                    >
+                      <option value="dog">Dog</option>
+                      <option value="cat">Cat</option>
+                      <option value="rabbit">Rabbit</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <input 
+                      type="text"
+                      placeholder="Breed"
+                      value={newPetBreed}
+                      onChange={(e) => setNewPetBreed(e.target.value)}
+                      className="pet-input-field pet-breed-input"
+                    />
+                    <select
+                      value={newPetAge}
+                      onChange={(e) => setNewPetAge(e.target.value)}
+                      className="pet-input-field pet-age-select"
+                    >
+                      {ageOptions.map((age) => (
+                        <option key={age} value={age}>{age}</option>
+                      ))}
+                    </select>
+                    <button type="button" className="add-pet-btn" onClick={handleAddPet}>+ Add</button>
+                  </div>
+
+                  <div className="added-pets-badge-list">
+                    {form.petsList.map((pet) => (
+                      <div key={pet.id} className="pet-badge-item">
+                        <span>
+                          {pet.name} | <span className="capitalize-text">{pet.type}</span> | {pet.breed} | {pet.age}
+                        </span>
+                        <button type="button" className="remove-pet-badge" onClick={() => handleRemovePet(pet.id)}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="settings-input-group">
+                  <span className="settings-group-label">I am looking for:</span>
+                  <div className="settings-service-list">
+                    {lookingForOptions.map((service) => (
+                      <label className="settings-check-row" key={service}>
+                        <input
+                          type="checkbox"
+                          checked={form.lookingForServices.includes(service)}
+                          onChange={() => toggleTagField('lookingForServices', service)}
+                        />
+                        <span>{service}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {form.accountMode === 'sitter' && (
+              <div className="mode-specific-fields sitter-mode animate-fade-in">
+                
+                <div className="settings-grid">
+                  <label className="settings-field sitter-open-field">
+                    <span>Years of Experience</span>
+                    <input 
+                      type="text" 
+                      placeholder=" +3 years" 
+                      value={form.yearsOfExperience}
+                      onChange={(e) => updateField('yearsOfExperience', e.target.value)}
+                      className="pet-input-field"
+                    />
+                  </label>
+                  <label className="settings-field sitter-open-field">
+                    <span>Price per Hour (€)</span>
+                    <input 
+                      type="text" 
+                      placeholder="10-15" 
+                      value={form.hourlyRate}
+                      onChange={(e) => updateField('hourlyRate', e.target.value)}
+                      className="pet-input-field"
+                    />
+                  </label>
+                </div>
+
+                <div className="settings-input-group">
+                  <span className="settings-group-label">I can pet-sit:</span>
+                  <div className="settings-service-list">
+                    {sitterPetTypeOptions.map((type) => (
+                      <label className="settings-check-row" key={type}>
+                        <input
+                          type="checkbox"
+                          checked={form.sitterPetTypes.includes(type)}
+                          onChange={() => toggleTagField('sitterPetTypes', type)}
+                        />
+                        <span className="capitalize-text">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            )}
           </section>
 
           <section className="settings-section" id="notifications">
@@ -226,66 +354,26 @@ export default function Settings() {
 
             <div className="settings-preference-list">
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Booking requests</strong>
-                  <small>New bookings or applications</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.bookingAlerts}
-                  onChange={(event) => updateField('bookingAlerts', event.target.checked)}
-                />
+                <span><strong>Booking requests</strong><small>New bookings or applications</small></span>
+                <input type="checkbox" checked={form.bookingAlerts} onChange={(e) => updateField('bookingAlerts', e.target.checked)} />
               </label>
-
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Messages</strong>
-                  <small>New messages and direct replies</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.messageAlerts}
-                  onChange={(event) => updateField('messageAlerts', event.target.checked)}
-                />
+                <span><strong>Messages</strong><small>New messages and direct replies</small></span>
+                <input type="checkbox" checked={form.messageAlerts} onChange={(e) => updateField('messageAlerts', e.target.checked)} />
               </label>
-
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Reviews</strong>
-                  <small>New reviews and service ratings</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.reviewAlerts}
-                  onChange={(event) => updateField('reviewAlerts', event.target.checked)}
-                />
+                <span><strong>Reviews</strong><small>New reviews and service ratings</small></span>
+                <input type="checkbox" checked={form.reviewAlerts} onChange={(e) => updateField('reviewAlerts', e.target.checked)} />
               </label>
-
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Comments and likes</strong>
-                  <small>New comments and likes on your posts</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.commentAlerts}
-                  onChange={(event) => updateField('commentAlerts', event.target.checked)}
-                />
+                <span><strong>Comments and likes</strong><small>New comments and likes on your posts</small></span>
+                <input type="checkbox" checked={form.commentAlerts} onChange={(e) => updateField('commentAlerts', e.target.checked)} />
               </label>
-
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Connection requests</strong>
-                  <small>New connection requests from other users</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.connectionRequestAlerts}
-                  onChange={(event) => updateField('connectionRequestAlerts', event.target.checked)}
-                />
+                <span><strong>Connection requests</strong><small>New connection requests from other users</small></span>
+                <input type="checkbox" checked={form.connectionRequestAlerts} onChange={(e) => updateField('connectionRequestAlerts', e.target.checked)} />
               </label>
             </div>
-
           </section>
 
           <section className="settings-section" id="privacy">
@@ -298,51 +386,24 @@ export default function Settings() {
 
             <div className="settings-preference-list">
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Show About</strong>
-                  <small>About you</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.showAbout}
-                  onChange={(event) => updateField('showAbout', event.target.checked)}
-                />
+                <span><strong>Show About</strong><small>About you</small></span>
+                <input type="checkbox" checked={form.showAbout} onChange={(e) => updateField('showAbout', e.target.checked)} />
               </label>
-
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Show Pets</strong>
-                  <small>Your pets or pets you petsit</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.showPets}
-                  onChange={(event) => updateField('showPets', event.target.checked)}
-                />
+                <span><strong>Show Pets</strong><small>Your pets or pets you petsit</small></span>
+                <input type="checkbox" checked={form.showPets} onChange={(e) => updateField('showPets', e.target.checked)} />
               </label>
-
               <label className="settings-toggle-row">
-                <span>
-                  <strong>Show Looking For</strong>
-                  <small>What you're looking for at PetLink</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.showLookingFor}
-                  onChange={(event) => updateField('showLookingFor', event.target.checked)}
-                />
+                <span><strong>Show Looking For</strong><small>What you're looking for at PetLink</small></span>
+                <input type="checkbox" checked={form.showLookingFor} onChange={(e) => updateField('showLookingFor', e.target.checked)} />
               </label>
             </div>
           </section>
 
           <div className="settings-actions">
             {saved && <span className="settings-saved">Changes saved</span>}
-            <button className="settings-secondary-btn" type="button" onClick={handleReset}>
-              Reset
-            </button>
-            <button className="settings-primary-btn" type="submit">
-              Save changes
-            </button>
+            <button className="settings-secondary-btn" type="button" onClick={handleReset}>Reset</button>
+            <button className="settings-primary-btn" type="submit">Save changes</button>
           </div>
         </main>
       </form>
