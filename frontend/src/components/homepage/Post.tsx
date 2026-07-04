@@ -132,7 +132,7 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
         <button className="btn message" onClick={handleMessageClick}>
           💬 Message
         </button>
-        <button className="btn-remove" title="Remove post">🗑️</button>
+        <button className="admin-btn-remove" title="Remove post">🗑️</button>
       </div>
 
       {showComments && (
