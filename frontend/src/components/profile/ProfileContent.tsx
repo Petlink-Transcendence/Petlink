@@ -72,7 +72,6 @@ function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorIni
         <div className="post-author-avatar">{authorInitials}</div>
         <div className="post-header-author-info">
           <span className="post-author-name">{authorName}</span>
-          <span className="post-time">{p.time}</span>
         </div>
       </div>
       
@@ -96,7 +95,6 @@ function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorIni
         </div>
       </div>
 
-      {/* Dynamic Dropdown Render Area - Hooked into your universal layout rules */}
       {showComments && (
         <div className="comments-section-dropdown">
           <div className="comments-section-separator" />

@@ -129,7 +129,7 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
           onClick={() => setShowComments(!showComments)}>
             📢 Comment
         </button>
-        <button className="btn apply" onClick={handleMessageClick}>
+        <button className="btn message" onClick={handleMessageClick}>
           💬 Message
         </button>
         <button className="btn-remove" title="Remove post">🗑️</button>
