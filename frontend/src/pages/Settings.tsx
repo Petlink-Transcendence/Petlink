@@ -43,6 +43,8 @@ export default function Settings() {
   const [form, setForm] = useState<SettingsForm>(initialSettings);
   const [selectedServices, setSelectedServices] = useState<string[]>(['Cat Sitter', 'Dog Walker']);
   const [saved, setSaved] = useState(false);
+  
+  const [activeSection, setActiveSection] = useState<string>('profile');
 
   useEffect(() => {
     document.title = 'Settings | PetLink';
@@ -69,6 +71,7 @@ export default function Settings() {
   function handleReset() {
     setForm(initialSettings);
     setSelectedServices(['Cat Sitter', 'Dog Walker']);
+    setActiveSection('profile');
     setSaved(false);
   }
 
@@ -91,10 +94,34 @@ export default function Settings() {
             </div>
           </div>
 
-          <a className="settings-menu-item active" href="#profile">Profile</a>
-          <a className="settings-menu-item" href="#care">Pet care</a>
-          <a className="settings-menu-item" href="#notifications">Notifications</a>
-          <a className="settings-menu-item" href="#privacy">Privacy</a>
+          <a 
+            className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} 
+            href="#profile"
+            onClick={() => setActiveSection('profile')}
+          >
+            Profile
+          </a>
+          <a 
+            className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} 
+            href="#care"
+            onClick={() => setActiveSection('care')}
+          >
+            Pet care
+          </a>
+          <a 
+            className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} 
+            href="#notifications"
+            onClick={() => setActiveSection('notifications')}
+          >
+            Notifications
+          </a>
+          <a 
+            className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} 
+            href="#privacy"
+            onClick={() => setActiveSection('privacy')}
+          >
+            Privacy
+          </a>
         </aside>
 
         <main className="settings-main">
