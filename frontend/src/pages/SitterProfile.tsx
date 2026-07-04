@@ -9,7 +9,10 @@ import ProfileContent from '../components/profile/ProfileContent';
 import ProfileToggle from '../components/profile/ProfileToggle';
 import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPanel';
 import NewBookingPopup from '../components/bookings/NewBookingPopup';
-import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
+import UpdateAvailabilityPopup, {
+  type AvailabilityFormData,
+  type AvailabilityTimeSlot,
+} from '../components/bookings/UpdateAvailabilityPopup';
 import { currentSitterProfileId, getSitterProfile } from '../data/profileData';
 import { formatAvailabilityRate } from '../utils/availabilityRates';
 
@@ -40,6 +43,7 @@ export default function SitterProfile() {
   const [availabilityStatus, setAvailabilityStatus] = useState<'Accepting' | 'Not available'>(profile.availability.status);
   const [availabilityLocation, setAvailabilityLocation] = useState(formatAvailabilityLocation(profile.availability.location));
   const [availabilityCapacity, setAvailabilityCapacity] = useState(profile.availability.capacity);
+  const [availabilityWindows, setAvailabilityWindows] = useState<AvailabilityTimeSlot[]>(profile.availability.windows);
   const [currentServiceRates, setCurrentServiceRates] = useState(profile.availability.services);
   const isConnected = Boolean(connections[profile.id]);
 
@@ -67,6 +71,7 @@ export default function SitterProfile() {
     setAvailabilityStatus(profile.availability.status);
     setAvailabilityLocation(formatAvailabilityLocation(profile.availability.location));
     setAvailabilityCapacity(profile.availability.capacity);
+    setAvailabilityWindows(profile.availability.windows);
     setCurrentServiceRates(profile.availability.services);
   }, [profile]);
 
@@ -109,6 +114,7 @@ export default function SitterProfile() {
     setAvailabilityStatus('Accepting');
     setAvailabilityLocation(formatAvailabilityLocation(availability.location));
     setAvailabilityCapacity(availability.capacity);
+    setAvailabilityWindows(availability.availableTimes);
   };
 
   return (
@@ -141,7 +147,7 @@ export default function SitterProfile() {
             location={availabilityLocation}
             responseTime={profile.availability.responseTime}
             capacity={availabilityCapacity}
-            windows={profile.availability.windows}
+            windows={availabilityWindows}
             services={currentServiceRates}
             canEdit={isOwnProfile}
             onAvailabilityToggle={() => {
@@ -172,6 +178,7 @@ export default function SitterProfile() {
           onClose={() => setIsAvailabilityOpen(false)}
           initialLocation={availabilityLocation}
           initialCapacity={availabilityCapacity}
+          initialAvailableTimes={availabilityWindows}
           onSaveAvailability={handleAvailabilitySave}
         />
       )}
