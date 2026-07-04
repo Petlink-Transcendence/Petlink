@@ -7,8 +7,7 @@ interface SettingsForm {
   email: string;
   location: string;
   bio: string;
-  accountMode: 'owner' | 'sitter' | 'both';
-  preferredRadius: string;
+  accountMode: 'owner' | 'sitter';
   profileVisibility: string;
   bookingAlerts: boolean;
   messageAlerts: boolean;
@@ -24,7 +23,6 @@ const initialSettings: SettingsForm = {
   location: 'Porto, PT',
   bio: 'Dog and cat mom. Always looking for the best care for my pets.',
   accountMode: 'owner',
-  preferredRadius: '10 km',
   profileVisibility: 'Everyone',
   bookingAlerts: true,
   messageAlerts: true,
@@ -184,19 +182,6 @@ export default function Settings() {
                 </label>
               ))}
             </div>
-
-            <label className="settings-field compact">
-              <span>Preferred distance</span>
-              <select
-                value={form.preferredRadius}
-                onChange={(event) => updateField('preferredRadius', event.target.value)}
-              >
-                <option>5 km</option>
-                <option>10 km</option>
-                <option>20 km</option>
-                <option>50 km</option>
-              </select>
-            </label>
           </section>
 
           <section className="settings-section" id="notifications">
@@ -253,18 +238,6 @@ export default function Settings() {
                 <p>Profile visibility and discovery</p>
               </div>
             </div>
-
-            <label className="settings-field compact">
-              <span>Profile visibility</span>
-              <select
-                value={form.profileVisibility}
-                onChange={(event) => updateField('profileVisibility', event.target.value)}
-              >
-                <option>Everyone</option>
-                <option>Connections only</option>
-                <option>Only me</option>
-              </select>
-            </label>
 
             <div className="settings-preference-list">
               <label className="settings-toggle-row">

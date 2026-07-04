@@ -191,11 +191,6 @@
   margin-bottom: 0;
 }
 
-.settings-field.compact {
-  max-width: 22rem;
-  margin-bottom: 0;
-}
-
 .settings-field span {
   color: var(--social-bg);
   font-size: 0.82rem;
