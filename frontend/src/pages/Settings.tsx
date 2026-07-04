@@ -13,7 +13,8 @@ interface SettingsForm {
   messageAlerts: boolean;
   reviewAlerts: boolean;
   showLocation: boolean;
-  allowSearch: boolean;
+  showAbout: boolean;
+  showPets: boolean;
 }
 
 const initialSettings: SettingsForm = {
@@ -28,7 +29,8 @@ const initialSettings: SettingsForm = {
   messageAlerts: true,
   reviewAlerts: true,
   showLocation: true,
-  allowSearch: true,
+  showAbout: true,
+  showPets: true,
 };
 
 const services = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
@@ -98,7 +100,6 @@ export default function Settings() {
                 <h2>Profile details</h2>
                 <p>Public account information</p>
               </div>
-              <span className="settings-tag">Owner profile</span>
             </div>
 
             <div className="settings-grid">
@@ -158,14 +159,14 @@ export default function Settings() {
             </div>
 
             <div className="settings-segmented" aria-label="Account mode">
-              {(['owner', 'sitter', 'both'] as const).map((mode) => (
+              {(['owner', 'sitter'] as const).map((mode) => (
                 <button
                   className={form.accountMode === mode ? 'active' : ''}
                   key={mode}
                   type="button"
                   onClick={() => updateField('accountMode', mode)}
                 >
-                  {mode === 'both' ? 'Both' : mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  {mode === 'owner' ? 'Owner' : mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
               ))}
             </div>
@@ -254,13 +255,25 @@ export default function Settings() {
 
               <label className="settings-toggle-row">
                 <span>
-                  <strong>Appear in search</strong>
-                  <small>Sitters and owners nearby</small>
+                  <strong>Show About</strong>
+                  <small>About you</small>
                 </span>
                 <input
                   type="checkbox"
-                  checked={form.allowSearch}
-                  onChange={(event) => updateField('allowSearch', event.target.checked)}
+                  checked={form.showAbout}
+                  onChange={(event) => updateField('showAbout', event.target.checked)}
+                />
+              </label>
+
+              <label className="settings-toggle-row">
+                <span>
+                  <strong>Show Pets</strong>
+                  <small>About you</small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={form.showPets}
+                  onChange={(event) => updateField('showPets', event.target.checked)}
                 />
               </label>
             </div>
