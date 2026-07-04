@@ -8,7 +8,10 @@ import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPanel';
 import NewBookingPopup from '../components/bookings/NewBookingPopup';
-import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
+import UpdateAvailabilityPopup, {
+  type AvailabilityFormData,
+  type AvailabilityTimeSlot,
+} from '../components/bookings/UpdateAvailabilityPopup';
 import { getInitials, formatMemberSince } from './OwnerProfile';
 import { formatAvailabilityRate } from '../utils/availabilityRates';
 
@@ -189,6 +192,7 @@ export default function SitterProfile() {
   const [availabilityStatus, setAvailabilityStatus] = useState<'Accepting' | 'Not available'>(profile?.availability.status || 'Not available');
   const [availabilityLocation, setAvailabilityLocation] = useState('');
   const [availabilityCapacity, setAvailabilityCapacity] = useState('');
+  const [availabilityWindows, setAvailabilityWindows] = useState<AvailabilityTimeSlot[]>([]);
   const [currentServiceRates, setCurrentServiceRates] = useState<{ name: string; rate: string; detail: string }[]>([]);
 
   useEffect(() => {
@@ -276,6 +280,7 @@ export default function SitterProfile() {
     setAvailabilityStatus(profile.availability.status);
     setAvailabilityLocation(formatAvailabilityLocation(profile.availability.location));
     setAvailabilityCapacity(profile.availability.capacity);
+    setAvailabilityWindows(profile.availability.windows);
     setCurrentServiceRates(profile.availability.services);
   }, [profile]);
 
@@ -318,6 +323,7 @@ export default function SitterProfile() {
     setAvailabilityStatus('Accepting');
     setAvailabilityLocation(formatAvailabilityLocation(availability.location));
     setAvailabilityCapacity(availability.capacity);
+    setAvailabilityWindows(availability.availableTimes);
   };
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -353,7 +359,7 @@ export default function SitterProfile() {
             location={availabilityLocation}
             responseTime={profile.availability.responseTime}
             capacity={availabilityCapacity}
-            windows={profile.availability.windows}
+            windows={availabilityWindows}
             services={currentServiceRates}
             canEdit={isOwnProfile}
             onAvailabilityToggle={() => {
@@ -384,6 +390,7 @@ export default function SitterProfile() {
           onClose={() => setIsAvailabilityOpen(false)}
           initialLocation={availabilityLocation}
           initialCapacity={availabilityCapacity}
+          initialAvailableTimes={availabilityWindows}
           onSaveAvailability={handleAvailabilitySave}
         />
       )}

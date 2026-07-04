@@ -4,12 +4,18 @@ import './UpdateAvailabilityPopup.css';
 const MIN_AVAILABILITY_DATE = '2026-01-01';
 const serviceOptions = ['Dog walking', 'Cat sitting', 'Home visits', 'Overnight stay', 'Grooming'];
 
+export type AvailabilityTimeSlot = {
+  label: string;
+  time: string;
+};
+
 export type AvailabilityFormData = {
   startDate: string;
   endDate: string;
   location: string;
   capacity: string;
   timeSlots: string;
+  availableTimes: AvailabilityTimeSlot[];
   serviceTypes: string[];
   price: string;
   notes: string;
@@ -19,20 +25,48 @@ type UpdateAvailabilityPopupProps = {
   onClose: () => void;
   initialLocation?: string;
   initialCapacity?: string;
+  initialAvailableTimes?: AvailabilityTimeSlot[];
   onSaveAvailability?: (availability: AvailabilityFormData) => void;
 };
+
+function formatAvailableTimesForInput(availableTimes: AvailabilityTimeSlot[]) {
+  return availableTimes.map(({ label, time }) => `${label}: ${time}`).join('\n');
+}
+
+function parseAvailableTimes(value: string): AvailabilityTimeSlot[] {
+  return value
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      const labeledTime = line.match(/^(.+?):\s+(.+)$/);
+
+      if (labeledTime) {
+        return {
+          label: labeledTime[1].trim(),
+          time: labeledTime[2].trim(),
+        };
+      }
+
+      return {
+        label: `Slot ${index + 1}`,
+        time: line,
+      };
+    });
+}
 
 export default function UpdateAvailabilityPopup({
   onClose,
   initialLocation = '',
   initialCapacity = '',
+  initialAvailableTimes = [],
   onSaveAvailability,
 }: UpdateAvailabilityPopupProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [location, setLocation] = useState(initialLocation);
   const [capacity, setCapacity] = useState(initialCapacity);
-  const [timeSlots, setTimeSlots] = useState('');
+  const [timeSlots, setTimeSlots] = useState(formatAvailableTimesForInput(initialAvailableTimes));
   const [serviceTypes, setServiceTypes] = useState<string[]>([]);
   const [price, setPrice] = useState('');
   const [notes, setNotes] = useState('');
@@ -51,12 +85,11 @@ export default function UpdateAvailabilityPopup({
     const hasServiceUpdate = Boolean(
       startDate ||
       endDate ||
-      timeSlots.trim() ||
       serviceTypes.length > 0 ||
       price.trim()
     );
 
-    if (!location.trim() || !capacity.trim()) {
+    if (!location.trim() || !capacity.trim() || !timeSlots.trim()) {
       return;
     }
 
@@ -67,7 +100,6 @@ export default function UpdateAvailabilityPopup({
         startDate < MIN_AVAILABILITY_DATE ||
         !endDate ||
         endDate < startDate ||
-        !timeSlots.trim() ||
         serviceTypes.length === 0 ||
         !price.trim()
       )
@@ -81,6 +113,7 @@ export default function UpdateAvailabilityPopup({
       location: location.trim(),
       capacity: capacity.trim(),
       timeSlots: timeSlots.trim(),
+      availableTimes: parseAvailableTimes(timeSlots),
       serviceTypes,
       price: price.trim(),
       notes: notes.trim(),
@@ -151,12 +184,13 @@ export default function UpdateAvailabilityPopup({
           </div>
 
           <label className="availability-field">
-            <span>Time slots</span>
+            <span className="required-label">Available times</span>
             <textarea
               value={timeSlots}
               onChange={event => setTimeSlots(event.target.value)}
-              placeholder="Weekdays 09:00 - 12:00, Saturdays 14:00 - 18:00"
-              rows={3}
+              placeholder={'Mon - Fri: 09:00 - 12:00\nSaturday: 14:00 - 18:00'}
+              rows={4}
+              required
             />
           </label>
 
