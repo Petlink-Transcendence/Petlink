@@ -7,6 +7,8 @@ const serviceOptions = ['Dog walking', 'Cat sitting', 'Home visits', 'Overnight 
 export type AvailabilityFormData = {
   startDate: string;
   endDate: string;
+  location: string;
+  capacity: string;
   timeSlots: string;
   serviceTypes: string[];
   price: string;
@@ -15,12 +17,21 @@ export type AvailabilityFormData = {
 
 type UpdateAvailabilityPopupProps = {
   onClose: () => void;
+  initialLocation?: string;
+  initialCapacity?: string;
   onSaveAvailability?: (availability: AvailabilityFormData) => void;
 };
 
-export default function UpdateAvailabilityPopup({ onClose, onSaveAvailability }: UpdateAvailabilityPopupProps) {
+export default function UpdateAvailabilityPopup({
+  onClose,
+  initialLocation = '',
+  initialCapacity = '',
+  onSaveAvailability,
+}: UpdateAvailabilityPopupProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [location, setLocation] = useState(initialLocation);
+  const [capacity, setCapacity] = useState(initialCapacity);
   const [timeSlots, setTimeSlots] = useState('');
   const [serviceTypes, setServiceTypes] = useState<string[]>([]);
   const [price, setPrice] = useState('');
@@ -37,14 +48,29 @@ export default function UpdateAvailabilityPopup({ onClose, onSaveAvailability }:
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const hasServiceUpdate = Boolean(
+      startDate ||
+      endDate ||
+      timeSlots.trim() ||
+      serviceTypes.length > 0 ||
+      price.trim()
+    );
+
+    if (!location.trim() || !capacity.trim()) {
+      return;
+    }
+
     if (
-      !startDate ||
-      startDate < MIN_AVAILABILITY_DATE ||
-      !endDate ||
-      endDate < startDate ||
-      !timeSlots.trim() ||
-      serviceTypes.length === 0 ||
-      !price.trim()
+      hasServiceUpdate &&
+      (
+        !startDate ||
+        startDate < MIN_AVAILABILITY_DATE ||
+        !endDate ||
+        endDate < startDate ||
+        !timeSlots.trim() ||
+        serviceTypes.length === 0 ||
+        !price.trim()
+      )
     ) {
       return;
     }
@@ -52,6 +78,8 @@ export default function UpdateAvailabilityPopup({ onClose, onSaveAvailability }:
     onSaveAvailability?.({
       startDate,
       endDate,
+      location: location.trim(),
+      capacity: capacity.trim(),
       timeSlots: timeSlots.trim(),
       serviceTypes,
       price: price.trim(),
@@ -78,41 +106,62 @@ export default function UpdateAvailabilityPopup({ onClose, onSaveAvailability }:
         <form className="availability-form" onSubmit={handleSubmit}>
           <div className="availability-row">
             <label className="availability-field">
-              <span className="required-label">Start date</span>
+              <span>Start date</span>
               <input
                 type="date"
                 value={startDate}
                 onChange={event => setStartDate(event.target.value)}
                 min={MIN_AVAILABILITY_DATE}
-                required
               />
             </label>
 
             <label className="availability-field">
-              <span className="required-label">End date</span>
+              <span>End date</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={event => setEndDate(event.target.value)}
                 min={startDate || MIN_AVAILABILITY_DATE}
+              />
+            </label>
+          </div>
+
+          <div className="availability-row">
+            <label className="availability-field">
+              <span className="required-label">Location</span>
+              <input
+                type="text"
+                value={location}
+                onChange={event => setLocation(event.target.value)}
+                placeholder="Porto"
+                required
+              />
+            </label>
+
+            <label className="availability-field">
+              <span className="required-label">Capacity</span>
+              <input
+                type="text"
+                value={capacity}
+                onChange={event => setCapacity(event.target.value)}
+                placeholder="2 bookings/day"
                 required
               />
             </label>
           </div>
 
           <label className="availability-field">
-            <span className="required-label">Time slots</span>
+            <span>Time slots</span>
             <textarea
               value={timeSlots}
               onChange={event => setTimeSlots(event.target.value)}
               placeholder="Weekdays 09:00 - 12:00, Saturdays 14:00 - 18:00"
               rows={3}
-              required
             />
           </label>
 
           <fieldset className="availability-services">
-            <legend className="required-label">Service types</legend>
+            <legend>Service types</legend>
             <div className="availability-service-grid">
               {serviceOptions.map(service => (
                 <label key={service} className="availability-service-option">
@@ -128,13 +177,12 @@ export default function UpdateAvailabilityPopup({ onClose, onSaveAvailability }:
           </fieldset>
 
           <label className="availability-field">
-            <span className="required-label">Price</span>
+            <span>Price</span>
             <input
               type="text"
               value={price}
               onChange={event => setPrice(event.target.value)}
               placeholder="20 EUR per visit"
-              required
             />
           </label>
 
