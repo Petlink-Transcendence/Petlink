@@ -16,7 +16,6 @@ type AvailabilityStatus = 'Accepting' | 'Not available';
 type SitterAvailabilityPanelProps = {
   status: AvailabilityStatus;
   location: string;
-  responseTime: string;
   capacity: string;
   windows: AvailabilityWindow[];
   services: ServiceRate[];
@@ -28,7 +27,6 @@ type SitterAvailabilityPanelProps = {
 export default function SitterAvailabilityPanel({
   status,
   location,
-  responseTime,
   capacity,
   windows,
   services,
@@ -65,10 +63,6 @@ export default function SitterAvailabilityPanel({
         <div>
           <span>Area</span>
           <strong>{location}</strong>
-        </div>
-        <div>
-          <span>Reply time</span>
-          <strong>{responseTime}</strong>
         </div>
         <div>
           <span>Capacity</span>
