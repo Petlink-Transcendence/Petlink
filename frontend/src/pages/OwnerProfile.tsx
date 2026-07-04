@@ -51,7 +51,7 @@ export default function Profile() {
         bio={profile.bio}
         stats={profile.stats}
         actions={isOwnProfile
-          ? [{ label: 'Edit Profile', variant: 'secondary' }]
+          ? [{ label: 'Edit Profile', variant: 'secondary', onClick: () => navigate('/settings') }]
           : [
             {
               label: isConnected ? 'Disconnect' : 'Connect',

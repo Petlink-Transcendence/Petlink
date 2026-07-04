@@ -12,6 +12,7 @@ import Reviews from './pages/Reviews';
 import Bookings from './pages/Bookings';
 import SitterProfile from './pages/SitterProfile';
 import Search from './pages/Search';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import './App.css';
@@ -88,6 +89,12 @@ function App() {
           <Route path="/bookings" element={
             <ProtectedRoute>
               <Bookings />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           } />
         </Routes>
