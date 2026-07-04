@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate} from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 import ProfileCover from '../components/profile/ProfileCover';
@@ -10,6 +10,7 @@ import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPan
 import NewBookingPopup from '../components/bookings/NewBookingPopup';
 import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
 import { getInitials, formatMemberSince } from './OwnerProfile';
+import { formatAvailabilityRate } from '../utils/availabilityRates';
 
 interface BackendUser {
   id: number;
@@ -55,12 +56,12 @@ type ProfileReview = {
 };
 
 type SitterAvailability = {
-    status: 'Accepting' | 'Not available';
-    location: string;
-    responseTime: string;
-    capacity: string;
-    windows: { label: string; time: string }[];
-    services: { name: string; rate: string; detail: string }[];
+  status: 'Accepting' | 'Not available';
+  location: string;
+  responseTime: string;
+  capacity: string;
+  windows: { label: string; time: string }[];
+  services: { name: string; rate: string; detail: string }[];
 };
 
 interface ProfileSitterData {
@@ -100,6 +101,7 @@ function formatServiceDetail(availability: AvailabilityFormData) {
 function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
+
   return {
     id: String(data.id),
     name,
@@ -118,11 +120,11 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
         title: 'About',
         type: 'meta',
         items: [
-        data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
-        data.city ? `📍 ${data.city}` : '📍 Location not set',
-        data.country ? `🌍 ${data.country}` : '🌍 Country not set',
-        data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
-        data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
+          data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
+          data.city ? `📍 ${data.city}` : '📍 Location not set',
+          data.country ? `🌍 ${data.country}` : '🌍 Country not set',
+          data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
+          data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
         ],
       },
       {
@@ -167,7 +169,7 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
 }
 
 export default function SitterProfile() {
-  const { id } = useParams<{ id: string }>();
+  const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileSitterData | null>(null);
@@ -175,7 +177,7 @@ export default function SitterProfile() {
   const [error, setError] = useState('');
   const [connections, setConnections] = useState<Record<string, boolean>>({});
 
-  const isOwnProfile = !id;
+  const isOwnProfile = !profileId;
   const isConnected = profile ? Boolean(connections[profile.id]) : false;
 
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
@@ -188,9 +190,10 @@ export default function SitterProfile() {
       setLoading(true);
       setError('');
 
-      const endpoint = id
-        ? `/api/users/${id}/`
-        : `/auth/me/`;
+      const endpoint = profileId
+        ? `http://localhost:8080/api/users/${profileId}/`
+        : `http://localhost:8080/auth/me/`;
+
       try {
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
         const response = await fetch(endpoint, {
@@ -209,17 +212,19 @@ export default function SitterProfile() {
 
         let mergedData: BackendUser = data;
 
-        if (!id && data.id) {
-        const publicResponse = await fetch(`/api/users/${data.id}/`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
+        if (!profileId && data.id) {
+          const publicResponse = await fetch(`http://localhost:8080/api/users/${data.id}/`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
 
-        if (publicResponse.ok) {
-          const publicData: BackendUser = await publicResponse.json();
-          mergedData = { ...data, ...publicData };
+          if (publicResponse.ok) {
+            const publicData: BackendUser = await publicResponse.json();
+            mergedData = { ...data, ...publicData };
+          }
         }
-      } setProfile(mapBackendToSitterProfile(data));
+
+        setProfile(mapBackendToSitterProfile(mergedData));
       } catch (err: any) {
         setError(err.message || 'Failed to load profile.');
         console.error("Fetch error details:", err);
@@ -229,7 +234,7 @@ export default function SitterProfile() {
     };
 
     fetchProfileData();
-  }, [id]);
+  }, [profileId]);
   
   useEffect(() => {
     if (profile?.name) {
@@ -250,6 +255,15 @@ export default function SitterProfile() {
     });
   };
 
+  const handleConnectionToggle = () => {
+    if (!profile) return;
+
+    setConnections(currentConnections => ({
+      ...currentConnections,
+      [profile.id]: !currentConnections[profile.id],
+    }));
+  };
+
   useEffect(() => {
     if (!profile) return;
     document.title = `${profile.name} | PetLink`;
@@ -258,37 +272,38 @@ export default function SitterProfile() {
   }, [profile]);
 
   const handleAvailabilitySave = (availability: AvailabilityFormData) => {
-  const detail = formatServiceDetail(availability);
-  const updatedServices = availability.serviceTypes.map(formatServiceName);
+    const detail = formatServiceDetail(availability);
+    const rate = formatAvailabilityRate(availability.price);
+    const updatedServices = availability.serviceTypes.map(formatServiceName);
 
-  setCurrentServiceRates(currentServices => {
-  const nextServices = (currentServices ?? []).map(service => {
-    const matchingService = updatedServices.find(
-      updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
-    );
+    setCurrentServiceRates(currentServices => {
+      const nextServices = currentServices.map(service => {
+        const matchingService = updatedServices.find(
+          updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
+        );
 
-    if (!matchingService) {
-      return service;
-    }
+        if (!matchingService) {
+          return service;
+        }
 
-    return {
-      name: matchingService,
-      rate: availability.price,
-      detail,
-    };
-  });
+        return {
+          name: matchingService,
+          rate,
+          detail,
+        };
+      });
 
-  const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
-  const newServices = updatedServices
-    .filter(service => !existingServices.has(service.toLowerCase()))
-    .map(service => ({
-      name: service,
-      rate: availability.price,
-      detail,
-    }));
+      const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
+      const newServices = updatedServices
+        .filter(service => !existingServices.has(service.toLowerCase()))
+        .map(service => ({
+          name: service,
+          rate,
+          detail,
+        }));
 
-  return [...nextServices, ...newServices];
-});
+      return [...nextServices, ...newServices];
+    });
 
     setAvailabilityStatus('Accepting');
   };
@@ -313,6 +328,7 @@ export default function SitterProfile() {
             {
               label: isConnected ? 'Disconnect' : 'Connect',
               variant: 'secondary',
+              onClick: handleConnectionToggle,
             },
             { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
           ]
