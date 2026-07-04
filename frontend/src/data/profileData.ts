@@ -135,7 +135,7 @@ export const sitterProfiles: Record<string, SitterProfileData> = {
     ],
     availability: {
       status: 'Accepting',
-      location: 'Porto + 8 km',
+      location: 'Porto',
       responseTime: '< 1 hour',
       capacity: '2 bookings/day',
       windows: [

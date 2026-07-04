@@ -168,6 +168,10 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   };
 }
 
+function formatAvailabilityLocation(location: string) {
+  return location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim();
+}
+
 export default function SitterProfile() {
   const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
@@ -183,6 +187,8 @@ export default function SitterProfile() {
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'Accepting' | 'Not available'>(profile?.availability.status || 'Not available');
+  const [availabilityLocation, setAvailabilityLocation] = useState('');
+  const [availabilityCapacity, setAvailabilityCapacity] = useState('');
   const [currentServiceRates, setCurrentServiceRates] = useState<{ name: string; rate: string; detail: string }[]>([]);
 
   useEffect(() => {
@@ -268,44 +274,50 @@ export default function SitterProfile() {
     if (!profile) return;
     document.title = `${profile.name} | PetLink`;
     setAvailabilityStatus(profile.availability.status);
+    setAvailabilityLocation(formatAvailabilityLocation(profile.availability.location));
+    setAvailabilityCapacity(profile.availability.capacity);
     setCurrentServiceRates(profile.availability.services);
   }, [profile]);
 
   const handleAvailabilitySave = (availability: AvailabilityFormData) => {
-    const detail = formatServiceDetail(availability);
-    const rate = formatAvailabilityRate(availability.price);
-    const updatedServices = availability.serviceTypes.map(formatServiceName);
+    if (availability.serviceTypes.length > 0) {
+      const detail = formatServiceDetail(availability);
+      const rate = formatAvailabilityRate(availability.price);
+      const updatedServices = availability.serviceTypes.map(formatServiceName);
 
-    setCurrentServiceRates(currentServices => {
-      const nextServices = currentServices.map(service => {
-        const matchingService = updatedServices.find(
-          updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
-        );
+      setCurrentServiceRates(currentServices => {
+        const nextServices = currentServices.map(service => {
+          const matchingService = updatedServices.find(
+            updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
+          );
 
-        if (!matchingService) {
-          return service;
-        }
+          if (!matchingService) {
+            return service;
+          }
 
-        return {
-          name: matchingService,
-          rate,
-          detail,
-        };
+          return {
+            name: matchingService,
+            rate,
+            detail,
+          };
+        });
+
+        const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
+        const newServices = updatedServices
+          .filter(service => !existingServices.has(service.toLowerCase()))
+          .map(service => ({
+            name: service,
+            rate,
+            detail,
+          }));
+
+        return [...nextServices, ...newServices];
       });
-
-      const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
-      const newServices = updatedServices
-        .filter(service => !existingServices.has(service.toLowerCase()))
-        .map(service => ({
-          name: service,
-          rate,
-          detail,
-        }));
-
-      return [...nextServices, ...newServices];
-    });
+    }
 
     setAvailabilityStatus('Accepting');
+    setAvailabilityLocation(formatAvailabilityLocation(availability.location));
+    setAvailabilityCapacity(availability.capacity);
   };
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -338,9 +350,9 @@ export default function SitterProfile() {
         <ProfileLeftSidebar cards={profile.sidebarCards}>
           <SitterAvailabilityPanel
             status={availabilityStatus}
-            location={profile.availability.location}
+            location={availabilityLocation}
             responseTime={profile.availability.responseTime}
-            capacity={profile.availability.capacity}
+            capacity={availabilityCapacity}
             windows={profile.availability.windows}
             services={currentServiceRates}
             canEdit={isOwnProfile}
@@ -370,6 +382,8 @@ export default function SitterProfile() {
       {isAvailabilityOpen && (
         <UpdateAvailabilityPopup
           onClose={() => setIsAvailabilityOpen(false)}
+          initialLocation={availabilityLocation}
+          initialCapacity={availabilityCapacity}
           onSaveAvailability={handleAvailabilitySave}
         />
       )}
