@@ -1,4 +1,5 @@
 import './SitterAvailabilityPanel.css';
+import { formatAvailabilityRate } from '../../utils/availabilityRates';
 
 type AvailabilityWindow = {
   label: string;
@@ -61,7 +62,7 @@ export default function SitterAvailabilityPanel({
 
       <div className="sitter-availability-metrics">
         <div>
-          <span>Area</span>
+          <span>Location</span>
           <strong>{location}</strong>
         </div>
         <div>
@@ -91,7 +92,7 @@ export default function SitterAvailabilityPanel({
                 <span>{service.name}</span>
                 <p>{service.detail}</p>
               </div>
-              <strong>{service.rate}</strong>
+              <strong>{formatAvailabilityRate(service.rate)}</strong>
             </div>
           ))}
         </div>

@@ -11,6 +11,7 @@ import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPan
 import NewBookingPopup from '../components/bookings/NewBookingPopup';
 import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
 import { currentSitterProfileId, getSitterProfile } from '../data/profileData';
+import { formatAvailabilityRate } from '../utils/availabilityRates';
 
 function formatServiceName(service: string) {
   return service.replace(/\b\w/g, letter => letter.toUpperCase());
@@ -63,6 +64,7 @@ export default function SitterProfile() {
 
   const handleAvailabilitySave = (availability: AvailabilityFormData) => {
     const detail = formatServiceDetail(availability);
+    const rate = formatAvailabilityRate(availability.price);
     const updatedServices = availability.serviceTypes.map(formatServiceName);
 
     setCurrentServiceRates(currentServices => {
@@ -77,7 +79,7 @@ export default function SitterProfile() {
 
         return {
           name: matchingService,
-          rate: availability.price,
+          rate,
           detail,
         };
       });
@@ -87,7 +89,7 @@ export default function SitterProfile() {
         .filter(service => !existingServices.has(service.toLowerCase()))
         .map(service => ({
           name: service,
-          rate: availability.price,
+          rate,
           detail,
         }));
 
