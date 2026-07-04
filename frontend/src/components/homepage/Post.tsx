@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate} from 'react-router-dom'
 import './Post.css'
 import '../Comments.css'
 
@@ -23,6 +23,7 @@ type PostProps = {
 };
 
 export default function Post({ authorId, authorType, name, tag, text, location, time, tags, likeCount = 0 }: PostProps) {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(likeCount);
   const [imgError, setImgError] = useState(false);
@@ -32,7 +33,7 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
   const [comments, setComments] = useState<CommentItem[]>([
     { id: 1, author: "Daniela Padilha", text: "I have extensive cat experience, feel free to send a DM!", time: "1h ago" },
     { id: 2, author: "Filipe Tootill", text: "Luna is beautiful! Hope you find an amazing sitter.", time: "45m ago" }
-  ])
+  ]);
   
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const profilePath = authorType === 'sitter' ? `/sitterprofile/${authorId}` : `/profile/${authorId}`;
@@ -42,7 +43,7 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
     setLiked(!liked);
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newCommentText.trim()) return;
 
@@ -59,26 +60,21 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
 
   const getCommentInitials = (authorName: string) => {
     return authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  }
-
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCommentText.trim()) return;
-
-    const newComment: CommentItem = {
-      id: Date.now(),
-      author: "Jane Doe",
-      text: newCommentText.trim(),
-      time: "Just now"
-    };
-
-    setComments([newComment, ...comments]);
-    setNewCommentText("");
   };
 
-  const getCommentInitials = (authorName: string) => {
-    return authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  }
+   const handleMessageClick = () => {
+    const parsedAuthorId = Number(authorId);
+
+    navigate('/chat', {
+      state: {
+        contact: {
+          id: Number.isFinite(parsedAuthorId) ? parsedAuthorId : undefined,
+          name,
+          role: authorType,
+        },
+      },
+    });
+  };
 
   return (
     <div className="post-container">
@@ -130,11 +126,12 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
         </button>
         <button 
           className={`btn comment ${showComments ? 'active' : ''}`} 
-          onClick={() => setShowComments(!showComments)}
-        >
-          💬 Comment
+          onClick={() => setShowComments(!showComments)}>
+            📢 Comment
         </button>
-        <button className="btn apply">🐾 Apply</button>
+        <button className="btn apply" onClick={handleMessageClick}>
+          💬 Message
+        </button>
         <button className="btn-remove" title="Remove post">🗑️</button>
       </div>
 
