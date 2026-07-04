@@ -52,8 +52,6 @@ const initialSettings: SettingsForm = {
   ownerPetTypes: ['dogs', 'cats'],
   petsList: [],
   lookingForServices: ['Cat Sitter', 'Dog Walker'],
-  yearsOfExperience: '3 years',
-  hourlyRate: '15',
   sitterPetTypes: ['dogs', 'cats', 'small pets'],
 };
 
@@ -235,7 +233,7 @@ export default function Settings() {
                   <div className="add-pet-inline-form">
                     <input 
                       type="text" 
-                      placeholder="Pet name (e.g., Luna)" 
+                      placeholder="Pet name" 
                       value={newPetName}
                       onChange={(e) => setNewPetName(e.target.value)}
                       className="pet-input-field pet-name-input"
@@ -318,7 +316,7 @@ export default function Settings() {
                     <span>Price per Hour (€)</span>
                     <input 
                       type="text" 
-                      placeholder="e.g., 10-15" 
+                      placeholder="10-15" 
                       value={form.hourlyRate}
                       onChange={(e) => updateField('hourlyRate', e.target.value)}
                       className="pet-input-field"
