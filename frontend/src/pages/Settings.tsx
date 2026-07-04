@@ -50,8 +50,10 @@ const initialSettings: SettingsForm = {
   showPets: true,
   showLookingFor: true,
   ownerPetTypes: ['dogs', 'cats'],
-  petsList: [{ id: '1', name: 'Luna', type: 'cat', breed: 'Siamese', age: '2 years old' }],
+  petsList: [],
   lookingForServices: ['Cat Sitter', 'Dog Walker'],
+  yearsOfExperience: '3 years',
+  hourlyRate: '15',
   sitterPetTypes: ['dogs', 'cats', 'small pets'],
 };
 
@@ -74,7 +76,7 @@ export default function Settings() {
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
   const [newPetBreed, setNewPetBreed] = useState('');
-  const [newPetAge, setNewPetAge] = useState('<1 yr');
+  const [newPetAge, setNewPetAge] = useState('');
 
   useEffect(() => {
     document.title = 'Settings | PetLink';
@@ -97,7 +99,7 @@ export default function Settings() {
   function handleAddPet() {
     if (!newPetName.trim()) return;
     
-    const formattedAge = newPetAge.includes('yr') ? newPetAge.replace('yr', 'year old').replace('yrs', 'years old') : newPetAge;
+    const formattedAge = newPetAge.includes('yr') ? newPetAge.replace('yrs', 'years old').replace('yr', 'year old') : newPetAge;
 
     const newPet: Pet = {
       id: Date.now().toString(),
@@ -233,7 +235,7 @@ export default function Settings() {
                   <div className="add-pet-inline-form">
                     <input 
                       type="text" 
-                      placeholder="Pet name" 
+                      placeholder="Pet name (e.g., Luna)" 
                       value={newPetName}
                       onChange={(e) => setNewPetName(e.target.value)}
                       className="pet-input-field pet-name-input"
@@ -316,7 +318,7 @@ export default function Settings() {
                     <span>Price per Hour (€)</span>
                     <input 
                       type="text" 
-                      placeholder="10-15" 
+                      placeholder="e.g., 10-15" 
                       value={form.hourlyRate}
                       onChange={(e) => updateField('hourlyRate', e.target.value)}
                       className="pet-input-field"
