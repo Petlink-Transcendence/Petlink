@@ -357,7 +357,6 @@ export default function SitterProfile() {
           <SitterAvailabilityPanel
             status={availabilityStatus}
             location={availabilityLocation}
-            responseTime={profile.availability.responseTime}
             capacity={availabilityCapacity}
             windows={availabilityWindows}
             services={currentServiceRates}
