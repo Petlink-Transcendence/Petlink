@@ -90,7 +90,7 @@ function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorIni
             className={`btn comment ${showComments ? 'active' : ''}`} 
             onClick={() => setShowComments(!showComments)}
           >
-            💬 Comment
+            📢 Comment
           </button>
         </div>
       </div>
