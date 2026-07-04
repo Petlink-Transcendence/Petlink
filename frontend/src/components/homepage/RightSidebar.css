@@ -51,11 +51,6 @@
   flex-shrink: 0;
 }
 
-.rs-avatar--active {
-  outline: 2px solid #4caf7d;
-  outline-offset: 2px;
-}
-
 .rs-info {
   display: flex;
   flex-direction: column;
