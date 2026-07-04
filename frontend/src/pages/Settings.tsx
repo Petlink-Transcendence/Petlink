@@ -14,9 +14,9 @@ interface SettingsForm {
   reviewAlerts: boolean;
   commentAlerts: boolean;
   connectionRequestAlerts: boolean;
-  showLocation: boolean;
   showAbout: boolean;
   showPets: boolean;
+  showLookingFor: boolean;
 }
 
 const initialSettings: SettingsForm = {
@@ -32,9 +32,9 @@ const initialSettings: SettingsForm = {
   reviewAlerts: true,
   commentAlerts: true,
   connectionRequestAlerts: true,
-  showLocation: true,
   showAbout: true,
   showPets: true,
+  showLookingFor: true,
 };
 
 const services = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
@@ -245,7 +245,7 @@ export default function Settings() {
                   onChange={(event) => updateField('commentAlerts', event.target.checked)}
                 />
               </label>
-              
+
               <label className="settings-toggle-row">
                 <span>
                   <strong>Connection requests</strong>
@@ -265,23 +265,11 @@ export default function Settings() {
             <div className="settings-section-header">
               <div>
                 <h2>Privacy</h2>
-                <p>Profile visibility and discovery</p>
+                <p>Profile sections visibility</p>
               </div>
             </div>
 
             <div className="settings-preference-list">
-              <label className="settings-toggle-row">
-                <span>
-                  <strong>Show city on profile</strong>
-                  <small>{form.location}</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.showLocation}
-                  onChange={(event) => updateField('showLocation', event.target.checked)}
-                />
-              </label>
-
               <label className="settings-toggle-row">
                 <span>
                   <strong>Show About</strong>
@@ -297,12 +285,24 @@ export default function Settings() {
               <label className="settings-toggle-row">
                 <span>
                   <strong>Show Pets</strong>
-                  <small>About you</small>
+                  <small>Your pets or pets you petsit</small>
                 </span>
                 <input
                   type="checkbox"
                   checked={form.showPets}
                   onChange={(event) => updateField('showPets', event.target.checked)}
+                />
+              </label>
+
+              <label className="settings-toggle-row">
+                <span>
+                  <strong>Show Looking For</strong>
+                  <small>What you're looking for at PetLink</small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={form.showLookingFor}
+                  onChange={(event) => updateField('showLookingFor', event.target.checked)}
                 />
               </label>
             </div>
