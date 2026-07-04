@@ -12,6 +12,8 @@ interface SettingsForm {
   bookingAlerts: boolean;
   messageAlerts: boolean;
   reviewAlerts: boolean;
+  commentAlerts: boolean;
+  connectionRequestAlerts: boolean;
   showLocation: boolean;
   showAbout: boolean;
   showPets: boolean;
@@ -28,6 +30,8 @@ const initialSettings: SettingsForm = {
   bookingAlerts: true,
   messageAlerts: true,
   reviewAlerts: true,
+  commentAlerts: true,
+  connectionRequestAlerts: true,
   showLocation: true,
   showAbout: true,
   showPets: true,
@@ -154,7 +158,7 @@ export default function Settings() {
             <div className="settings-section-header">
               <div>
                 <h2>Pet care</h2>
-                <p>Profile mode and service preferences</p>
+                <p>Profile mode, pets and service preferences</p>
               </div>
             </div>
 
@@ -189,7 +193,7 @@ export default function Settings() {
             <div className="settings-section-header">
               <div>
                 <h2>Notifications</h2>
-                <p>Messages, bookings, and account updates</p>
+                <p>Messages, bookings, reviews, comments, likes and new connections</p>
               </div>
             </div>
 
@@ -197,7 +201,7 @@ export default function Settings() {
               <label className="settings-toggle-row">
                 <span>
                   <strong>Booking requests</strong>
-                  <small>Email and in-app</small>
+                  <small>New bookings or applications</small>
                 </span>
                 <input
                   type="checkbox"
@@ -209,7 +213,7 @@ export default function Settings() {
               <label className="settings-toggle-row">
                 <span>
                   <strong>Messages</strong>
-                  <small>Chat and direct replies</small>
+                  <small>New messages and direct replies</small>
                 </span>
                 <input
                   type="checkbox"
@@ -221,7 +225,7 @@ export default function Settings() {
               <label className="settings-toggle-row">
                 <span>
                   <strong>Reviews</strong>
-                  <small>Ratings and profile feedback</small>
+                  <small>New reviews and service ratings</small>
                 </span>
                 <input
                   type="checkbox"
@@ -229,7 +233,32 @@ export default function Settings() {
                   onChange={(event) => updateField('reviewAlerts', event.target.checked)}
                 />
               </label>
+
+              <label className="settings-toggle-row">
+                <span>
+                  <strong>Comments and likes</strong>
+                  <small>New comments and likes on your posts</small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={form.commentAlerts}
+                  onChange={(event) => updateField('commentAlerts', event.target.checked)}
+                />
+              </label>
+              
+              <label className="settings-toggle-row">
+                <span>
+                  <strong>Connection requests</strong>
+                  <small>New connection requests from other users</small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={form.connectionRequestAlerts}
+                  onChange={(event) => updateField('connectionRequestAlerts', event.target.checked)}
+                />
+              </label>
             </div>
+
           </section>
 
           <section className="settings-section" id="privacy">
