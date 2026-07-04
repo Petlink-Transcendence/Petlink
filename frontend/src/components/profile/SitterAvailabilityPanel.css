@@ -25,6 +25,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.45rem;
+  padding-bottom: 0.65rem;
   width: 100%;
 }
 
