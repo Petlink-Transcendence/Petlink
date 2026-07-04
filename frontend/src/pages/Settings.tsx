@@ -13,7 +13,6 @@ interface SettingsForm {
   bookingAlerts: boolean;
   messageAlerts: boolean;
   reviewAlerts: boolean;
-  marketingEmails: boolean;
   showLocation: boolean;
   allowSearch: boolean;
 }
@@ -30,7 +29,6 @@ const initialSettings: SettingsForm = {
   bookingAlerts: true,
   messageAlerts: true,
   reviewAlerts: true,
-  marketingEmails: false,
   showLocation: true,
   allowSearch: true,
 };
@@ -243,18 +241,6 @@ export default function Settings() {
                   type="checkbox"
                   checked={form.reviewAlerts}
                   onChange={(event) => updateField('reviewAlerts', event.target.checked)}
-                />
-              </label>
-
-              <label className="settings-toggle-row">
-                <span>
-                  <strong>PetLink news</strong>
-                  <small>Product and community emails</small>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={form.marketingEmails}
-                  onChange={(event) => updateField('marketingEmails', event.target.checked)}
                 />
               </label>
             </div>
