@@ -23,4 +23,17 @@ def list_notifications(request, user_id):
     ]
     return Response(data, status=status.HTTP_200_OK)
 
+@api_view(['PUT'])
+def mark_as_read(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id)
+        notification.read = True
+        notification.save()
+        return Response({'status': 'marked as read'}, status=status.HTTP_200_OK)
+    except Notification.DoesNotExist:
+        return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['PUT'])
+def mark_all_read(request, user_id):
+    Notification.objects.filter(user_id=user_id, read=False).update(read=True)
+    return Response({'status': 'all marked as read'}, status=status.HTTP_200_OK)
