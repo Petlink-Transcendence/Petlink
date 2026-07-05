@@ -89,3 +89,9 @@ class BannerUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('banner' ,)
+
+class UserOnlineStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'online_status', 'last_seen')
+        read_only_fields = fields

@@ -9,12 +9,14 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
-    UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer
+    UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer,
+    UserOnlineStatusSerializer
 )
 from .permissions import IsOwnerAdminModeratorOrReadOnly
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser
 from .models import Follower
+from django.db import models
 
 User = get_user_model()
 
@@ -163,3 +165,18 @@ class FollowingListView(generics.ListAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, pk=self.kwargs['pk'])
         return User.objects.filter(followers__follower=user)
+
+class UserSearchView(generics.ListAPIView):
+    serializer_class = UserPublicProfileSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        query = self.request.query_params.get('q', '')
+        return User.objects.filter(
+            models.Q(name__icontains=query) | models.Q(username__icontains=query)
+        )
+
+class UserOnlineStatusView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserOnlineStatusSerializer
+    permission_classes = [AllowAny]
