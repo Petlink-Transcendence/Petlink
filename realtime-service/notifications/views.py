@@ -37,3 +37,12 @@ def mark_as_read(request, notification_id):
 def mark_all_read(request, user_id):
     Notification.objects.filter(user_id=user_id, read=False).update(read=True)
     return Response({'status': 'all marked as read'}, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+def delete_notification(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id)
+        notification.delete()
+        return Response({'status': 'deleted'}, status=status.HTTP_204_NO_CONTENT)
+    except Notification.DoesNotExist:
+        return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
