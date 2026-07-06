@@ -6,7 +6,7 @@
 #    By: gde-la-r <gde-la-r@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/06 17:44:03 by gde-la-r          #+#    #+#              #
-#    Updated: 2026/07/06 17:48:05 by gde-la-r         ###   ########.fr        #
+#    Updated: 2026/07/06 18:32:56 by gde-la-r         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,7 @@ ps:
 	$(DOCKER) ps
 
 logs:
-	#(DOCKER) logs -f
+	$(DOCKER) logs -f
 
 images:
 	docker images
