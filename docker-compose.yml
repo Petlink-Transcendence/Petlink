@@ -64,8 +64,7 @@ services:
     build: ./realtime-service
     container_name: petlink_realtime
     command: >
-      sh -c "python manage.py migrate &&
-             daphne -b 0.0.0.0 -p 8001 core.asgi:application"
+      sh -c "daphne -b 0.0.0.0 -p 8001 core.asgi:application"
     ports:
       - "8001:8001"
     volumes:

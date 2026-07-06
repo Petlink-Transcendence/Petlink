@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from django.utils import timezone
 
 class ActiveUserManager(UserManager):
     """
@@ -50,6 +51,18 @@ class User(AbstractUser):
     # Managers configuration
     objects = ActiveUserManager() # Default: ignore deleteds
     all_objects = UserManager()   # Extra: admins can see deleteds if needed
+
+    def soft_delete(self):
+        """Deactivates the user account logically without removing it from the database"""
+        self.deleted_at = timezone.now()
+        self.is_active = False
+        self.save()
+
+    def reactivate(self):
+        """Restores a logically deleted account"""
+        self.deleted_at = None
+        self.is_active = True
+        self.save()
 
     def __str__(self):
         return f"{self.username} ({self.user_type})"
