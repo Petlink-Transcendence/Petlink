@@ -41,19 +41,32 @@ export default function Register() {
                 alert("Account created successfully!");
                 window.location.href = "/login";
             } else {
-                // Extract the exact error message from Django (e.g., password regex failure)
-                const data = await response.json();
+                const data = await response.json().catch(() => null);
 
-                // If the backend sent a list of password errors, display the first one.
-                // Otherwise, stringify the error object for debugging.
-                if (data.password) {
-                    setError(data.password[0]);
-                } else if (data.username) {
-                    setError("Username already exists.");
-                } else if (data.email) {
-                    setError("Email already in use.");
+                const getFirstMessage = (value: unknown) => {
+                    if (Array.isArray(value)) {
+                        return value[0];
+                    }
+
+                    if (typeof value === 'string') {
+                        return value;
+                    }
+
+                    return null;
+                };
+
+                const usernameError = getFirstMessage(data?.username);
+                const emailError = getFirstMessage(data?.email);
+                const passwordError = getFirstMessage(data?.password);
+
+                if (usernameError) {
+                    setError(usernameError);
+                } else if (emailError) {
+                    setError(emailError);
+                } else if (passwordError) {
+                    setError(passwordError);
                 } else {
-                    setError(JSON.stringify(data));
+                    setError('Error creating account.');
                 }
             }
         } catch (err) {

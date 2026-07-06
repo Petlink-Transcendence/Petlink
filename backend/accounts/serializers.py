@@ -12,6 +12,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'password', 'name', 'user_type')
 
+    def validate_username(self, value):
+        if User.all_objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError('Username already in use.')
+        return value
+
+    def validate_email(self, value):
+        if User.all_objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('Email already in use.')
+        return value
+
     def validate_password(self, value):
         """Validates user password minimum requirements"""
         min_req = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$'
@@ -54,7 +64,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'city', 'user_type', 'rating'
         )
         read_only_fields = fields
-    
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if not data['avatar']:
