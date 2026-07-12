@@ -108,7 +108,7 @@ export default function SitterProfile() {
         bio={profile.bio}
         stats={profile.stats}
         actions={isOwnProfile
-          ? [{ label: 'Edit Profile', variant: 'secondary' }]
+          ? [{ label: 'Edit Profile', variant: 'secondary',  onClick: () => navigate('/settings') }]
           : [
             { label: 'Make a booking', variant: 'primary', onClick: () => setIsNewBookingOpen(true) },
             {

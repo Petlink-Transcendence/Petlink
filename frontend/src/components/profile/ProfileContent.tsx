@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import './ProfileContent.css';
+import '../Comments.css'
 import CreatePost from '../homepage/CreatePostContainer.tsx'
 
 type Post = {
@@ -25,13 +26,114 @@ type ProfileContentProps = {
   showCreatePost?: boolean;
 };
 
-function reviewerInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+type CommentItem = {
+  id: number;
+  author: string;
+  text: string;
+  time: string;
+};
+
+function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorInitials: string, authorName: string }) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(p.likes);
+  const [showComments, setShowComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState("");
+  const [comments, setComments] = useState<CommentItem[]>([
+    { id: 1, author: "Daniela Padilha", text: "Great update! Thanks for sharing.", time: "2h ago" }
+  ]);
+
+  const handleLike = () => {
+    setLikes(liked ? likes - 1 : likes + 1);
+    setLiked(!liked);
+  };
+
+  const handleAddComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCommentText.trim()) return;
+
+    const newComment: CommentItem = {
+      id: Date.now(),
+      author: "Jane Doe", // Proxy tracking session user name
+      text: newCommentText.trim(),
+      time: "Just now"
+    };
+
+    setComments([newComment, ...comments]);
+    setNewCommentText("");
+  };
+
+  const getCommentInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  return (
+    <div className="profile-post-card">
+      <div className="post-header">
+        <div className="post-author-avatar">{authorInitials}</div>
+        <div className="post-header-author-info">
+          <span className="post-author-name">{authorName}</span>
+        </div>
+      </div>
+      
+      <p className="profile-post-text">{p.text}</p>
+      
+      <div className="profile-post-time-wrapper">
+        <span className="post-time">{p.time}</span>
+      </div>
+      
+      <div className="profile-post-footer">
+        <div className="profile-post-actions-group">
+          <button className={`btn like ${liked ? 'liked' : ''}`} onClick={handleLike}>
+            ❤️ {likes}
+          </button>
+          <button 
+            className={`btn comment ${showComments ? 'active' : ''}`} 
+            onClick={() => setShowComments(!showComments)}
+          >
+            💬 Comment
+          </button>
+        </div>
+      </div>
+
+      {showComments && (
+        <div className="comments-section-dropdown">
+          <div className="comments-section-separator" />
+          
+          <form className="comment-input-form" onSubmit={handleAddComment}>
+            <input 
+              type="text" 
+              placeholder="Write a comment..." 
+              value={newCommentText}
+              onChange={(e) => setNewCommentText(e.target.value)}
+              className="comment-text-field"
+            />
+            <button type="submit" className="comment-post-btn">Send</button>
+          </form>
+
+          <div className="comments-scroll-container">
+            {comments.length > 0 ? (
+              comments.map((c) => (
+                <div key={c.id} className="comment-row-item">
+                  <div className="comment-row-avatar-fallback">
+                    {getCommentInitials(c.author)}
+                  </div>
+                  <div className="comment-row-content">
+                    <div className="comment-row-header">
+                      <span className="comment-row-author">{c.author}</span>
+                      <span className="comment-row-time">{c.time}</span>
+                    </div>
+                    <p className="comment-row-text">{c.text}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="no-comments-placeholder">No comments yet. Write one above!</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProfileContent({ posts, reviews, authorName, authorInitials, showCreatePost = true }: ProfileContentProps) {
@@ -55,13 +157,10 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
 
   const handleReviewSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     const trimmedReviewerName = reviewerName.trim();
     const trimmedReviewText = reviewText.trim();
 
-    if (!trimmedReviewerName || !trimmedReviewText) {
-      return;
-    }
+    if (!trimmedReviewerName || !trimmedReviewText) return;
 
     setProfileReviews(currentReviews => [
       {
@@ -73,9 +172,12 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
       },
       ...currentReviews,
     ]);
-
     closeReviewPopup();
   };
+
+  function reviewerInitials(name: string): string {
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
 
   return (
     <div className="profile-right">
@@ -98,17 +200,12 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
       {activeTab === 'posts' && (
         <div className="tab-content">
           {posts.map(p => (
-            <div key={p.id} className="profile-post-card">
-              <div className="post-header">
-                <div className="post-author-avatar">{authorInitials}</div>
-                <span className="post-author-name">{authorName}</span>
-              </div>
-              <p className="profile-post-text">{p.text}</p>
-              <div className="profile-post-footer">
-                <span className="post-time">{p.time}</span>
-                <span className="post-likes">❤️ {p.likes}</span>
-              </div>
-            </div>
+            <ProfilePostCard 
+              key={p.id} 
+              p={p} 
+              authorInitials={authorInitials} 
+              authorName={authorName} 
+            />
           ))}
         </div>
       )}
@@ -118,9 +215,7 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
           <div className="profile-reviews-toolbar">
             <div>
               <h3>Reviews</h3>
-              <p>
-                {profileReviews.length} {profileReviews.length === 1 ? 'review' : 'reviews'}
-              </p>
+              <p>{profileReviews.length} {profileReviews.length === 1 ? 'review' : 'reviews'}</p>
             </div>
             <button
               type="button"

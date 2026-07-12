@@ -19,9 +19,7 @@ services:
     container_name: petlink_core
     command: >
       sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
-    ports:
-      - "8000:8000"
+             python manage.py runserver 0.0.0.0:8080"
     volumes:
       - ./backend:/app
     env_file:
