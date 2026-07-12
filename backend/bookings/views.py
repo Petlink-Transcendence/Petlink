@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from .models import Service, Availability, Booking, Review
 from .serializers import ServiceSerializer, AvailabilitySerializer, BookingSerializer, ReviewSerializer
@@ -18,7 +19,10 @@ class ServiceListCreateView(generics.ListCreateAPIView):
         return Service.objects.filter(is_active=True)
 
     def perform_create(self, serializer):
+        if self.request.user.user_type != 'provider':
+            raise PermissionDenied("Only providers can create services.")
         serializer.save(user=self.request.user)
+
 
 class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ServiceSerializer
@@ -42,7 +46,10 @@ class AvailabilityListCreateView(generics.ListCreateAPIView):
         return Availability.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        if self.request.user.user_type != 'provider':
+            raise PermissionDenied("Only providers can create availability.")
         serializer.save(user=self.request.user)
+
 
 class AvailabilityDeleteView(generics.DestroyAPIView):
     serializer_class = AvailabilitySerializer
