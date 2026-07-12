@@ -60,7 +60,7 @@ class Command(BaseCommand):
             {'name': 'Zeus', 'type': 'dog', 'owner': created_users[0]},
             {'name': 'Kyara', 'type': 'cat', 'owner': created_users[0]},
             {'name': 'sushi', 'type': 'cat', 'owner': created_users[1]},
-            {'name': 'kiwi', 'type': 'cat', 'owner': created_users[1]},
+            {'name': 'quiwi', 'type': 'cat', 'owner': created_users[1]},
             {'name': 'Rei', 'type': 'cat', 'owner': created_users[2]},
             {'name': 'Ritinha', 'type': 'cat', 'owner': created_users[2]}
         ]
