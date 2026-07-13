@@ -51,13 +51,13 @@ def delete_notification(request, notification_id):
     
 @api_view(['POST'])
 def internal_notify(request):
-    user_id = request.data.get('user')
+    user_id = request.data.get('user_id')
     notification_type = request.data.get('type')
     content = request.data.get('content')
     reference_id = request.data.get('reference_id')
     reference_type = request.data.get('reference_type')
 
-    if not all([user_id, notification_type, content]):
+    if not user_id or not notification_type or not content:
         return Response(
             {'error': 'user_id, type and content are required'},
             status=status.HTTP_400_BAD_REQUEST
