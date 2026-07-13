@@ -1,18 +1,19 @@
 import os
 import requests
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.parsers import MultiPartParser
 from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
     UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer,
     UserOnlineStatusSerializer
 )
-from .permissions import IsOwnerAdminModeratorOrReadOnly
+from .permissions import IsOwnerAdminModeratorOrReadOnly, IsAdmin
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser
 from .models import Follower
@@ -137,6 +138,69 @@ class BannerUploadView(APIView):
         serializer.save()
         return Response(serializer.data)
 
+class AdminUserListView(APIView):
+    """Admin-only endpoint to list all users with optional filtering"""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        users = User.all_objects.all()
+
+        role = request.query_params.get('role')
+        user_type = request.query_params.get('user_type')
+        is_active = request.query_params.get('is_active')
+
+        if role:
+            users = users.filter(role=role)
+        if user_type:
+            users = users.filter(user_type=user_type)
+        if is_active is not None:
+            is_active_bool = str(is_active).lower() in ['true', '1', 't']
+            users = users.filter(is_active=is_active_bool)
+
+        serializer = UserProfileSerializer(users, many=True)
+        return Response(serializer.data)
+
+class AdminUserRoleUpdateView(APIView):
+    """Admin-only endpoint to change a user's role"""
+    permission_classes = [IsAdmin]
+
+    def put(self, request, pk):
+        user = get_object_or_404(User.all_objects, pk=pk)
+        new_role = request.data.get('role')
+
+        valid_roles = [choice[0] for choice in User.Role.choices]
+        if new_role not in valid_roles:
+            return Response({"error": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.role = new_role
+        user.save()
+        return Response({"message": f"Role successfully updated to {new_role}."})
+
+class AdminUserDeleteView(APIView):
+    """Admin-only endpoint to apply a soft delete to a user"""
+    permission_classes = [IsAdmin]
+
+    def delete(self, request, pk):
+        user = get_object_or_404(User.all_objects, pk=pk)
+
+        if user.deleted_at:
+            return Response({"error": "User is already deleted."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.soft_delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class AdminUserActivateView(APIView):
+    """Admin-only endpoint to reactivate a soft-deleted user"""
+    permission_classes = [IsAdmin]
+
+    def put(self, request, pk):
+        user = get_object_or_404(User.all_objects, pk=pk)
+
+        if not user.deleted_at:
+            return Response({"error": "User is already active."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.reactivate()
+        return Response({"message": "User reactivated successfully."})
 class FollowView(APIView):
     permission_classes = [IsAuthenticated]
 

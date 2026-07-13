@@ -1,22 +1,38 @@
-# backend/accounts/urls.py
-
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     RegisterView,
     UserMeView,
     OAuth42LoginView,
-    OAuth42CallbackView
+    OAuth42CallbackView,
+    UserProfileView,
+    AvatarUploadView,
+    BannerUploadView,
+    AdminUserListView,
+    AdminUserRoleUpdateView,
+    AdminUserDeleteView,
+    AdminUserActivateView
 )
 
 urlpatterns = [
-    # Local authentication routes
+    # Authentication & OAuth Routes
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', UserMeView.as_view(), name='user_me'),
 
-    # 42 Intranet OAuth routes
+    # 42 Intranet OAuth
     path('42/login/', OAuth42LoginView.as_view(), name='oauth_42_login'),
     path('42/callback/', OAuth42CallbackView.as_view(), name='oauth_42_callback'),
+
+    # Admin Management Routes
+    path('users/', AdminUserListView.as_view(), name='admin-user-list'),
+    path('users/<int:pk>/role/', AdminUserRoleUpdateView.as_view(), name='admin-user-role'),
+    path('users/<int:pk>/activate/', AdminUserActivateView.as_view(), name='admin-user-activate'),
+    path('users/<int:pk>/delete/', AdminUserDeleteView.as_view(), name='admin-user-delete'),
+
+    # Public Profile Routes
+    path('users/<int:pk>/', UserProfileView.as_view(), name='user-public-profile'),
+    path('users/<int:pk>/avatar/', AvatarUploadView.as_view(), name='user-avatar-upload'),
+    path('users/<int:pk>/banner/', BannerUploadView.as_view(), name='user-banner-upload')
 ]
