@@ -12,6 +12,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'password', 'name', 'user_type')
 
+    def validate_username(self, value):
+        if User.all_objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError('Username already in use.')
+        return value
+
+    def validate_email(self, value):
+        if User.all_objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('Email already in use.')
+        return value
+
     def validate_password(self, value):
         """Validates user password minimum requirements"""
         min_req = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$'
@@ -47,19 +57,29 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     """Public User Serializer"""
+
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
             'id', 'name', 'avatar', 'banner', 'description',
-            'city', 'user_type', 'rating'
+            'city', 'user_type', 'rating', 'followers_count', 'following_count'
         )
         read_only_fields = fields
-    
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if not data['avatar']:
             data['avatar'] = '/static/avatars/profile-pic.png'
         return data
+    
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_following_count(self, obj):
+        return obj.following.count()
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
@@ -79,3 +99,9 @@ class BannerUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('banner' ,)
+
+class UserOnlineStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'online_status', 'last_seen')
+        read_only_fields = fields

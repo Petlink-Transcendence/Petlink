@@ -10,9 +10,14 @@ from rest_framework.parsers import MultiPartParser
 from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
-    UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer
+    UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer,
+    UserOnlineStatusSerializer
 )
 from .permissions import IsOwnerAdminModeratorOrReadOnly, IsAdmin
+from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser
+from .models import Follower
+from django.db import models
 
 User = get_user_model()
 
@@ -196,3 +201,46 @@ class AdminUserActivateView(APIView):
 
         user.reactivate()
         return Response({"message": "User reactivated successfully."})
+class FollowView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        target = get_object_or_404(User, pk=pk)
+        Follower.objects.get_or_create(follower=request.user, following=target)
+        return Response(status=204)
+
+    def delete(self, request, pk):
+        target = get_object_or_404(User, pk=pk)
+        Follower.objects.filter(follower=request.user, following=target).delete()
+        return Response(status=204)
+
+class FollowersListView(generics.ListAPIView):
+    serializer_class = UserPublicProfileSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs['pk'])
+        return User.objects.filter(following__following=user)
+
+class FollowingListView(generics.ListAPIView):
+    serializer_class = UserPublicProfileSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs['pk'])
+        return User.objects.filter(followers__follower=user)
+
+class UserSearchView(generics.ListAPIView):
+    serializer_class = UserPublicProfileSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        query = self.request.query_params.get('q', '')
+        return User.objects.filter(
+            models.Q(name__icontains=query) | models.Q(username__icontains=query)
+        )
+
+class UserOnlineStatusView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserOnlineStatusSerializer
+    permission_classes = [AllowAny]
