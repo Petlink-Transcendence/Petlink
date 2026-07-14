@@ -56,8 +56,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
-    """Public User Serializer"""
-
+    """
+    Serializer for public profile viewing.
+    Limits field visibility based on user authentication status.
+    """
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
 
@@ -69,18 +71,32 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+    def get_fields(self):
+        """Dynamically limits fields for non-authenticated users."""
+        fields = super().get_fields()
+        request = self.context.get('request')
+
+        if not request or not request.user.is_authenticated:
+            public_fields = {'id', 'name', 'avatar', 'banner'}
+            for field in list(fields.keys()):
+                if field not in public_fields:
+                    fields.pop(field, None)
+        return fields
+
     def to_representation(self, instance):
+        """Ensures a default image is provided if avatar is missing."""
         data = super().to_representation(instance)
-        if not data['avatar']:
+        if not data.get('avatar'):
             data['avatar'] = '/static/avatars/profile-pic.png'
         return data
-    
+
     def get_followers_count(self, obj):
+        """Returns the total number of followers."""
         return obj.followers.count()
 
     def get_following_count(self, obj):
+        """Returns the total number of users being followed."""
         return obj.following.count()
-
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     """update profile serializer"""
