@@ -16,7 +16,7 @@ def message_history(request, user_id):
     messages = Message.objects.filter(
         Q(sender_id=logged_in_user, recipient_id=user_id) |
         Q(sender_id=user_id, recipient_id=logged_in_user)
-    ).order_by('created_at')[:50]
+    ).order_by('-created_at')[:50]
 
     data = [
         {
@@ -27,7 +27,7 @@ def message_history(request, user_id):
             'read_at': m.read_at,
             'created_at': m.created_at,
         }
-        for m in messages
+        for m in reversed(messages)
     ]
 
     return Response(data, status=status.HTTP_200_OK)
