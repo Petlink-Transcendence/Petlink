@@ -6,7 +6,7 @@
 #    By: gde-la-r <gde-la-r@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/06 17:44:03 by gde-la-r          #+#    #+#              #
-#    Updated: 2026/07/14 19:35:16 by gde-la-r         ###   ########.fr        #
+#    Updated: 2026/07/14 20:01:35 by gde-la-r         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,9 @@ logs:
 
 images:
 	docker images
+
+tests:
+	$(DOCKER) exec core-service python manage.py test accounts.tests
 
 clean:
 	$(DOCKER) down -v
