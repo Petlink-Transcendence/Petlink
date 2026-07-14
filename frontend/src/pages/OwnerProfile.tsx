@@ -21,6 +21,7 @@ interface BackendUser {
   rating?: string | number | null;
   followers_count?: number;
   following_count?: number;
+  created_at?: string | null;
 }
 
 type ProfileStat = {
@@ -65,6 +66,12 @@ function getInitials(name: string): string {
   return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function formatMemberSince(isoDate: string): string {
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' };
+  return date.toLocaleDateString('en-US', options);
+}
+
 function mapBackendToProfile(data: BackendUser): ProfileData {
   const name = data.name || data.username || 'Unknown User';
   return {
@@ -84,6 +91,7 @@ function mapBackendToProfile(data: BackendUser): ProfileData {
       {title: 'About',
         type: 'meta',
         items: [
+          data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
           data.city ? `📍 ${data.city}` : '📍 Location not set',
           data.country ? `🌍 ${data.country}` : '🌍 Country not set',
         ],
