@@ -84,7 +84,7 @@ function formatPetLabel(pet: BackendPet): string {
   return pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${pet.name} | ${pet.type}`;
 }
 
-function dedupePets(pets: BackendPet[]): BackendPet[] {
+function getPets(pets: BackendPet[]): BackendPet[] {
   const petsByKey = new Map<string, BackendPet>();
 
   for (const pet of pets) {
@@ -100,14 +100,14 @@ function dedupePets(pets: BackendPet[]): BackendPet[] {
 }
 
 function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
-  const name = data.name || data.username || 'Unknown User';
+  const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
-  const uniquePets = dedupePets(pets);
+  const uniquePets = getPets(pets);
   const petItems = uniquePets.length ? uniquePets.map(formatPetLabel) : ['No pets added yet'];
   return {
     id: String(data.id),
     name,
-    username: data.username ? `@${data.username}` : `@user-${data.id}`,
+    username,
     role: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'sitter' ? 'Pet Sitter' : (data.role || 'User'),
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
