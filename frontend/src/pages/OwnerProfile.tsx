@@ -24,6 +24,13 @@ interface BackendUser {
   created_at?: string | null;
 }
 
+interface BackendPet {
+  id: number;
+  name: string;
+  type: string;
+  breed?: string | null;
+}
+
 type ProfileStat = {
   value: string | number;
   label: string;
@@ -72,8 +79,31 @@ function formatMemberSince(isoDate: string): string {
   return date.toLocaleDateString('en-US', options);
 }
 
-function mapBackendToProfile(data: BackendUser): ProfileData {
+function formatPetLabel(pet: BackendPet): string {
+  const nameLabel = pet.name ? `${pet.name[0].toUpperCase()}${pet.name.slice(1)}` : 'Unnamed Pet';
+  return pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${pet.name} | ${pet.type}`;
+}
+
+function dedupePets(pets: BackendPet[]): BackendPet[] {
+  const petsByKey = new Map<string, BackendPet>();
+
+  for (const pet of pets) {
+    const key = `${pet.name.trim().toLowerCase()}|${pet.type.trim().toLowerCase()}`;
+    const existing = petsByKey.get(key);
+
+    if (!existing || (!existing.breed && pet.breed)) {
+      petsByKey.set(key, pet);
+    }
+  }
+
+  return Array.from(petsByKey.values());
+}
+
+function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
   const name = data.name || data.username || 'Unknown User';
+  const username = data.username ? `@${data.username}` : `@user-${data.id}`;
+  const uniquePets = dedupePets(pets);
+  const petItems = uniquePets.length ? uniquePets.map(formatPetLabel) : ['No pets added yet'];
   return {
     id: String(data.id),
     name,
@@ -109,7 +139,7 @@ function mapBackendToProfile(data: BackendUser): ProfileData {
       /* Hardcoded - to be removed when backend provides posts and reviews */
       {title: 'My Pets',
         type: 'tags',
-        items: ['Luna | Bengal Cat | 2yr', 'Buddy | Golden Retriever | 4yr'],
+        items: petItems,
       },
       {title: 'Looking for',
         type: 'meta',
@@ -127,9 +157,9 @@ function mapBackendToProfile(data: BackendUser): ProfileData {
       { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
     ],
     reviews: [
-      { id: 1, author: 'Ana C.', rating: 5, text: 'Jane is a wonderful pet owner. Luna and Buddy are so well behaved!', time: '2 weeks ago' },
+      { id: 1, author: 'Ana C.', rating: 5, text: `${username} is a wonderful pet owner. Luna and Buddy are so well behaved!`, time: '2 weeks ago' },
       { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.', time: '1 month ago' },
-      { id: 3, author: 'Sara M.', rating: 4, text: 'Great experience. Buddy is a handful but Jane made it easy.', time: '2 months ago' },
+      { id: 3, author: 'Sara M.', rating: 4, text: `Great experience. Buddy is a handful but ${username} made it easy.`, time: '2 months ago' },
     ], 
     /* end of hardcode */
   };
@@ -187,7 +217,19 @@ export default function Profile() {
         }
       }
 
-      setProfile(mapBackendToProfile(mergedData));
+      let petsData: BackendPet[] = [];
+      if (mergedData.id) {
+        const petsResponse = await fetch(`http://localhost:8080/api/users/${mergedData.id}/pets/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (petsResponse.ok) {
+          petsData = await petsResponse.json();
+        }
+      }
+
+      setProfile(mapBackendToProfile(mergedData, petsData));
     
   } catch (err: any) {
     setError(err.message || 'Failed to load profile.');
