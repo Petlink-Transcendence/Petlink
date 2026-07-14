@@ -26,9 +26,9 @@ class AuthIntegrationTests(APITestCase):
         response = self.client.post(self.register_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_auth_full_cycle(self):
+    def test_login_refresh_and_logout(self):
         """
-        Testa o ciclo completo: Login -> Refresh (sucesso) -> Logout -> Refresh (falha).
+        Tests the complete auth cicle (login, refresh, logout, refresh)
         """
         # Login
         response = self.client.post(self.login_url, self.user_data)
