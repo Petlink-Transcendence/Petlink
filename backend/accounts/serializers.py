@@ -60,12 +60,14 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
 
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
+    post_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'avatar', 'banner', 'description',
-            'city', 'country', 'user_type', 'rating', 'followers_count', 'following_count', 'created_at'
+            'city', 'country', 'user_type', 'rating', 'followers_count',
+            'following_count', 'post_count', 'created_at'
         )
         read_only_fields = fields
 
@@ -80,6 +82,9 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
 
     def get_following_count(self, obj):
         return obj.following.count()
+    
+    def get_post_count(self, obj):
+        return obj.posts.count()
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
