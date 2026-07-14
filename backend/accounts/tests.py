@@ -26,19 +26,30 @@ class AuthIntegrationTests(APITestCase):
         response = self.client.post(self.register_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_login_and_refresh(self):
-        """Tests login and token renovation."""
+    def test_auth_full_cycle(self):
+        """
+        Testa o ciclo completo: Login -> Refresh (sucesso) -> Logout -> Refresh (falha).
+        """
         # Login
         response = self.client.post(self.login_url, self.user_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
 
-        # Refresh
+        access_token = response.data['access']
         refresh_token = response.data['refresh']
+
+        # Initial resresh(must work while logged in)
         refresh_response = self.client.post(self.refresh_url, {'refresh': refresh_token})
         self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', refresh_response.data)
+
+        # Logout (invalidates the refresh token)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        logout_url = reverse('auth_logout')
+        logout_response = self.client.post(logout_url, {'refresh_token': refresh_token})
+        self.assertEqual(logout_response.status_code, status.HTTP_205_RESET_CONTENT)
+
+        # Final refresh (must fail after logout)
+        refresh_failed_response = self.client.post(self.refresh_url, {'refresh': refresh_token})
+        self.assertEqual(refresh_failed_response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_oauth_42_endpoint_exists(self):
         """Validatesd that 42 oauth endpoint is working."""
