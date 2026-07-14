@@ -88,9 +88,42 @@ function mapBackendToProfile(data: BackendUser): ProfileData {
           data.country ? `🌍 ${data.country}` : '🌍 Country not set',
         ],
       },
+      /* Uncoment and integrate when backend provides pets and looking for */
+      // {title: 'My Pets',
+      //   type: 'meta',
+      //   items: [ ],
+      // },
+      // {title: 'Looking for',
+      //   type: 'meta',
+      //   items: [ ],
+      // }, 
+      /* end of uncomment */
+      /* Hardcoded - to be removed when backend provides posts and reviews */
+      {title: 'My Pets',
+        type: 'tags',
+        items: ['Luna | Bengal Cat | 2yr', 'Buddy | Golden Retriever | 4yr'],
+      },
+      {title: 'Looking for',
+        type: 'meta',
+        items: ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'],
+      },
+      /* end of hardcode */
     ],
-    posts: [],
-    reviews: [],
+   /* Uncoment and integrate when backend provides posts and reviews */
+    // posts: [],
+    // reviews: [],
+    /* end of uncomment */
+    /* Hardcoded - to be removed when backend provides posts and reviews */
+    posts: [
+      { id: 1, text: 'Available sitters for this weekend? DM me 🐱', time: '1h ago', likes: 12 },
+      { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
+    ],
+    reviews: [
+      { id: 1, author: 'Ana C.', rating: 5, text: 'Jane is a wonderful pet owner. Luna and Buddy are so well behaved!', time: '2 weeks ago' },
+      { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.', time: '1 month ago' },
+      { id: 3, author: 'Sara M.', rating: 4, text: 'Great experience. Buddy is a handful but Jane made it easy.', time: '2 months ago' },
+    ], 
+    /* end of hardcode */
   };
 }
 
