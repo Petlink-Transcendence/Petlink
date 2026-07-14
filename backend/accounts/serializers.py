@@ -66,21 +66,24 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'name', 'avatar', 'banner', 'description',
+            'id', 'name', 'role', 'avatar', 'banner', 'description',
             'city', 'user_type', 'rating', 'followers_count', 'following_count'
         )
         read_only_fields = fields
 
     def get_fields(self):
-        """Dynamically limits fields for non-authenticated users."""
+        """Dynamically limits fields based on whether the visitor is authenticated."""
         fields = super().get_fields()
         request = self.context.get('request')
 
         if not request or not request.user.is_authenticated:
-            public_fields = {'id', 'name', 'avatar', 'banner'}
-            for field in list(fields.keys()):
-                if field not in public_fields:
-                    fields.pop(field, None)
+            public_fields = {'id', 'name', 'role', 'avatar', 'banner'}
+        else:
+            public_fields = set(fields.keys())
+
+        for field in list(fields.keys()):
+            if field not in public_fields:
+                fields.pop(field, None)
         return fields
 
     def to_representation(self, instance):
