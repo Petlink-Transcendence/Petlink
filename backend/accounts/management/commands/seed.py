@@ -16,23 +16,29 @@ class Command(BaseCommand):
             },
             {
                 'username': 'isabel', 'email': 'isabel@test.com', 'name': 'Isabel Tootill', 'user_type': 'owner',
-                'user_type': 'owner', 'role': 'user', 'description': 'Cat lover from Rio Tinto',
+                'role': 'user', 'description': 'Cat lover from Rio Tinto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/isabel.jpg'
             },
             {
                 'username': 'ricardo', 'email': 'ricardo@test.com', 'name': 'Ricardo Garcia', 'user_type': 'owner',
-                'user_type': 'owner', 'role': 'user', 'description': 'Cat lover from Rio Tinto',
+                'role': 'user', 'description': 'Cat lover from Rio Tinto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/ricardo.jpeg'
             },
             {
                 'username': 'daniela', 'email': 'daniela@test.com', 'name': 'Daniela Padilha', 'user_type': 'owner',
-                'user_type': 'owner', 'role': 'user', 'description': 'Cat lover from Rio Tinto',
+                'role': 'user', 'description': 'Cat lover from Rio Tinto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/daniela.jpeg'
             },
             {
                 'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel LaRoque', 'user_type': 'owner',
-                'user_type': 'owner', 'role': 'user', 'description': 'Cat & Dog lover from Porto',
+                'role': 'user', 'description': 'Cat & Dog lover from Porto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/gabriel.jpeg'
+            },
+            {
+                'username': 'rafael', 'email': 'rafael@test.com', 'name': 'Rafael Castro', 'user_type': 'sitter',
+                'role': 'user', 'description': 'Passionate animal lover with 5+ years of experience caring for cats and small pets.\nAvailable for sitting, grooming, and daily visits',
+                'country': 'Portugal', 'city': 'Porto', 'rating': '5', 'experience': '5+ years', 'price': '10-15 per hour', 'pet_types': ['cats', 'dogs', 'small pets'],
+                'avatar': 'avatars/rafael.jpeg'
             }
         ]
 
@@ -49,7 +55,10 @@ class Command(BaseCommand):
                     'country': data['country'],
                     'city': data['city'],
                     'rating': data['rating'],
-                    'avatar': data.get('avatar')
+                    'avatar': data.get('avatar'),
+                    'experience': data.get('experience'),
+                    'price': data.get('price'),
+                    'pet_types': data.get('pet_types', [])
                 }
             )
             if created:

@@ -35,7 +35,10 @@ class User(AbstractUser):
     country = models.CharField(max_length=100, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
-
+    experience = models.TextField(null=True, blank=True)  # For sitters
+    price = models.TextField(null=True, blank=True)  # For sitters
+    pet_types = models.JSONField(default=list, blank=True)  # For sitters
+    
     # Status && Realtime
     online_status = models.BooleanField(default=False)
     last_seen = models.DateTimeField(null=True, blank=True)

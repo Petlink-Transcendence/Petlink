@@ -69,11 +69,11 @@ interface ProfileData {
   reviews: ProfileReview[];
 }
 
-function getInitials(name: string): string {
+export function getInitials(name: string): string {
   return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function formatMemberSince(isoDate: string): string {
+export function formatMemberSince(isoDate: string): string {
   const date = new Date(isoDate);
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-US', options);
