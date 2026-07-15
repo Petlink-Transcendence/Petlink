@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5'
             },
             {
-                'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel LaRoque', 'user_type': 'owner',
+                'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel LaRocque', 'user_type': 'owner',
                 'user_type': 'owner', 'role': 'user', 'description': 'Cat & Dog lover from Porto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5'
             },
@@ -71,7 +71,7 @@ class Command(BaseCommand):
             {'name': 'Zeus', 'type': 'dog', 'owner': created_users[0]},
             {'name': 'Kyara', 'type': 'cat', 'owner': created_users[0]},
             {'name': 'sushi', 'type': 'cat', 'owner': created_users[1]},
-            {'name': 'quiwi', 'type': 'cat', 'owner': created_users[1]},
+            {'name': 'kiwi', 'type': 'cat', 'owner': created_users[1]},
             {'name': 'Rei', 'type': 'cat', 'owner': created_users[2]},
             {'name': 'Ritinha', 'type': 'cat', 'owner': created_users[2]}
         ]

@@ -13,6 +13,6 @@ echo "Generating self-signed SSL certificate in $SSL_DIR..."
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout "$SSL_DIR/nginx.key" \
   -out "$SSL_DIR/nginx.crt" \
-  -subj "/C=PT/ST=Porto/L=Porto/O=42/OU=larocqueg/CN=localhost"
+  -subj "/C=PT/ST=Porto/L=Porto/O=42Porto/OU=Petlink Transcendence/CN=Petlink"
 
 echo "Certificates successfully generated!"
