@@ -75,6 +75,18 @@ The architecture and internal design may evolve as the project progresses.
 
 ---
 
+--- 
+## Commands to run backend and frontend together [basic DB]
+
+``` bash
+docker compose down -v --remove-orphans
+docker compose up -d --build postgres redis
+docker compose run --rm core-service python manage.py migrate
+docker compose run --rm core-service python manage.py seed
+docker compose up -d --build core-service frontend nginx realtime-service 
+```
+---
+
 ## 📌 Notes
 
 * This document represents an initial plan
