@@ -6,7 +6,6 @@ import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
-import ProfileToggle from '../components/profile/ProfileToggle';
 import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPanel';
 import NewBookingPopup from '../components/bookings/NewBookingPopup';
 import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
@@ -238,14 +237,6 @@ export default function SitterProfile() {
     }
   }, [profile?.name]);
 
-  const handleConnectionToggle = () => {
-    if (!profile) return;
-    setConnections(currentConnections => ({
-      ...currentConnections,
-      [profile.id]: !currentConnections[profile.id],
-    }));
-  };
-
   const handleMessageClick = () => {
     if (!profile) return;
     navigate('/chat', {
@@ -308,7 +299,6 @@ export default function SitterProfile() {
 
   return (
     <div className="profile-page">
-      {isOwnProfile && <ProfileToggle active="sitter" />}
       <ProfileCover initials={profile.initials} imageUrl={profile.imageUrl} />
       <ProfileInfoBar
         name={profile.name}
@@ -323,7 +313,6 @@ export default function SitterProfile() {
             {
               label: isConnected ? 'Disconnect' : 'Connect',
               variant: 'secondary',
-              onClick: handleConnectionToggle,
             },
             { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
           ]
