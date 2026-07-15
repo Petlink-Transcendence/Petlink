@@ -97,7 +97,7 @@ class OAuth42CallbackView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
-        frontend_url = f"http://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
+        frontend_url = f"https://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
         return redirect(frontend_url)
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
@@ -258,3 +258,28 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class AdminStatsView(APIView):
+    """
+    Admin-only endpoint to retrieve stats for the dashboard:
+    - total users (active/non-deleted users)
+    - active bookings (status = 'confirmed')
+    - pending bookings (status = 'pending')
+    - total reviews
+    """
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        from bookings.models import Booking, Review
+        
+        total_users = User.objects.count()
+        active_bookings = Booking.objects.filter(status=Booking.Status.CONFIRMED).count()
+        pending_bookings = Booking.objects.filter(status=Booking.Status.PENDING).count()
+        total_reviews = Review.objects.count()
+
+        return Response({
+            "total_users": total_users,
+            "active_bookings": active_bookings,
+            "pending_bookings": pending_bookings,
+            "total_reviews": total_reviews
+        }, status=status.HTTP_200_OK)

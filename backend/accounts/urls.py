@@ -14,7 +14,8 @@ from .views import (
     AdminUserRoleUpdateView,
     AdminUserDeleteView,
     AdminUserActivateView,
-    LogoutView
+    LogoutView,
+    AdminStatsView
 )
 
 urlpatterns = [
@@ -30,6 +31,7 @@ urlpatterns = [
     path('42/callback/', OAuth42CallbackView.as_view(), name='oauth_42_callback'),
 
     # Admin Management Routes
+    path('admin/stats/', AdminStatsView.as_view(), name='admin-stats'),
     path('users/', AdminUserListView.as_view(), name='admin-user-list'),
     path('users/<int:pk>/role/', AdminUserRoleUpdateView.as_view(), name='admin-user-role'),
     path('users/<int:pk>/activate/', AdminUserActivateView.as_view(), name='admin-user-activate'),
