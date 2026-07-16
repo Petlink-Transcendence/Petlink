@@ -12,27 +12,32 @@ class Command(BaseCommand):
             {
                 'username': 'joao', 'email': 'joao@test.com', 'name': 'Joao Vieira',
                 'user_type': 'owner', 'role': 'user', 'description': 'Dog lover from Vila Nova de Gaia',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/joao.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/joao.jpeg',
+                'looking_for': ['dog walker', 'home visits', 'overnight stay']
             },
             {
                 'username': 'isabel', 'email': 'isabel@test.com', 'name': 'Isabel Tootill', 'user_type': 'owner',
                 'role': 'user', 'description': 'Cat lover from Rio Tinto',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/isabel.jpg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/isabel.jpg',
+                'looking_for': ['cat sitter', 'home visits' ]
             },
             {
                 'username': 'ricardo', 'email': 'ricardo@test.com', 'name': 'Ricardo Garcia', 'user_type': 'owner',
                 'role': 'user', 'description': 'Cat lover from Rio Tinto',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/ricardo.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/ricardo.jpeg',
+                'looking_for': ['cat sitter', 'home visits', 'overnight stay']
             },
             {
                 'username': 'daniela', 'email': 'daniela@test.com', 'name': 'Daniela Padilha', 'user_type': 'owner',
                 'role': 'user', 'description': 'Cat lover from Rio Tinto',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/daniela.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/daniela.jpeg',
+                'looking_for': ['dog walker', 'home visits', 'overnight stay']
             },
             {
                 'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel LaRoque', 'user_type': 'owner',
                 'role': 'user', 'description': 'Cat & Dog lover from Porto',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/gabriel.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/gabriel.jpeg',
+                'looking_for': ['cat sitter']
             },
             {
                 'username': 'rafael', 'email': 'rafael@test.com', 'name': 'Rafael Castro', 'user_type': 'sitter',
@@ -58,7 +63,8 @@ class Command(BaseCommand):
                     'avatar': data.get('avatar'),
                     'experience': data.get('experience'),
                     'price': data.get('price'),
-                    'pet_types': data.get('pet_types', [])
+                    'pet_types': data.get('pet_types', []),
+                    'looking_for': data.get('looking_for', []),
                 }
             )
             if created:
@@ -66,6 +72,11 @@ class Command(BaseCommand):
                 user.save()
             else:
                 updates = []
+                for field in ['name', 'description', 'country', 'city', 'rating', 'experience', 'price', 'pet_types', 'looking_for']:
+                    value = data.get(field)
+                    if value is not None and getattr(user, field) != value:
+                        setattr(user, field, value)
+                        updates.append(field)
                 if data.get('avatar') and user.avatar.name != data['avatar']:
                     user.avatar = data['avatar']
                     updates.append('avatar')

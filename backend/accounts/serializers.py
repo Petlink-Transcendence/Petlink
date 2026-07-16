@@ -51,7 +51,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'name', 'user_type', 'role',
             'avatar', 'banner', 'description', 'rating', 'online_status', 'created_at',
-            'experience', 'price', 'pet_types'
+            'experience', 'price', 'pet_types', 'looking_for'
         )
         # Ensures no one can accidentally modify data using a GET view
         read_only_fields = fields
@@ -67,7 +67,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count', 'following_count', 'created_at',
-            'experience', 'price', 'pet_types'
+            'experience', 'price', 'pet_types', 'looking_for'
         )
         read_only_fields = fields
 
@@ -89,7 +89,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'name', 'description', 'country', 'city', 'experience', 'price', 'pet_types'
+            'name', 'description', 'country', 'city', 'experience', 'price', 'pet_types', 'looking_for'
         )
 
 class AvatarUploadSerializer(serializers.ModelSerializer):

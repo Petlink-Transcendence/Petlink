@@ -21,6 +21,7 @@ interface BackendUser {
   followers_count?: number;
   following_count?: number;
   created_at?: string | null;
+  looking_for?: string[] | null;
 }
 
 interface BackendPet {
@@ -66,6 +67,7 @@ interface ProfileData {
   sidebarCards: ProfileSidebarCard[];
   posts: ProfilePost[];
   reviews: ProfileReview[];
+  looking_for?: string[];
 }
 
 export function getInitials(name: string): string {
@@ -129,18 +131,10 @@ function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): Profil
         type: 'tags',
         items: petItems,
       },
-      /* Uncoment and integrate when backend provides pets and looking for */
-      // {title: 'My Pets',
-      //   type: 'meta',
-      //   items: [ ],
-      // },
-      /* end of uncomment */
-      /* Hardcoded - to be removed when backend provides posts and reviews */
       {title: 'Looking for',
-        type: 'meta',
-        items: ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'],
+        type: 'tags',
+        items: data.looking_for && data.looking_for.length > 0 ? data.looking_for.map(item => item.charAt(0).toUpperCase() + item.slice(1)) : ['No preferences set'],
       },
-      /* end of hardcode */
     ],
    /* Uncoment and integrate when backend provides posts and reviews */
     // posts: [],
