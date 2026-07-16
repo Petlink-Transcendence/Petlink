@@ -13,7 +13,8 @@ interface SettingsForm {
   displayName: string;
   username: string;
   email: string;
-  location: string;
+  city: string;
+  country: string;
   bio: string;
   accountMode: 'owner' | 'sitter';
   profileVisibility: string;
@@ -37,7 +38,8 @@ const initialSettings: SettingsForm = {
   displayName: 'Jane Doe',
   username: 'janedoe123',
   email: 'jane.doe@example.com',
-  location: 'Porto, PT',
+  city: 'Porto',
+  country: 'Portugal',
   bio: 'Dog and cat mom. Always looking for the best care for my pets.',
   accountMode: 'owner',
   profileVisibility: 'Everyone',
@@ -171,14 +173,24 @@ export default function Settings() {
                 <span>Username</span>
                 <input type="text" value={form.username} onChange={(e) => updateField('username', e.target.value)} />
               </label>
+            </div>
+
+            <div className="settings-contact-row">
               <label className="settings-field">
                 <span>Email</span>
                 <input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} />
               </label>
-              <label className="settings-field">
-                <span>Location</span>
-                <input type="text" value={form.location} onChange={(e) => updateField('location', e.target.value)} />
-              </label>
+
+              <div className="settings-location-row">
+                <label className="settings-field settings-compact-field">
+                  <span>City</span>
+                  <input type="text" value={form.city} onChange={(e) => updateField('city', e.target.value)} />
+                </label>
+                <label className="settings-field settings-compact-field">
+                  <span>Country</span>
+                  <input type="text" value={form.country} onChange={(e) => updateField('country', e.target.value)} />
+                </label>
+              </div>
             </div>
 
             <label className="settings-field">

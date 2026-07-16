@@ -1,23 +1,251 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate} from 'react-router-dom';
 import './Profile.css';
+
 import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 import ProfileToggle from '../components/profile/ProfileToggle';
-import { currentOwnerProfileId, getOwnerProfile } from '../data/profileData';
+
+interface BackendUser {
+  id: number;
+  username?: string;
+  name?: string;
+  user_type?: string;
+  role?: string;
+  avatar?: string | null;
+  description?: string | null;
+  city?: string | null;
+  country?: string | null;
+  rating?: string | number | null;
+  followers_count?: number;
+  following_count?: number;
+  created_at?: string | null;
+}
+
+interface BackendPet {
+  id: number;
+  name: string;
+  type: string;
+  breed?: string | null;
+}
+
+type ProfileStat = {
+  value: string | number;
+  label: string;
+};
+
+type ProfileSidebarCard =
+  | { title: string; type: 'meta'; items: string[] }
+  | { title: string; type: 'tags'; items: string[] };
+
+type ProfilePost = {
+  id: number;
+  text: string;
+  time: string;
+  likes: number;
+};
+
+type ProfileReview = {
+  id: number;
+  author: string;
+  rating: number;
+  text: string;
+  time: string;
+};
+
+interface ProfileData {
+  id: string;
+  username: string;
+  name: string;
+  role: string;
+  bio: string;
+  initials: string;
+  imageUrl?: string;
+  stats: ProfileStat[];
+  sidebarCards: ProfileSidebarCard[];
+  posts: ProfilePost[];
+  reviews: ProfileReview[];
+}
+
+function getInitials(name: string): string {
+  return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function formatMemberSince(isoDate: string): string {
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' };
+  return date.toLocaleDateString('en-US', options);
+}
+
+function formatPetLabel(pet: BackendPet): string {
+  const nameLabel = pet.name ? `${pet.name[0].toUpperCase()}${pet.name.slice(1)}` : 'Unnamed Pet';
+  return pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${pet.name} | ${pet.type}`;
+}
+
+function getPets(pets: BackendPet[]): BackendPet[] {
+  const petsByKey = new Map<string, BackendPet>();
+
+  for (const pet of pets) {
+    const key = `${pet.name.trim().toLowerCase()}|${pet.type.trim().toLowerCase()}`;
+    const existing = petsByKey.get(key);
+
+    if (!existing || (!existing.breed && pet.breed)) {
+      petsByKey.set(key, pet);
+    }
+  }
+
+  return Array.from(petsByKey.values());
+}
+
+function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
+  const name = data.name || data.username || 'Jane Doe';
+  const username = data.username ? `@${data.username}` : `@user-${data.id}`;
+  const uniquePets = getPets(pets);
+  const petItems = uniquePets.length ? uniquePets.map(formatPetLabel) : ['No pets added yet'];
+  return {
+    id: String(data.id),
+    name,
+    username,
+    role: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'sitter' ? 'Pet Sitter' : (data.role || 'User'),
+    bio: data.description || 'No bio available.',
+    initials: getInitials(name),
+    imageUrl: data.avatar ? data.avatar.startsWith('http') ? data.avatar : `http://localhost:8080${data.avatar}` : undefined,
+    stats: [
+      { value: data.rating ?? 'N/A', label: 'Rating' },
+      { value: data.followers_count ?? 0, label: 'Followers' },
+      { value: data.following_count ?? 0, label: 'Following' },
+    ],
+    sidebarCards: [
+      {title: 'About',
+        type: 'meta',
+        items: [
+          data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
+          data.city ? `📍 ${data.city}` : '📍 Location not set',
+          data.country ? `🌍 ${data.country}` : '🌍 Country not set',
+        ],
+      },
+      {title: 'My Pets',
+        type: 'tags',
+        items: petItems,
+      },
+      /* Uncoment and integrate when backend provides pets and looking for */
+      // {title: 'My Pets',
+      //   type: 'meta',
+      //   items: [ ],
+      // },
+      /* end of uncomment */
+      /* Hardcoded - to be removed when backend provides posts and reviews */
+      {title: 'Looking for',
+        type: 'meta',
+        items: ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'],
+      },
+      /* end of hardcode */
+    ],
+   /* Uncoment and integrate when backend provides posts and reviews */
+    // posts: [],
+    // reviews: [],
+    /* end of uncomment */
+    /* Hardcoded - to be removed when backend provides posts and reviews */
+    posts: [
+      { id: 1, text: 'Available sitters for this weekend? DM me 🐱', time: '1h ago', likes: 12 },
+      { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
+    ],
+    reviews: [
+      { id: 1, author: 'Ana C.', rating: 5, text: `${username} is a wonderful pet owner. Luna and Buddy are so well behaved!`, time: '2 weeks ago' },
+      { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.', time: '1 month ago' },
+      { id: 3, author: 'Sara M.', rating: 4, text: `Great experience. Buddy is a handful but ${username} made it easy.`, time: '2 months ago' },
+    ], 
+    /* end of hardcode */
+  };
+}
 
 export default function Profile() {
-  const { profileId } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const profile = getOwnerProfile(profileId);
-  const isOwnProfile = !profileId || profileId === currentOwnerProfileId;
-  const [connections, setConnections] = useState<Record<string, boolean>>({});
-  const isConnected = Boolean(connections[profile.id]);
 
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [connections, setConnections] = useState<Record<string, boolean>>({});
+
+  const isOwnProfile = !id;
+  const isConnected = profile ? Boolean(connections[profile.id]) : false;
+  
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setLoading(true);
+      setError('');
+
+      const endpoint = id 
+        ? `http://localhost:8080/api/users/${id}/`
+        : `http://localhost:8080/auth/me/`;
+      try {
+
+        const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: { 
+            'Content-Type': 'application/json', 
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile data.');
+      }
+
+      const data: BackendUser = await response.json();
+
+      let mergedData: BackendUser = data;
+
+      if (!id && data.id) {
+        const publicResponse = await fetch(`http://localhost:8080/api/users/${data.id}/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (publicResponse.ok) {
+          const publicData: BackendUser = await publicResponse.json();
+          mergedData = { ...data, ...publicData };
+        }
+      }
+
+      let petsData: BackendPet[] = [];
+      if (mergedData.id) {
+        const petsResponse = await fetch(`http://localhost:8080/api/users/${mergedData.id}/pets/`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (petsResponse.ok) {
+          petsData = await petsResponse.json();
+        }
+      }
+
+      setProfile(mapBackendToProfile(mergedData, petsData));
+    
+  } catch (err: any) {
+    setError(err.message || 'Failed to load profile.');
+    console.error("Fetch error details:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    fetchProfileData();
+  }, [id]);
+
+  useEffect(() => {
+    if (profile?.name) {
+      document.title = `${profile.name} | PetLink`;
+    }
+  }, [profile?.name]);
+  
   const handleConnectionToggle = () => {
+    if (!profile) return;
     setConnections(currentConnections => ({
       ...currentConnections,
       [profile.id]: !currentConnections[profile.id],
@@ -25,6 +253,7 @@ export default function Profile() {
   };
 
   const handleMessageClick = () => {
+    if (!profile) return;
     navigate('/chat', {
       state: {
         contact: {
@@ -36,9 +265,9 @@ export default function Profile() {
     });
   };
 
-  useEffect(() => {
-    document.title = `${profile.name} | PetLink`;
-  }, [profile.name]);
+  if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
+  if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
+  if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
 
   return (
     <div className="profile-page">
