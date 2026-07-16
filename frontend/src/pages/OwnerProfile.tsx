@@ -108,7 +108,7 @@ function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): Profil
   return {
     id: String(data.id),
     name,
-    username: data.username ? `@${data.username}` : `@user-${data.id}`,
+    username,
     role: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'sitter' ? 'Pet Sitter' : (data.role || 'User'),
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
