@@ -31,6 +31,13 @@ logs:
 images:
 	docker images
 
+seed:
+	$(DOCKER) down -v --remove-orphans && docker compose up -d --build postgres redis \
+		&& $(DOCKER) run --rm core-service python manage.py migrate \
+		&& $(DOCKER)  run --rm core-service python manage.py seed \
+		&& $(DOCKER) up -d --build core-service frontend nginx realtime-service
+
+
 tests:
 	$(DOCKER) exec core-service python manage.py test accounts.tests
 
