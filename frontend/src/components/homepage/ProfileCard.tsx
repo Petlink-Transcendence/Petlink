@@ -30,7 +30,9 @@ interface ProfileData {
 }
 
 function getInitials(name: string): string {
-  return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+	const parts = name.split(' ').filter(Boolean);
+	if (parts.length === 1) return parts[0][0].toUpperCase();
+	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function mapBackendUserToProfileData(user: BackendUser): ProfileData {
