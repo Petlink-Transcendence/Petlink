@@ -87,7 +87,7 @@ docker compose up -d --build core-service frontend nginx realtime-service
 
 # or alternatively
 make
-docker compose up -d --build core-service frontend nginx realtime-service
+docker compose run --rm core-service python manage.py seed
 ```
 ---
 
