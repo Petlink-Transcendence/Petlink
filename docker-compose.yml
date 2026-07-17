@@ -61,6 +61,7 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
     depends_on:
       - core-service
+      - frontend
 
   realtime-service:
     build: ./realtime-service
