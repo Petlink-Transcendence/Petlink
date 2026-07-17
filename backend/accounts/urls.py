@@ -1,3 +1,5 @@
+# backend/accounts/urls.py
+
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
@@ -11,13 +13,16 @@ from .views import (
     AdminUserListView,
     AdminUserRoleUpdateView,
     AdminUserDeleteView,
-    AdminUserActivateView
+    AdminUserActivateView,
+    LogoutView,
+    AdminStatsView
 )
 
 urlpatterns = [
     # Authentication & OAuth Routes
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('logout/', LogoutView.as_view(), name='auth_logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', UserMeView.as_view(), name='user_me'),
 
@@ -26,6 +31,7 @@ urlpatterns = [
     path('42/callback/', OAuth42CallbackView.as_view(), name='oauth_42_callback'),
 
     # Admin Management Routes
+    path('admin/stats/', AdminStatsView.as_view(), name='admin-stats'),
     path('users/', AdminUserListView.as_view(), name='admin-user-list'),
     path('users/<int:pk>/role/', AdminUserRoleUpdateView.as_view(), name='admin-user-role'),
     path('users/<int:pk>/activate/', AdminUserActivateView.as_view(), name='admin-user-activate'),
