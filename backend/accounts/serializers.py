@@ -50,7 +50,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # Excludes sensitive data like password_hash, oauth_id, etc.
         fields = (
             'id', 'username', 'email', 'name', 'user_type', 'role',
-            'avatar', 'banner', 'description', 'rating', 'online_status', 'created_at'
+            'avatar', 'banner', 'description', 'rating', 'online_status', 'created_at',
+            'experience', 'price', 'pet_types', 'looking_for'
         )
         # Ensures no one can accidentally modify data using a GET view
         read_only_fields = fields
@@ -66,8 +67,8 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'name', 'avatar', 'banner', 'description',
-            'city', 'country', 'user_type', 'rating', 'followers_count',
-            'following_count', 'post_count', 'created_at'
+            'city', 'country', 'user_type', 'rating', 'followers_count', 'following_count', 'created_at',
+            'experience', 'price', 'pet_types', 'looking_for','post_count', 'created_at'
         )
         read_only_fields = fields
 
@@ -92,7 +93,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'name', 'description', 'country', 'city'
+            'name', 'description', 'country', 'city', 'experience', 'price', 'pet_types', 'looking_for'
         )
 
 class AvatarUploadSerializer(serializers.ModelSerializer):

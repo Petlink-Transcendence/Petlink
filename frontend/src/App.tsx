@@ -15,6 +15,7 @@ import Search from './pages/Search';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
+import MyProfileRedirect from './components/MyProfileRedirect';
 import './App.css';
 
 function App() {
@@ -47,12 +48,18 @@ function App() {
             </ProtectedRoute>
           } />
 
+          {/* /profile → redirects to /ownerprofile or /sitterprofile based on user_type */}
           <Route path="/profile" element={
+            <ProtectedRoute>
+              <MyProfileRedirect />
+            </ProtectedRoute>
+          } />
+          <Route path="/ownerprofile" element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
           } />
-          <Route path="/profile/:profileId" element={
+          <Route path="/ownerprofile/:id" element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
