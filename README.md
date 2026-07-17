@@ -84,6 +84,10 @@ docker compose up -d --build postgres redis
 docker compose run --rm core-service python manage.py migrate
 docker compose run --rm core-service python manage.py seed
 docker compose up -d --build core-service frontend nginx realtime-service 
+
+# or alternatively
+make
+docker compose up -d --build core-service frontend nginx realtime-service
 ```
 ---
 
