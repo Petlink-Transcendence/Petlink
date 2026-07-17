@@ -6,7 +6,6 @@ import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
-import ProfileToggle from '../components/profile/ProfileToggle';
 
 interface BackendUser {
   id: number;
@@ -22,6 +21,7 @@ interface BackendUser {
   followers_count?: number;
   following_count?: number;
   created_at?: string | null;
+  looking_for?: string[] | null;
 }
 
 interface BackendPet {
@@ -67,13 +67,14 @@ interface ProfileData {
   sidebarCards: ProfileSidebarCard[];
   posts: ProfilePost[];
   reviews: ProfileReview[];
+  looking_for?: string[];
 }
 
-function getInitials(name: string): string {
+export function getInitials(name: string): string {
   return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function formatMemberSince(isoDate: string): string {
+export function formatMemberSince(isoDate: string): string {
   const date = new Date(isoDate);
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' };
   return date.toLocaleDateString('en-US', options);
@@ -130,18 +131,10 @@ function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): Profil
         type: 'tags',
         items: petItems,
       },
-      /* Uncoment and integrate when backend provides pets and looking for */
-      // {title: 'My Pets',
-      //   type: 'meta',
-      //   items: [ ],
-      // },
-      /* end of uncomment */
-      /* Hardcoded - to be removed when backend provides posts and reviews */
       {title: 'Looking for',
-        type: 'meta',
-        items: ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'],
+        type: 'tags',
+        items: data.looking_for && data.looking_for.length > 0 ? data.looking_for.map(item => item.charAt(0).toUpperCase() + item.slice(1)) : ['No preferences set'],
       },
-      /* end of hardcode */
     ],
    /* Uncoment and integrate when backend provides posts and reviews */
     // posts: [],
@@ -243,14 +236,6 @@ export default function Profile() {
       document.title = `${profile.name} | PetLink`;
     }
   }, [profile?.name]);
-  
-  const handleConnectionToggle = () => {
-    if (!profile) return;
-    setConnections(currentConnections => ({
-      ...currentConnections,
-      [profile.id]: !currentConnections[profile.id],
-    }));
-  };
 
   const handleMessageClick = () => {
     if (!profile) return;
@@ -271,7 +256,6 @@ export default function Profile() {
 
   return (
     <div className="profile-page">
-      {isOwnProfile && <ProfileToggle active="owner" />}
       <ProfileCover initials={profile.initials} imageUrl={profile.imageUrl} />
       <ProfileInfoBar
         name={profile.name}
@@ -285,7 +269,6 @@ export default function Profile() {
             {
               label: isConnected ? 'Disconnect' : 'Connect',
               variant: 'primary',
-              onClick: handleConnectionToggle,
             },
             { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
           ]
