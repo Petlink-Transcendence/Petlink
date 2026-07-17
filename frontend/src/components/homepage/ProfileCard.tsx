@@ -42,7 +42,7 @@ function mapBackendUserToProfileData(user: BackendUser): ProfileData {
     username,
     bio: user.description || 'No bio available',
     initials: getInitials(name),
-    imageUrl: user.avatar ? user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar}` : undefined,
+    imageUrl: user.avatar || undefined,
     stats: [
       { value: user.posts_count ?? '0', label: 'Posts' },
       { value: user.followers_count ?? 0, label: 'Followers' },
@@ -73,7 +73,7 @@ export default function ProfileCard() {
       setLoading(true);
       setError('');
 
-      const endpoint = `http://localhost:8080/auth/me/`;
+      const endpoint = `/auth/me/`;
       try {
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
         const response = await fetch(endpoint, {

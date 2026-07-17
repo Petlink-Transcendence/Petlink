@@ -7,7 +7,7 @@ export default function MyProfileRedirect() {
 
   useEffect(() => {
     const token = localStorage.getItem('access');
-    fetch('http://localhost:8080/auth/me/', {
+    fetch('/auth/me/', {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
