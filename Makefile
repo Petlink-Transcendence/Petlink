@@ -37,7 +37,6 @@ seed:
 		&& $(DOCKER)  run --rm core-service python manage.py seed \
 		&& $(DOCKER) up -d --build core-service frontend nginx realtime-service
 
-
 tests:
 	$(DOCKER) exec core-service python manage.py test accounts.tests
 
