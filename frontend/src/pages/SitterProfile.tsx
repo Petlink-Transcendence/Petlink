@@ -12,9 +12,9 @@ import UpdateAvailabilityPopup, {
   type AvailabilityFormData,
   type AvailabilityTimeSlot,
 } from '../components/bookings/UpdateAvailabilityPopup';
+import UpdateServicesPopup, { type ServiceRateFormData } from '../components/bookings/UpdateServicesPopup';
 import { getSitterProfile, sitterProfiles } from '../data/profileData';
 import { getInitials, formatMemberSince } from './OwnerProfile';
-import { formatAvailabilityRate } from '../utils/availabilityRates';
 
 interface BackendUser {
   id: number;
@@ -62,7 +62,6 @@ type ProfileReview = {
 type SitterAvailability = {
   status: 'Accepting' | 'Not available';
   location: string;
-  responseTime: string;
   capacity: string;
   windows: { label: string; time: string }[];
   services: { name: string; rate: string; detail: string }[];
@@ -88,18 +87,6 @@ interface ProfileSitterData {
 
 function formatPetType(type: string): string {
   return type.replace(/\b\w/g, letter => letter.toUpperCase());
-}
-
-function formatServiceName(service: string) {
-  return service.replace(/\b\w/g, letter => letter.toUpperCase());
-}
-
-function formatServiceDetail(availability: AvailabilityFormData) {
-  if (availability.notes) {
-    return availability.notes;
-  }
-
-  return `${availability.timeSlots} from ${availability.startDate} to ${availability.endDate}`;
 }
 
 function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
@@ -154,7 +141,6 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
     availability: {
       status: 'Accepting',
       location: 'Porto + 8 km',
-      responseTime: '< 1 hour',
       capacity: '2 bookings/day',
       windows: [
         { label: 'Mon - Fri', time: '09:00 - 12:00' },
@@ -213,7 +199,6 @@ const rafaelFallbackProfile: ProfileSitterData = {
   availability: {
     status: 'Accepting',
     location: 'Porto',
-    responseTime: '< 1 hour',
     capacity: '2 bookings/day',
     windows: [
       { label: 'Mon - Fri', time: '09:00 - 12:00' },
@@ -250,6 +235,7 @@ export default function SitterProfile() {
 
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'Accepting' | 'Not available'>(profile?.availability.status || 'Not available');
   const [availabilityLocation, setAvailabilityLocation] = useState('');
   const [availabilityCapacity, setAvailabilityCapacity] = useState('');
@@ -347,45 +333,14 @@ export default function SitterProfile() {
   }, [profile]);
 
   const handleAvailabilitySave = (availability: AvailabilityFormData) => {
-    if (availability.serviceTypes.length > 0) {
-      const detail = formatServiceDetail(availability);
-      const rate = formatAvailabilityRate(availability.price);
-      const updatedServices = availability.serviceTypes.map(formatServiceName);
-
-      setCurrentServiceRates(currentServices => {
-        const nextServices = currentServices.map(service => {
-          const matchingService = updatedServices.find(
-            updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
-          );
-
-          if (!matchingService) {
-            return service;
-          }
-
-          return {
-            name: matchingService,
-            rate,
-            detail,
-          };
-        });
-
-        const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
-        const newServices = updatedServices
-          .filter(service => !existingServices.has(service.toLowerCase()))
-          .map(service => ({
-            name: service,
-            rate,
-            detail,
-          }));
-
-        return [...nextServices, ...newServices];
-      });
-    }
-
     setAvailabilityStatus('Accepting');
     setAvailabilityLocation(formatAvailabilityLocation(availability.location));
     setAvailabilityCapacity(availability.capacity);
     setAvailabilityWindows(availability.availableTimes);
+  };
+
+  const handleServicesSave = (services: ServiceRateFormData[]) => {
+    setCurrentServiceRates(services);
   };
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -419,7 +374,6 @@ export default function SitterProfile() {
           <SitterAvailabilityPanel
             status={availabilityStatus}
             location={availabilityLocation}
-            responseTime={profile.availability.responseTime}
             capacity={availabilityCapacity}
             windows={availabilityWindows}
             services={currentServiceRates}
@@ -430,6 +384,7 @@ export default function SitterProfile() {
               );
             }}
             onUpdateAvailability={() => setIsAvailabilityOpen(true)}
+            onUpdateServices={() => setIsServicesOpen(true)}
           />
         </ProfileLeftSidebar>
         <ProfileContent
@@ -454,6 +409,13 @@ export default function SitterProfile() {
           initialCapacity={availabilityCapacity}
           initialAvailableTimes={availabilityWindows}
           onSaveAvailability={handleAvailabilitySave}
+        />
+      )}
+      {isServicesOpen && (
+        <UpdateServicesPopup
+          services={currentServiceRates}
+          onClose={() => setIsServicesOpen(false)}
+          onSaveServices={handleServicesSave}
         />
       )}
     </div>

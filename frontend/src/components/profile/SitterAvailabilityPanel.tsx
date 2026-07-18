@@ -17,25 +17,25 @@ type AvailabilityStatus = 'Accepting' | 'Not available';
 type SitterAvailabilityPanelProps = {
   status: AvailabilityStatus;
   location: string;
-  responseTime?: string;
   capacity: string;
   windows: AvailabilityWindow[];
   services: ServiceRate[];
   canEdit?: boolean;
   onAvailabilityToggle: () => void;
   onUpdateAvailability: () => void;
+  onUpdateServices: () => void;
 };
 
 export default function SitterAvailabilityPanel({
   status,
   location,
-  responseTime,
   capacity,
   windows,
   services,
   canEdit = true,
   onAvailabilityToggle,
   onUpdateAvailability,
+  onUpdateServices,
 }: SitterAvailabilityPanelProps) {
   const isAccepting = status === 'Accepting';
 
@@ -67,12 +67,6 @@ export default function SitterAvailabilityPanel({
           <span>Location</span>
           <strong>{location}</strong>
         </div>
-        {responseTime && (
-          <div>
-            <span>Response</span>
-            <strong>{responseTime}</strong>
-          </div>
-        )}
         <div>
           <span>Capacity</span>
           <strong>{capacity}</strong>
@@ -115,6 +109,16 @@ export default function SitterAvailabilityPanel({
           ))}
         </div>
       </div>
+
+      {canEdit && (
+        <button
+          className="sitter-availability-action sitter-services-action"
+          type="button"
+          onClick={onUpdateServices}
+        >
+          Update services
+        </button>
+      )}
     </div>
   );
 }
