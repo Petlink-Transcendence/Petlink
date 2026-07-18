@@ -83,6 +83,16 @@ export default function SitterAvailabilityPanel({
         </div>
       </div>
 
+      {canEdit && (
+        <button
+          className="sitter-availability-action"
+          type="button"
+          onClick={onUpdateAvailability}
+        >
+          Update Availability
+        </button>
+      )}
+
       <div className="sitter-availability-section">
         <h4>Services</h4>
         <div className="sitter-service-list">
@@ -97,16 +107,6 @@ export default function SitterAvailabilityPanel({
           ))}
         </div>
       </div>
-
-      {canEdit && (
-        <button
-          className="sitter-availability-action"
-          type="button"
-          onClick={onUpdateAvailability}
-        >
-          Update Availability
-        </button>
-      )}
     </div>
   );
 }
