@@ -49,4 +49,4 @@ clean:
 fclean:
 	$(DOCKER) down -v --rmi all --remove-orphans
 
-.PHONY: all up down ps logs images clean fclean
+.PHONY: all up down ps logs cache images seed tests clean fclean
