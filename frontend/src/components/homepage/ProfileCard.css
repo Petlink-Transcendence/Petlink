@@ -8,12 +8,28 @@
 }
 
 /* Profile image */
-.profile-card img {
+.profile-card img,
+.profile-card div.profile-pic {
   width: 9.375rem;
   height: 9.375rem;
-  object-fit: cover;
   border-radius: 50%;
-  margin-bottom: 0.3125rem;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
+.profile-card img {
+  object-fit: cover;
+}
+
+.profile-card div.profile-pic {
+  background-color: rgba(219, 182, 121, 0.15);
+  border: 0.15rem solid var(--petlink-tan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--petlink-tan);
 }
 
 /* Name */

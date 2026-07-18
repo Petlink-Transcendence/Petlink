@@ -27,6 +27,11 @@
   object-fit: cover;
 }
 
+.div.profile-avatar {
+  background-color: rgba(219, 182, 121, 0.15);
+  border: 0.2rem solid var(--petlink-tan);
+}
+
 /* ── Responsiveness ── */
 @media (max-width: 48rem) {
   .profile-cover {
@@ -37,5 +42,10 @@
     width: 6.5rem;
     height: 6.5rem;
     font-size: 1.6rem;
+  }
+
+  .div.profile-avatar {
+    width: 6.5rem;
+    height: 6.5rem;
   }
 }

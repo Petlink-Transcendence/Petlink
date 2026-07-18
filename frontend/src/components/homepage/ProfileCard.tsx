@@ -30,7 +30,9 @@ interface ProfileData {
 }
 
 function getInitials(name: string): string {
-  return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+	const parts = name.split(' ').filter(Boolean);
+	if (parts.length === 1) return parts[0][0].toUpperCase();
+	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function mapBackendUserToProfileData(user: BackendUser): ProfileData {
@@ -42,7 +44,7 @@ function mapBackendUserToProfileData(user: BackendUser): ProfileData {
     username,
     bio: user.description || 'No bio available',
     initials: getInitials(name),
-    imageUrl: user.avatar ? user.avatar.startsWith('http') ? user.avatar : `http://localhost:8080${user.avatar}` : undefined,
+    imageUrl: user.avatar || undefined,
     stats: [
       { value: user.posts_count ?? '0', label: 'Posts' },
       { value: user.followers_count ?? 0, label: 'Followers' },
@@ -73,7 +75,7 @@ export default function ProfileCard() {
       setLoading(true);
       setError('');
 
-      const endpoint = `http://localhost:8080/auth/me/`;
+      const endpoint = `/auth/me/`;
       try {
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
         const response = await fetch(endpoint, {

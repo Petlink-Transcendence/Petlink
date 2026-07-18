@@ -71,7 +71,9 @@ interface ProfileData {
 }
 
 export function getInitials(name: string): string {
-  return name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+	const parts = name.split(' ').filter(Boolean);
+	if (parts.length === 1) return parts[0][0].toUpperCase();
+	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 export function formatMemberSince(isoDate: string): string {
@@ -112,7 +114,7 @@ function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): Profil
     role: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'sitter' ? 'Pet Sitter' : (data.role || 'User'),
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
-    imageUrl: data.avatar ? data.avatar.startsWith('http') ? data.avatar : `http://localhost:8080${data.avatar}` : undefined,
+    imageUrl: data.avatar || undefined,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
       { value: data.followers_count ?? 0, label: 'Followers' },
@@ -172,8 +174,8 @@ export default function Profile() {
       setError('');
 
       const endpoint = id 
-        ? `http://localhost:8080/api/users/${id}/`
-        : `http://localhost:8080/auth/me/`;
+        ? `/api/users/${id}/`
+        : `/auth/me/`;
       try {
 
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
@@ -195,7 +197,7 @@ export default function Profile() {
       let mergedData: BackendUser = data;
 
       if (!id && data.id) {
-        const publicResponse = await fetch(`http://localhost:8080/api/users/${data.id}/`, {
+        const publicResponse = await fetch(`/api/users/${data.id}/`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -208,7 +210,7 @@ export default function Profile() {
 
       let petsData: BackendPet[] = [];
       if (mergedData.id) {
-        const petsResponse = await fetch(`http://localhost:8080/api/users/${mergedData.id}/pets/`, {
+        const petsResponse = await fetch(`/api/users/${mergedData.id}/pets/`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
