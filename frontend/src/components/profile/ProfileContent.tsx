@@ -92,7 +92,7 @@ function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorIni
           >
             📢 Comment
           </button>
-          <button className="admin-btn-remove" title="Remove post">🗑️</button>
+          <button className="admin admin-btn-remove" title="Remove post">🗑️</button>
         </div>
       </div>
 
