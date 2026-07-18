@@ -54,7 +54,32 @@ const initialSettings: SettingsForm = {
   ownerPetTypes: ['dogs', 'cats'],
   petsList: [],
   lookingForServices: ['Cat Sitter', 'Dog Walker'],
+  yearsOfExperience: '',
+  hourlyRate: '',
   sitterPetTypes: ['dogs', 'cats', 'small pets'],
+};
+
+const resettableSettings: Pick<
+  SettingsForm,
+  | 'profileVisibility'
+  | 'bookingAlerts'
+  | 'messageAlerts'
+  | 'reviewAlerts'
+  | 'commentAlerts'
+  | 'connectionRequestAlerts'
+  | 'showAbout'
+  | 'showPets'
+  | 'showLookingFor'
+> = {
+  profileVisibility: initialSettings.profileVisibility,
+  bookingAlerts: initialSettings.bookingAlerts,
+  messageAlerts: initialSettings.messageAlerts,
+  reviewAlerts: initialSettings.reviewAlerts,
+  commentAlerts: initialSettings.commentAlerts,
+  connectionRequestAlerts: initialSettings.connectionRequestAlerts,
+  showAbout: initialSettings.showAbout,
+  showPets: initialSettings.showPets,
+  showLookingFor: initialSettings.showLookingFor,
 };
 
 const ownerPetTypeOptions = ['dogs', 'cats', 'rabbits', 'other'];
@@ -127,8 +152,7 @@ export default function Settings() {
   }
 
   function handleReset() {
-    setForm(initialSettings);
-    setActiveSection('profile');
+    setForm((current) => ({ ...current, ...resettableSettings }));
     setSaved(false);
   }
 
