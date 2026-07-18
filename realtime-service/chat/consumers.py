@@ -40,6 +40,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        await self.channel_layer.group_send(
+            f'notifications_{recipient_id}',
+            {
+                'type': 'send_notification',
+                'notification_type': 'new_message',
+                'content': f'You have a new message',
+                'reference_id': int(self.user_id),
+                'reference_type': 'message',
+            }
+        )
+
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
             'sender_id': event['sender_id'],
@@ -57,14 +68,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def update_online_status(self, status):
         from django.db import connection
-        with connection.cursor() as cursor:
-            if status:
-                cursor.execute(
-                    'UPDATE "user" SET online_status = %s, WHERE user_id = %s',
-                    [True, self.user_id]
-                )
-            else:
-                cursor.execute(
-                    'UPDATE "user" SET online_status = %s, last_seen = %s WHERE user_id = %s',
-                    [False, timezone.now(), self.user_id]
-                )
+        try:
+            with connection.cursor() as cursor:
+                if status:
+                    cursor.execute(
+                        'UPDATE "user" SET online_status = %s WHERE user_id = %s',
+                        [True, self.user_id]
+                    )
+                else:
+                    cursor.execute(
+                        'UPDATE "user" SET online_status = %s, last_seen = %s WHERE user_id = %s',
+                        [False, timezone.now(), self.user_id]
+                    )
+        except Exception as e:
+            print(f"Could not update online status: {e}")
