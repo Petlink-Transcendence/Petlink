@@ -110,7 +110,6 @@ export default function BookingCard({ booking }: BookingCardProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [hasSubmittedReview, setHasSubmittedReview] = useState(false);
-  const [reviewerName, setReviewerName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
   const canWriteReview = hasBookingTimePassed(booking) && booking.status !== 'cancelled' && !hasSubmittedReview;
@@ -128,7 +127,6 @@ export default function BookingCard({ booking }: BookingCardProps) {
   };
 
   const resetReviewForm = () => {
-    setReviewerName('');
     setReviewRating(5);
     setReviewText('');
   };
@@ -141,7 +139,7 @@ export default function BookingCard({ booking }: BookingCardProps) {
   const handleReviewSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!reviewerName.trim() || !reviewText.trim()) {
+    if (!reviewText.trim()) {
       return;
     }
 
@@ -300,17 +298,6 @@ export default function BookingCard({ booking }: BookingCardProps) {
             </header>
 
             <form className="bookings-review-form" onSubmit={handleReviewSubmit}>
-              <label className="bookings-review-field">
-                <span>Name</span>
-                <input
-                  type="text"
-                  value={reviewerName}
-                  onChange={event => setReviewerName(event.target.value)}
-                  placeholder="Your name"
-                  required
-                />
-              </label>
-
               <label className="bookings-review-field">
                 <span>Rating</span>
                 <select
