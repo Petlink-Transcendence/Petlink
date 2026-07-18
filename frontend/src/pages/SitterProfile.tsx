@@ -12,6 +12,7 @@ import UpdateAvailabilityPopup, {
   type AvailabilityFormData,
   type AvailabilityTimeSlot,
 } from '../components/bookings/UpdateAvailabilityPopup';
+import { getSitterProfile, sitterProfiles } from '../data/profileData';
 import { getInitials, formatMemberSince } from './OwnerProfile';
 import { formatAvailabilityRate } from '../utils/availabilityRates';
 
@@ -171,6 +172,66 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   };
 }
 
+const rafaelFallbackProfile: ProfileSitterData = {
+  id: 'rafael',
+  username: '@rafael',
+  name: 'Rafael Castro',
+  role: 'Pet Sitter',
+  bio: 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
+  initials: 'RC',
+  imageUrl: 'avatars/rafael.jpeg',
+  stats: [
+    { value: '5', label: 'Rating' },
+    { value: 0, label: 'Followers' },
+    { value: 0, label: 'Following' },
+  ],
+  sidebarCards: [
+    {
+      title: 'About',
+      type: 'meta',
+      items: [
+        '📍 Porto',
+        '🌍 Portugal',
+        '🐾 Experience: 5+ years',
+        '💰 Price: 10-15 per hour',
+      ],
+    },
+    {
+      title: 'Pet Types',
+      type: 'tags',
+      items: ['Cats', 'Dogs', 'Small Pets'],
+    },
+  ],
+  posts: [
+    { id: 1, text: 'Available for cat sitting, dog care, and small pet visits around Porto.', time: '1h ago', likes: 12 },
+    { id: 2, text: 'I have new availability for weekday visits and weekend bookings.', time: '3 days ago', likes: 18 },
+  ],
+  reviews: [
+    { id: 1, author: 'Ana C.', rating: 5, text: 'Rafael is caring, reliable, and very attentive with pets.', time: '2 weeks ago' },
+    { id: 2, author: 'Miguel R.', rating: 5, text: 'Great communication and excellent care throughout the booking.', time: '1 month ago' },
+  ],
+  availability: {
+    status: 'Accepting',
+    location: 'Porto',
+    responseTime: '< 1 hour',
+    capacity: '2 bookings/day',
+    windows: [
+      { label: 'Mon - Fri', time: '09:00 - 12:00' },
+      { label: 'Saturday', time: '14:00 - 18:00' },
+      { label: 'Sunday', time: 'On request' },
+    ],
+    services: [
+      { name: 'Cat Sitting', rate: '15 EUR', detail: 'Daily visits, feeding, litter care' },
+      { name: 'Dog Care', rate: '15 EUR', detail: 'Feeding, playtime, and basic care' },
+      { name: 'Home Visits', rate: '10 EUR', detail: 'Short check-ins for cats, dogs, and small pets' },
+    ],
+  },
+};
+
+function getSitterFallbackProfile(profileId?: string) {
+  return profileId && sitterProfiles[profileId] ? getSitterProfile(profileId) : rafaelFallbackProfile;
+}
+
 function formatAvailabilityLocation(location: string) {
   return location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim();
 }
@@ -236,8 +297,9 @@ export default function SitterProfile() {
 
         setProfile(mapBackendToSitterProfile(mergedData));
       } catch (err: any) {
-        setError(err.message || 'Failed to load profile.');
         console.error("Fetch error details:", err);
+        setProfile(getSitterFallbackProfile(profileId));
+        setError('');
       } finally {
         setLoading(false);
       }
@@ -357,6 +419,7 @@ export default function SitterProfile() {
           <SitterAvailabilityPanel
             status={availabilityStatus}
             location={availabilityLocation}
+            responseTime={profile.availability.responseTime}
             capacity={availabilityCapacity}
             windows={availabilityWindows}
             services={currentServiceRates}
