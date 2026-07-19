@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import BookingCard, { type Booking, type BookingStatus } from '../components/bookings/BookingCard';
 import BookingsSidePanel from '../components/bookings/BookingsSidePanel';
 import BookingsSummary from '../components/bookings/BookingsSummary';
@@ -139,15 +140,36 @@ function countUpcoming(bookings: Booking[]) {
   return bookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending').length;
 }
 
+function getBookingLayout(userType?: string): BookingLayout {
+  return userType === 'provider' || userType === 'sitter' ? 'sitter' : 'owner';
+}
+
 export default function Bookings() {
-  const [activeLayout] = useState<BookingLayout>('owner');
+  const [activeLayout, setActiveLayout] = useState<BookingLayout | null>(null);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
   }, []);
 
-  const bookings = activeLayout === 'owner' ? ownerBookings : sitterBookings;
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    fetch('/auth/me/', {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(data => setActiveLayout(getBookingLayout(data.user_type)))
+      .catch(() => setError(true));
+  }, []);
+
+  const bookings = activeLayout === 'sitter' ? sitterBookings : ownerBookings;
 
   const filteredBookings = useMemo(() => {
     if (activeFilter === 'all') {
@@ -163,6 +185,9 @@ export default function Bookings() {
   const listDescription = activeLayout === 'owner'
     ? 'pet care services you booked'
     : 'pet care services owners booked with you';
+
+  if (error) return <Navigate to="/login" replace />;
+  if (!activeLayout) return null;
 
   return (
     <div className="bookings-page">
