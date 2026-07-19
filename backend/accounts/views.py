@@ -283,3 +283,17 @@ class AdminStatsView(APIView):
             "pending_bookings": pending_bookings,
             "total_reviews": total_reviews
         }, status=status.HTTP_200_OK)
+
+class DeleteMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.name = 'Deleted User'
+        user.email = f'deleted_{user.id}@deleted.com'
+        user.username = f'deleted_{user.id}'
+        user.avatar = None
+        user.banner = None
+        user.description = None
+        user.soft_delete()
+        return Response(status=204)
