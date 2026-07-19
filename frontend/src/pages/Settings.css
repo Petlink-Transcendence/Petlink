@@ -258,6 +258,43 @@ html {
   border-color: var(--petlink-tan);
 }
 
+.settings-password-panel {
+  border-top: 0.0625rem solid #e5e4e7;
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+}
+
+.settings-password-header {
+  margin-bottom: 1rem;
+}
+
+.settings-password-header h3 {
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.settings-password-header p {
+  color: #888;
+  font-size: 0.76rem;
+  margin: 0.2rem 0 0;
+}
+
+.settings-confirm-password {
+  max-width: calc(50% - 0.5rem);
+  margin-top: 1rem;
+}
+
+.settings-password-error {
+  color: #c62828;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin: -0.35rem 0 0;
+}
+
 .settings-segmented {
   display: inline-flex;
   background: #f0eeeb;
@@ -614,6 +651,9 @@ html {
   }
   .settings-location-row {
     grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+  .settings-confirm-password {
     max-width: 100%;
   }
   .settings-section-header,
