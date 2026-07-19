@@ -117,17 +117,30 @@ export default function Register() {
                             />
                 </div>
 
-                {/* New Dropdown for User Type */}
                 <div className="input-group">
-                    <label>I want to...</label>
-                    <select
-                        value={userType}
-                        onChange={(e) => setUserType(e.target.value)}
-                        style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    >
-                        <option value="owner">Find a sitter for my pet</option>
-                        <option value="provider">Offer pet sitting services</option>
-                    </select>
+                    <label>I am:</label>
+                    <div className="radio-options">
+                        <label className="radio-option">
+                            <input
+                                type="radio"
+                                name="userType"
+                                value="owner"
+                                checked={userType === 'owner'}
+                                onChange={(e) => setUserType(e.target.value)}
+                            />
+                            Pet owner
+                        </label>
+                        <label className="radio-option">
+                            <input
+                                type="radio"
+                                name="userType"
+                                value="provider"
+                                checked={userType === 'provider'}
+                                onChange={(e) => setUserType(e.target.value)}
+                            />
+                            Pet sitter
+                        </label>
+                    </div>
                 </div>
 
                 <button className="login-button" onClick={handleRegister}>Sign Up</button>
