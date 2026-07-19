@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate} from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 import ProfileCover from '../components/profile/ProfileCover';
@@ -8,7 +8,12 @@ import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 import SitterAvailabilityPanel from '../components/profile/SitterAvailabilityPanel';
 import NewBookingPopup from '../components/bookings/NewBookingPopup';
-import UpdateAvailabilityPopup, { type AvailabilityFormData } from '../components/bookings/UpdateAvailabilityPopup';
+import UpdateAvailabilityPopup, {
+  type AvailabilityFormData,
+  type AvailabilityTimeSlot,
+} from '../components/bookings/UpdateAvailabilityPopup';
+import UpdateServicesPopup, { type ServiceRateFormData } from '../components/bookings/UpdateServicesPopup';
+import { getSitterProfile, sitterProfiles } from '../data/profileData';
 import { getInitials, formatMemberSince } from './OwnerProfile';
 
 interface BackendUser {
@@ -55,12 +60,11 @@ type ProfileReview = {
 };
 
 type SitterAvailability = {
-    status: 'Accepting' | 'Not available';
-    location: string;
-    responseTime: string;
-    capacity: string;
-    windows: { label: string; time: string }[];
-    services: { name: string; rate: string; detail: string }[];
+  status: 'Accepting' | 'Not available';
+  location: string;
+  capacity: string;
+  windows: { label: string; time: string }[];
+  services: { name: string; rate: string; detail: string }[];
 };
 
 interface ProfileSitterData {
@@ -85,21 +89,10 @@ function formatPetType(type: string): string {
   return type.replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
-function formatServiceName(service: string) {
-  return service.replace(/\b\w/g, letter => letter.toUpperCase());
-}
-
-function formatServiceDetail(availability: AvailabilityFormData) {
-  if (availability.notes) {
-    return availability.notes;
-  }
-
-  return `${availability.timeSlots} from ${availability.startDate} to ${availability.endDate}`;
-}
-
 function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
+
   return {
     id: String(data.id),
     name,
@@ -118,11 +111,11 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
         title: 'About',
         type: 'meta',
         items: [
-        data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
-        data.city ? `📍 ${data.city}` : '📍 Location not set',
-        data.country ? `🌍 ${data.country}` : '🌍 Country not set',
-        data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
-        data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
+          data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
+          data.city ? `📍 ${data.city}` : '📍 Location not set',
+          data.country ? `🌍 ${data.country}` : '🌍 Country not set',
+          data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
+          data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
         ],
       },
       {
@@ -148,7 +141,6 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
     availability: {
       status: 'Accepting',
       location: 'Porto + 8 km',
-      responseTime: '< 1 hour',
       capacity: '2 bookings/day',
       windows: [
         { label: 'Mon - Fri', time: '09:00 - 12:00' },
@@ -166,8 +158,71 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   };
 }
 
+const rafaelFallbackProfile: ProfileSitterData = {
+  id: 'rafael',
+  username: '@rafael',
+  name: 'Rafael Castro',
+  role: 'Pet Sitter',
+  bio: 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
+  initials: 'RC',
+  imageUrl: 'avatars/rafael.jpeg',
+  stats: [
+    { value: '5', label: 'Rating' },
+    { value: 0, label: 'Followers' },
+    { value: 0, label: 'Following' },
+  ],
+  sidebarCards: [
+    {
+      title: 'About',
+      type: 'meta',
+      items: [
+        '📍 Porto',
+        '🌍 Portugal',
+        '🐾 Experience: 5+ years',
+        '💰 Price: 10-15 per hour',
+      ],
+    },
+    {
+      title: 'Pet Types',
+      type: 'tags',
+      items: ['Cats', 'Dogs', 'Small Pets'],
+    },
+  ],
+  posts: [
+    { id: 1, text: 'Available for cat sitting, dog care, and small pet visits around Porto.', time: '1h ago', likes: 12 },
+    { id: 2, text: 'I have new availability for weekday visits and weekend bookings.', time: '3 days ago', likes: 18 },
+  ],
+  reviews: [
+    { id: 1, author: 'Ana C.', rating: 5, text: 'Rafael is caring, reliable, and very attentive with pets.', time: '2 weeks ago' },
+    { id: 2, author: 'Miguel R.', rating: 5, text: 'Great communication and excellent care throughout the booking.', time: '1 month ago' },
+  ],
+  availability: {
+    status: 'Accepting',
+    location: 'Porto',
+    capacity: '2 bookings/day',
+    windows: [
+      { label: 'Mon - Fri', time: '09:00 - 12:00' },
+      { label: 'Saturday', time: '14:00 - 18:00' },
+      { label: 'Sunday', time: 'On request' },
+    ],
+    services: [
+      { name: 'Cat Sitting', rate: '15 EUR', detail: 'Daily visits, feeding, litter care' },
+      { name: 'Dog Care', rate: '15 EUR', detail: 'Feeding, playtime, and basic care' },
+      { name: 'Home Visits', rate: '10 EUR', detail: 'Short check-ins for cats, dogs, and small pets' },
+    ],
+  },
+};
+
+function getSitterFallbackProfile(profileId?: string) {
+  return profileId && sitterProfiles[profileId] ? getSitterProfile(profileId) : rafaelFallbackProfile;
+}
+
+function formatAvailabilityLocation(location: string) {
+  return location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim();
+}
+
 export default function SitterProfile() {
-  const { id } = useParams<{ id: string }>();
+  const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileSitterData | null>(null);
@@ -175,12 +230,16 @@ export default function SitterProfile() {
   const [error, setError] = useState('');
   const [connections, setConnections] = useState<Record<string, boolean>>({});
 
-  const isOwnProfile = !id;
+  const isOwnProfile = !profileId;
   const isConnected = profile ? Boolean(connections[profile.id]) : false;
 
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'Accepting' | 'Not available'>(profile?.availability.status || 'Not available');
+  const [availabilityLocation, setAvailabilityLocation] = useState('');
+  const [availabilityCapacity, setAvailabilityCapacity] = useState('');
+  const [availabilityWindows, setAvailabilityWindows] = useState<AvailabilityTimeSlot[]>([]);
   const [currentServiceRates, setCurrentServiceRates] = useState<{ name: string; rate: string; detail: string }[]>([]);
 
   useEffect(() => {
@@ -188,9 +247,10 @@ export default function SitterProfile() {
       setLoading(true);
       setError('');
 
-      const endpoint = id
-        ? `/api/users/${id}/`
-        : `/auth/me/`;
+      const endpoint = profileId
+        ? `http://localhost:8080/api/users/${profileId}/`
+        : `http://localhost:8080/auth/me/`;
+
       try {
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
         const response = await fetch(endpoint, {
@@ -209,27 +269,30 @@ export default function SitterProfile() {
 
         let mergedData: BackendUser = data;
 
-        if (!id && data.id) {
-        const publicResponse = await fetch(`/api/users/${data.id}/`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        });
+        if (!profileId && data.id) {
+          const publicResponse = await fetch(`http://localhost:8080/api/users/${data.id}/`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
 
-        if (publicResponse.ok) {
-          const publicData: BackendUser = await publicResponse.json();
-          mergedData = { ...data, ...publicData };
+          if (publicResponse.ok) {
+            const publicData: BackendUser = await publicResponse.json();
+            mergedData = { ...data, ...publicData };
+          }
         }
-      } setProfile(mapBackendToSitterProfile(data));
+
+        setProfile(mapBackendToSitterProfile(mergedData));
       } catch (err: any) {
-        setError(err.message || 'Failed to load profile.');
         console.error("Fetch error details:", err);
+        setProfile(getSitterFallbackProfile(profileId));
+        setError('');
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfileData();
-  }, [id]);
+  }, [profileId]);
   
   useEffect(() => {
     if (profile?.name) {
@@ -250,47 +313,34 @@ export default function SitterProfile() {
     });
   };
 
+  const handleConnectionToggle = () => {
+    if (!profile) return;
+
+    setConnections(currentConnections => ({
+      ...currentConnections,
+      [profile.id]: !currentConnections[profile.id],
+    }));
+  };
+
   useEffect(() => {
     if (!profile) return;
     document.title = `${profile.name} | PetLink`;
     setAvailabilityStatus(profile.availability.status);
+    setAvailabilityLocation(formatAvailabilityLocation(profile.availability.location));
+    setAvailabilityCapacity(profile.availability.capacity);
+    setAvailabilityWindows(profile.availability.windows);
     setCurrentServiceRates(profile.availability.services);
   }, [profile]);
 
   const handleAvailabilitySave = (availability: AvailabilityFormData) => {
-  const detail = formatServiceDetail(availability);
-  const updatedServices = availability.serviceTypes.map(formatServiceName);
-
-  setCurrentServiceRates(currentServices => {
-  const nextServices = (currentServices ?? []).map(service => {
-    const matchingService = updatedServices.find(
-      updatedService => updatedService.toLowerCase() === service.name.toLowerCase()
-    );
-
-    if (!matchingService) {
-      return service;
-    }
-
-    return {
-      name: matchingService,
-      rate: availability.price,
-      detail,
-    };
-  });
-
-  const existingServices = new Set(nextServices.map(service => service.name.toLowerCase()));
-  const newServices = updatedServices
-    .filter(service => !existingServices.has(service.toLowerCase()))
-    .map(service => ({
-      name: service,
-      rate: availability.price,
-      detail,
-    }));
-
-  return [...nextServices, ...newServices];
-});
-
     setAvailabilityStatus('Accepting');
+    setAvailabilityLocation(formatAvailabilityLocation(availability.location));
+    setAvailabilityCapacity(availability.capacity);
+    setAvailabilityWindows(availability.availableTimes);
+  };
+
+  const handleServicesSave = (services: ServiceRateFormData[]) => {
+    setCurrentServiceRates(services);
   };
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -313,6 +363,7 @@ export default function SitterProfile() {
             {
               label: isConnected ? 'Disconnect' : 'Connect',
               variant: 'secondary',
+              onClick: handleConnectionToggle,
             },
             { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
           ]
@@ -322,10 +373,9 @@ export default function SitterProfile() {
         <ProfileLeftSidebar cards={profile.sidebarCards}>
           <SitterAvailabilityPanel
             status={availabilityStatus}
-            location={profile.availability.location}
-            responseTime={profile.availability.responseTime}
-            capacity={profile.availability.capacity}
-            windows={profile.availability.windows}
+            location={availabilityLocation}
+            capacity={availabilityCapacity}
+            windows={availabilityWindows}
             services={currentServiceRates}
             canEdit={isOwnProfile}
             onAvailabilityToggle={() => {
@@ -334,6 +384,7 @@ export default function SitterProfile() {
               );
             }}
             onUpdateAvailability={() => setIsAvailabilityOpen(true)}
+            onUpdateServices={() => setIsServicesOpen(true)}
           />
         </ProfileLeftSidebar>
         <ProfileContent
@@ -354,7 +405,17 @@ export default function SitterProfile() {
       {isAvailabilityOpen && (
         <UpdateAvailabilityPopup
           onClose={() => setIsAvailabilityOpen(false)}
+          initialLocation={availabilityLocation}
+          initialCapacity={availabilityCapacity}
+          initialAvailableTimes={availabilityWindows}
           onSaveAvailability={handleAvailabilitySave}
+        />
+      )}
+      {isServicesOpen && (
+        <UpdateServicesPopup
+          services={currentServiceRates}
+          onClose={() => setIsServicesOpen(false)}
+          onSaveServices={handleServicesSave}
         />
       )}
     </div>
