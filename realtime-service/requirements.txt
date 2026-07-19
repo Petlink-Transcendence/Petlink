@@ -5,3 +5,5 @@ daphne>=4.0
 psycopg2-binary>=2.9
 djangorestframework>=3.14
 redis==4.6.0
+Pillow
+djangorestframework-simplejwt

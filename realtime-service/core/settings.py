@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-duh6fy175&pp&=lw-te)-98fl&@er&4=$h**4@+-)_#16&ecwx'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'channels',
     'chat',
     'notifications',
@@ -139,3 +140,7 @@ CHANNEL_LAYERS = {
             },
         },
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
