@@ -2,10 +2,12 @@ import os
 import requests
 from django.shortcuts import redirect, get_object_or_404
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.parsers import MultiPartParser
 from django.contrib.auth import get_user_model
 from .serializers import (
@@ -19,11 +21,22 @@ from django.db import models
 
 User = get_user_model()
 
+class RegisterRateThrottle(AnonRateThrottle):
+    scope = 'register'
+
+class LoginRateThrottle(AnonRateThrottle):
+    scope = 'login'
+
 class RegisterView(generics.CreateAPIView):
     """API view to handle user registration"""
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
+    throttle_classes = [RegisterRateThrottle]
+
+class ThrottledTokenObtainPairView(TokenObtainPairView):
+    """API view to handle user login with rate limiting"""
+    throttle_classes = [LoginRateThrottle]
 
 class UserMeView(APIView):
     """API view to retrieve the logged-in user's data"""

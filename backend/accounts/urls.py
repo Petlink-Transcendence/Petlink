@@ -1,9 +1,10 @@
 # backend/accounts/urls.py
 
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView,
+    ThrottledTokenObtainPairView,
     UserMeView,
     OAuth42LoginView,
     OAuth42CallbackView,
@@ -21,7 +22,7 @@ from .views import (
 urlpatterns = [
     # Authentication & OAuth Routes
     path('register/', RegisterView.as_view(), name='register'),
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', ThrottledTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('logout/', LogoutView.as_view(), name='auth_logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', UserMeView.as_view(), name='user_me'),
