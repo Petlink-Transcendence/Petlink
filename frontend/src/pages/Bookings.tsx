@@ -140,7 +140,7 @@ function countUpcoming(bookings: Booking[]) {
 }
 
 export default function Bookings() {
-  const [activeLayout, setActiveLayout] = useState<BookingLayout>('owner');
+  const [activeLayout] = useState<BookingLayout>('owner');
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
 
   useEffect(() => {
@@ -164,36 +164,12 @@ export default function Bookings() {
     ? 'pet care services you booked'
     : 'pet care services owners booked with you';
 
-  const handleLayoutChange = (layout: BookingLayout) => {
-    setActiveLayout(layout);
-    setActiveFilter('all');
-  };
-
   return (
     <div className="bookings-page">
       <main className="bookings-shell">
         <section className="bookings-hero">
           <div>
             <h2>My <span>Bookings</span></h2>
-          </div>
-
-          <div className="bookings-view-toggle" aria-label="Choose booking view">
-            <button
-              type="button"
-              className={activeLayout === 'owner' ? 'active' : ''}
-              aria-pressed={activeLayout === 'owner'}
-              onClick={() => handleLayoutChange('owner')}
-            >
-              Pet Owner
-            </button>
-            <button
-              type="button"
-              className={activeLayout === 'sitter' ? 'active' : ''}
-              aria-pressed={activeLayout === 'sitter'}
-              onClick={() => handleLayoutChange('sitter')}
-            >
-              Pet Sitter
-            </button>
           </div>
         </section>
 

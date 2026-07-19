@@ -39,33 +39,6 @@
   font-weight: 800;
 }
 
-.bookings-view-toggle {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  background: #f0eeeb;
-  border-radius: 1.5rem;
-}
-
-.bookings-view-toggle button {
-  border: none;
-  border-radius: 1.25rem;
-  min-width: 6.75rem;
-  padding: 0.45rem 0.9rem;
-  background: transparent;
-  color: #777;
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 700;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-}
-
-.bookings-view-toggle button:hover,
-.bookings-view-toggle button.active {
-  background: var(--petlink-tan);
-  color: white;
-}
-
 .bookings-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 22rem;
@@ -173,16 +146,6 @@
 
   .bookings-hero h2 {
     font-size: 1.25rem;
-  }
-
-  .bookings-view-toggle {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .bookings-view-toggle button {
-    flex: 1;
-    min-width: 0;
   }
 
   .bookings-list-header {
