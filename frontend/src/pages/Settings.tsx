@@ -106,8 +106,6 @@ export default function Settings() {
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
-  const [deleteConfirmation, setDeleteConfirmation] = useState('');
-  const [deleteNotice, setDeleteNotice] = useState('');
 
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
@@ -224,13 +222,6 @@ export default function Settings() {
     setForm((current) => ({ ...current, ...resettableSettings }));
     setSaved(false);
     setPasswordError('');
-    setDeleteNotice('');
-  }
-
-  function handleDeleteAccount() {
-    if (deleteConfirmation !== form.username) return;
-
-    setDeleteNotice('Connect delete endpoint here.');
   }
 
   return (
@@ -256,7 +247,6 @@ export default function Settings() {
           <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
           <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
           <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
-          <a className={`settings-menu-item settings-danger-menu-item ${activeSection === 'danger' ? 'active' : ''}`} href="#danger" onClick={() => setActiveSection('danger')}>Danger zone</a>
         </aside>
 
         <main className="settings-main">
@@ -567,50 +557,6 @@ export default function Settings() {
                 <span><strong>Show Looking For</strong><small>What you're looking for at PetLink</small></span>
                 <input type="checkbox" checked={form.showLookingFor} onChange={(e) => updateField('showLookingFor', e.target.checked)} />
               </label>
-            </div>
-          </section>
-
-          <section className="settings-section settings-danger-zone" id="danger">
-            <div className="settings-section-header">
-              <div>
-                <h2>Danger zone</h2>
-                <p>Permanent account actions</p>
-              </div>
-            </div>
-
-            <div className="settings-danger-content">
-              <div>
-                <h3>Delete account</h3>
-                <p>
-                  This will remove your profile, pets, bookings, messages and account access.
-                  Type your username to confirm.
-                </p>
-              </div>
-
-              <label className="settings-field settings-delete-confirm">
-                <span>Confirm username</span>
-                <input
-                  type="text"
-                  value={deleteConfirmation}
-                  onChange={(e) => {
-                    setDeleteConfirmation(e.target.value);
-                    setDeleteNotice('');
-                  }}
-                  placeholder={form.username}
-                  autoComplete="off"
-                />
-              </label>
-
-              {deleteNotice && <p className="settings-delete-notice">{deleteNotice}</p>}
-
-              <button
-                className="settings-danger-btn"
-                type="button"
-                disabled={deleteConfirmation !== form.username}
-                onClick={handleDeleteAccount}
-              >
-                Delete my account
-              </button>
             </div>
           </section>
 
