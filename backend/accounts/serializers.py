@@ -74,6 +74,11 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     def get_post_count(self, obj): return obj.posts.count()
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100, min_length=1)
+    description = serializers.CharField(max_length=500, required=False, allow_blank=True, allow_null=True)
+    country = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    city = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = User
         fields = ('name', 'description', 'country', 'city', 'experience', 'price', 'pet_types', 'looking_for')
