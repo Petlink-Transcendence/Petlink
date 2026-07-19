@@ -22,9 +22,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'accounts',
-    'pets'
+    'pets',
+    'bookings'
 ]
 
 MIDDLEWARE = [
@@ -109,9 +111,22 @@ REST_FRAMEWORK = {
 # CORS configuration to allow React access
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://localhost:5173",
+    "https://127.0.0.1:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://localhost:5173",
+    "https://127.0.0.1:5173",
 ]
 
 # SimpleJWT configuration
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Trust X-Forwarded-Proto header from Nginx reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import './ProfileContent.css';
+import '../Comments.css'
 import CreatePost from '../homepage/CreatePostContainer.tsx'
 
 type Post = {
@@ -25,57 +26,123 @@ type ProfileContentProps = {
   showCreatePost?: boolean;
 };
 
-function reviewerInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+type CommentItem = {
+  id: number;
+  author: string;
+  text: string;
+  time: string;
+};
+
+function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorInitials: string, authorName: string }) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(p.likes);
+  const [showComments, setShowComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState("");
+  const [comments, setComments] = useState<CommentItem[]>([
+    { id: 1, author: "Daniela Padilha", text: "Great update! Thanks for sharing.", time: "2h ago" }
+  ]);
+
+  const handleLike = () => {
+    setLikes(liked ? likes - 1 : likes + 1);
+    setLiked(!liked);
+  };
+
+  const handleAddComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCommentText.trim()) return;
+
+    const newComment: CommentItem = {
+      id: Date.now(),
+      author: "Jane Doe", // Proxy tracking session user name
+      text: newCommentText.trim(),
+      time: "Just now"
+    };
+
+    setComments([newComment, ...comments]);
+    setNewCommentText("");
+  };
+
+  const getCommentInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  return (
+    <div className="profile-post-card">
+      <div className="post-header">
+        <div className="post-author-avatar">{authorInitials}</div>
+        <div className="post-header-author-info">
+          <span className="post-author-name">{authorName}</span>
+        </div>
+      </div>
+      
+      <p className="profile-post-text">{p.text}</p>
+      
+      <div className="profile-post-time-wrapper">
+        <span className="post-time">{p.time}</span>
+      </div>
+      
+      <div className="profile-post-footer">
+        <div className="profile-post-actions-group">
+          <button className={`btn like ${liked ? 'liked' : ''}`} onClick={handleLike}>
+            ❤️ {likes}
+          </button>
+          <button 
+            className={`btn comment ${showComments ? 'active' : ''}`} 
+            onClick={() => setShowComments(!showComments)}
+          >
+            📢 Comment
+          </button>
+        </div>
+      </div>
+
+      {showComments && (
+        <div className="comments-section-dropdown">
+          <div className="comments-section-separator" />
+          
+          <form className="comment-input-form" onSubmit={handleAddComment}>
+            <input 
+              type="text" 
+              placeholder="Write a comment..." 
+              value={newCommentText}
+              onChange={(e) => setNewCommentText(e.target.value)}
+              className="comment-text-field"
+            />
+            <button type="submit" className="comment-post-btn">Send</button>
+          </form>
+
+          <div className="comments-scroll-container">
+            {comments.length > 0 ? (
+              comments.map((c) => (
+                <div key={c.id} className="comment-row-item">
+                  <div className="comment-row-avatar-fallback">
+                    {getCommentInitials(c.author)}
+                  </div>
+                  <div className="comment-row-content">
+                    <div className="comment-row-header">
+                      <span className="comment-row-author">{c.author}</span>
+                      <span className="comment-row-time">{c.time}</span>
+                    </div>
+                    <p className="comment-row-text">{c.text}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="no-comments-placeholder">No comments yet. Write one above!</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProfileContent({ posts, reviews, authorName, authorInitials, showCreatePost = true }: ProfileContentProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
-  const [profileReviews, setProfileReviews] = useState(reviews);
-  const [isReviewPopupOpen, setIsReviewPopupOpen] = useState(false);
-  const [reviewerName, setReviewerName] = useState('');
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
+  const profileReviews = reviews;
 
-  const resetReviewForm = () => {
-    setReviewerName('');
-    setReviewRating(5);
-    setReviewText('');
-  };
-
-  const closeReviewPopup = () => {
-    setIsReviewPopupOpen(false);
-    resetReviewForm();
-  };
-
-  const handleReviewSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const trimmedReviewerName = reviewerName.trim();
-    const trimmedReviewText = reviewText.trim();
-
-    if (!trimmedReviewerName || !trimmedReviewText) {
-      return;
-    }
-
-    setProfileReviews(currentReviews => [
-      {
-        id: Date.now(),
-        author: trimmedReviewerName,
-        rating: reviewRating,
-        text: trimmedReviewText,
-        time: 'Just now',
-      },
-      ...currentReviews,
-    ]);
-
-    closeReviewPopup();
-  };
+  function reviewerInitials(name: string): string {
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
 
   return (
     <div className="profile-right">
@@ -98,39 +165,18 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
       {activeTab === 'posts' && (
         <div className="tab-content">
           {posts.map(p => (
-            <div key={p.id} className="profile-post-card">
-              <div className="post-header">
-                <div className="post-author-avatar">{authorInitials}</div>
-                <span className="post-author-name">{authorName}</span>
-              </div>
-              <p className="profile-post-text">{p.text}</p>
-              <div className="profile-post-footer">
-                <span className="post-time">{p.time}</span>
-                <span className="post-likes">❤️ {p.likes}</span>
-              </div>
-            </div>
+            <ProfilePostCard 
+              key={p.id} 
+              p={p} 
+              authorInitials={authorInitials} 
+              authorName={authorName} 
+            />
           ))}
         </div>
       )}
 
       {activeTab === 'reviews' && (
         <div className="tab-content">
-          <div className="profile-reviews-toolbar">
-            <div>
-              <h3>Reviews</h3>
-              <p>
-                {profileReviews.length} {profileReviews.length === 1 ? 'review' : 'reviews'}
-              </p>
-            </div>
-            <button
-              type="button"
-              className="profile-write-review-btn"
-              onClick={() => setIsReviewPopupOpen(true)}
-            >
-              Write a Review
-            </button>
-          </div>
-
           {profileReviews.map(r => (
             <div key={r.id} className="profile-review-card">
               <div className="profile-review-header">
@@ -144,81 +190,6 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
               <p className="profile-review-text">{r.text}</p>
             </div>
           ))}
-        </div>
-      )}
-
-      {isReviewPopupOpen && (
-        <div className="profile-review-popup-backdrop" onClick={closeReviewPopup}>
-          <section
-            className="profile-review-popup"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="profile-review-popup-title"
-            onClick={event => event.stopPropagation()}
-          >
-            <header className="profile-review-popup-header">
-              <div>
-                <h2 id="profile-review-popup-title">Write a Review</h2>
-                <p>Share feedback about your experience with {authorName}.</p>
-              </div>
-              <button
-                type="button"
-                className="profile-review-popup-close"
-                aria-label="Close review popup"
-                onClick={closeReviewPopup}
-              >
-                ×
-              </button>
-            </header>
-
-            <form className="profile-review-popup-form" onSubmit={handleReviewSubmit}>
-              <label className="profile-review-field">
-                <span>Name</span>
-                <input
-                  type="text"
-                  value={reviewerName}
-                  onChange={event => setReviewerName(event.target.value)}
-                  placeholder="Your name"
-                  required
-                />
-              </label>
-
-              <label className="profile-review-field">
-                <span>Rating</span>
-                <select
-                  value={reviewRating}
-                  onChange={event => setReviewRating(Number(event.target.value))}
-                  required
-                >
-                  {[5, 4, 3, 2, 1].map(rating => (
-                    <option key={rating} value={rating}>
-                      {rating} stars
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="profile-review-field">
-                <span>Review</span>
-                <textarea
-                  value={reviewText}
-                  onChange={event => setReviewText(event.target.value)}
-                  placeholder="What made the experience good?"
-                  rows={5}
-                  required
-                />
-              </label>
-
-              <div className="profile-review-popup-actions">
-                <button type="button" className="profile-review-cancel-btn" onClick={closeReviewPopup}>
-                  Cancel
-                </button>
-                <button type="submit" className="profile-review-submit-btn">
-                  Publish Review
-                </button>
-              </div>
-            </form>
-          </section>
         </div>
       )}
     </div>

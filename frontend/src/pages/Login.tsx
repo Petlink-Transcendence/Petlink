@@ -16,7 +16,7 @@ export default function Login() {
     const handleLogin = async () => {
         setError('');
         try {
-            const response = await fetch('http://localhost:8080/auth/login/', {
+            const response = await fetch('/auth/login/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -39,7 +39,7 @@ export default function Login() {
     const handle42Login = async () => {
         setError('');
         try {
-            const response = await fetch('http://localhost:8080/auth/42/login/');
+            const response = await fetch('/auth/42/login/');
             if (response.ok) {
                 const data = await response.json();
                 // Redirect the browser to the official 42 authorization URL

@@ -25,7 +25,7 @@ export default function Register() {
         }
 
         try {
-            const response = await fetch('http://localhost:8080/auth/register/', {
+            const response = await fetch('/auth/register/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -41,19 +41,32 @@ export default function Register() {
                 alert("Account created successfully!");
                 window.location.href = "/login";
             } else {
-                // Extract the exact error message from Django (e.g., password regex failure)
-                const data = await response.json();
+                const data = await response.json().catch(() => null);
 
-                // If the backend sent a list of password errors, display the first one.
-                // Otherwise, stringify the error object for debugging.
-                if (data.password) {
-                    setError(data.password[0]);
-                } else if (data.username) {
-                    setError("Username already exists.");
-                } else if (data.email) {
-                    setError("Email already in use.");
+                const getFirstMessage = (value: unknown) => {
+                    if (Array.isArray(value)) {
+                        return value[0];
+                    }
+
+                    if (typeof value === 'string') {
+                        return value;
+                    }
+
+                    return null;
+                };
+
+                const usernameError = getFirstMessage(data?.username);
+                const emailError = getFirstMessage(data?.email);
+                const passwordError = getFirstMessage(data?.password);
+
+                if (usernameError) {
+                    setError(usernameError);
+                } else if (emailError) {
+                    setError(emailError);
+                } else if (passwordError) {
+                    setError(passwordError);
                 } else {
-                    setError(JSON.stringify(data));
+                    setError('Error creating account.');
                 }
             }
         } catch (err) {
@@ -104,17 +117,30 @@ export default function Register() {
                             />
                 </div>
 
-                {/* New Dropdown for User Type */}
                 <div className="input-group">
-                    <label>I want to...</label>
-                    <select
-                        value={userType}
-                        onChange={(e) => setUserType(e.target.value)}
-                        style={{ width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
-                    >
-                        <option value="owner">Find a sitter for my pet</option>
-                        <option value="provider">Offer pet sitting services</option>
-                    </select>
+                    <label>I am:</label>
+                    <div className="radio-options">
+                        <label className="radio-option">
+                            <input
+                                type="radio"
+                                name="userType"
+                                value="owner"
+                                checked={userType === 'owner'}
+                                onChange={(e) => setUserType(e.target.value)}
+                            />
+                            Pet owner
+                        </label>
+                        <label className="radio-option">
+                            <input
+                                type="radio"
+                                name="userType"
+                                value="provider"
+                                checked={userType === 'provider'}
+                                onChange={(e) => setUserType(e.target.value)}
+                            />
+                            Pet sitter
+                        </label>
+                    </div>
                 </div>
 
                 <button className="login-button" onClick={handleRegister}>Sign Up</button>

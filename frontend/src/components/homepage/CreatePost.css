@@ -33,7 +33,7 @@
 }
 
 .create-post-input:hover {
-  transform: scale(1.02);
+  transform: scale(1.01);
   transition: transform 0.15s ease;
 }
 

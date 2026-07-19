@@ -129,12 +129,16 @@
 .btn {
   border: none;
   background: var(--petlink-tan);
-  padding: 0.4rem 0.9rem;
+  padding: 0.2rem 0.9rem;
   border-radius: 1.25rem;
   cursor: pointer;
-  font-size: 0.75rem;
   color: white;
   transition: background 0.2s;
+}
+
+.btn.message {
+  font-size: 0.75rem;
+  color: white;
 }
 
 .btn:hover {
@@ -229,3 +233,4 @@
     margin-bottom: 0.625rem;
   }
 }
+
