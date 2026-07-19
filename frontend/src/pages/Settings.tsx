@@ -16,9 +16,6 @@ interface SettingsForm {
   city: string;
   country: string;
   bio: string;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
   accountMode: 'owner' | 'sitter';
   profileVisibility: string;
   bookingAlerts: boolean;
@@ -44,9 +41,6 @@ const initialSettings: SettingsForm = {
   city: 'Porto',
   country: 'Portugal',
   bio: 'Dog and cat mom. Always looking for the best care for my pets.',
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: '',
   accountMode: 'owner',
   profileVisibility: 'Everyone',
   bookingAlerts: true,
@@ -103,7 +97,6 @@ export default function Settings() {
   const [form, setForm] = useState<SettingsForm>(initialSettings);
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
 
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
@@ -154,35 +147,6 @@ export default function Settings() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const passwordFieldsChanged = Boolean(
-      form.currentPassword || form.newPassword || form.confirmPassword
-    );
-
-    if (passwordFieldsChanged) {
-      if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
-        setPasswordError('Fill in all password fields to change your password.');
-        return;
-      }
-
-      if (form.newPassword.length < 8) {
-        setPasswordError('New password must be at least 8 characters.');
-        return;
-      }
-
-      if (form.newPassword !== form.confirmPassword) {
-        setPasswordError('New password and confirmation do not match.');
-        return;
-      }
-    }
-
-    setPasswordError('');
-    setForm((current) => ({
-      ...current,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    }));
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2500);
   }
@@ -190,7 +154,6 @@ export default function Settings() {
   function handleReset() {
     setForm((current) => ({ ...current, ...resettableSettings }));
     setSaved(false);
-    setPasswordError('');
   }
 
   return (
@@ -258,46 +221,6 @@ export default function Settings() {
               <span>Bio</span>
               <textarea value={form.bio} rows={4} onChange={(e) => updateField('bio', e.target.value)} />
             </label>
-
-            <div className="settings-password-panel">
-              <div className="settings-password-header">
-                <h3>Change password</h3>
-                <p>Update the password you use to sign in.</p>
-              </div>
-
-              <div className="settings-grid">
-                <label className="settings-field">
-                  <span>Current password</span>
-                  <input
-                    type="password"
-                    value={form.currentPassword}
-                    onChange={(e) => updateField('currentPassword', e.target.value)}
-                    autoComplete="current-password"
-                  />
-                </label>
-                <label className="settings-field">
-                  <span>New password</span>
-                  <input
-                    type="password"
-                    value={form.newPassword}
-                    onChange={(e) => updateField('newPassword', e.target.value)}
-                    autoComplete="new-password"
-                  />
-                </label>
-              </div>
-
-              <label className="settings-field settings-confirm-password">
-                <span>Confirm new password</span>
-                <input
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  autoComplete="new-password"
-                />
-              </label>
-
-              {passwordError && <p className="settings-password-error">{passwordError}</p>}
-            </div>
           </section>
 
           <section className="settings-section" id="care">
