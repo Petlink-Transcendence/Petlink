@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import './Settings.css';
 
 interface Pet {
@@ -10,6 +10,7 @@ interface Pet {
 }
 
 interface SettingsForm {
+  avatarUrl: string;
   displayName: string;
   username: string;
   email: string;
@@ -38,6 +39,7 @@ interface SettingsForm {
 }
 
 const initialSettings: SettingsForm = {
+  avatarUrl: '',
   displayName: 'Jane Doe',
   username: 'janedoe123',
   email: 'jane.doe@example.com',
@@ -89,8 +91,37 @@ export default function Settings() {
     document.title = 'Settings | PetLink';
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (form.avatarUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.avatarUrl);
+      }
+    };
+  }, [form.avatarUrl]);
+
+  const profileInitials = form.displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((name) => name[0]?.toUpperCase())
+    .join('') || form.username.slice(0, 2).toUpperCase();
+
   function updateField<Key extends keyof SettingsForm>(key: Key, value: SettingsForm[Key]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const nextAvatarUrl = URL.createObjectURL(file);
+
+    setForm((current) => {
+      if (current.avatarUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(current.avatarUrl);
+      }
+      return { ...current, avatarUrl: nextAvatarUrl };
+    });
   }
 
   function toggleTagField(key: 'ownerPetTypes' | 'lookingForServices' | 'sitterPetTypes', tag: string) {
@@ -179,7 +210,9 @@ export default function Settings() {
       <form className="settings-layout" onSubmit={handleSubmit}>
         <aside className="settings-menu" aria-label="Settings sections">
           <div className="settings-profile-summary">
-            <div className="settings-avatar">JD</div>
+            <div className="settings-avatar">
+              {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
+            </div>
             <div>
               <strong>{form.displayName}</strong>
               <span>@{form.username}</span>
@@ -198,6 +231,20 @@ export default function Settings() {
               <div>
                 <h2>Profile details</h2>
                 <p>Public account information</p>
+              </div>
+            </div>
+
+            <div className="settings-avatar-panel">
+              <div className="settings-avatar-preview">
+                {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
+              </div>
+              <div className="settings-avatar-copy">
+                <h3>Profile avatar</h3>
+                <p>Add or change the photo shown on your PetLink profile.</p>
+                <label className="settings-avatar-button">
+                  Choose photo
+                  <input type="file" accept="image/*" onChange={handleAvatarChange} />
+                </label>
               </div>
             </div>
 

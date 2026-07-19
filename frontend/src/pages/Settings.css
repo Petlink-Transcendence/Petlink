@@ -91,6 +91,14 @@
   font-size: 0.9rem;
   font-weight: 800;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.settings-avatar img,
+.settings-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .settings-profile-summary strong,
@@ -256,6 +264,75 @@ html {
 .settings-field textarea:focus {
   background: var(--white);
   border-color: var(--petlink-tan);
+}
+
+.settings-avatar-panel {
+  align-items: center;
+  background: #fffdf9;
+  border: 0.0625rem solid #eadfcf;
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.settings-avatar-preview {
+  align-items: center;
+  background: rgba(219, 182, 121, 0.15);
+  border: 0.0625rem solid var(--petlink-tan);
+  border-radius: 50%;
+  color: var(--petlink-tan);
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 1.1rem;
+  font-weight: 800;
+  height: 4.5rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 4.5rem;
+}
+
+.settings-avatar-copy {
+  min-width: 0;
+}
+
+.settings-avatar-copy h3 {
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.settings-avatar-copy p {
+  color: #888;
+  font-size: 0.76rem;
+  margin: 0.2rem 0 0.75rem;
+}
+
+.settings-avatar-button {
+  background: var(--petlink-tan);
+  border: 0.125rem solid var(--petlink-tan);
+  border-radius: 1.25rem;
+  color: var(--white);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.55rem 0.85rem;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.settings-avatar-button:hover {
+  background: var(--social-bg);
+  border-color: var(--social-bg);
+  transform: translateY(-0.0625rem);
+}
+
+.settings-avatar-button input {
+  display: none;
 }
 
 .settings-password-panel {
@@ -653,6 +730,9 @@ html {
     grid-template-columns: 1fr;
     max-width: 100%;
   }
+  .settings-avatar-panel {
+    align-items: flex-start;
+  }
   .settings-confirm-password {
     max-width: 100%;
   }
@@ -675,6 +755,9 @@ html {
     display: flex;
     flex-direction: column;
     border-radius: 0.75rem;
+  }
+  .settings-avatar-panel {
+    flex-direction: column;
   }
   .add-pet-inline-form {
     flex-direction: column;
