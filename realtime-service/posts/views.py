@@ -97,5 +97,74 @@ def delete_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
     if post.user_id != user_id:
         return Response({'error': 'Not allowed'}, status=403)
-    post.delete()
-    return Response(status=204)
+    post.deleted_at = timezone.now()
+    post.save()
+    return Response({'status': 'post deleted'}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def list_posts(request):
+    page = int(request.query_params.get('page', 1))
+    page_size = int(request.query_params.get('page_size', 10))
+    offset = (page - 1) * page_size
+
+    all_posts = Post.objects.filter(
+        deleted_at__isnull=True
+    )[offset:offset + page_size]
+
+    data = [
+        {
+            'id': p.id,
+            'user_id': p.user_id,
+            'purpose': p.purpose,
+            'text': p.text,
+            'tags': p.tags,
+            'pet_type': p.pet_type,
+            'pet_size': p.pet_size,
+            'image': request.build_absolute_uri(p.image.url) if p.image else None,
+            'like_count': p.likes.count(),
+            'created_at': p.created_at,
+        }
+        for p in all_posts
+    ]
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def post_detail(request, pk):
+    try:
+        post = Post.objects.get(id=pk, deleted_at__isnull=True)
+    except Post.DoesNotExist:
+        return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    return Response({
+        'id': post.id,
+        'user_id': post.user_id,
+        'purpose': post.purpose,
+        'text': post.text,
+        'tags': post.tags,
+        'pet_type': post.pet_type,
+        'pet_size': post.pet_size,
+        'image': request.build_absolute_uri(post.image.url) if post.image else None,
+        'like_count': post.likes.count(),
+        'created_at': post.created_at,
+    }, status=status.HTTP_200_OK)
+
+@api_view(['POST', 'DELETE'])
+def like_post(request, pk):
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=401)
+    
+    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
+
+    if request.method == 'POST':
+        like, created = Like.objects.get_or_create(user_id=user_id, post=post)
+        if not created:
+            return Response({'error': 'already liked'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
+    
+    try:
+        like = Like.objects.get(user_id=user_id, post=post)
+        like.delete()
+        return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
+    except Like.DoesNotExist:
+        return Response({'error': 'not liked'}, status=status.HTTP_404_NOT_FOUND)
