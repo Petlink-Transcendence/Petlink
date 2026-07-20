@@ -41,18 +41,18 @@ class Command(BaseCommand):
                 'looking_for': ['cat sitter']
             },
             {
-                'username': 'rafael', 'email': 'rafael@test.com', 'name': 'Rafael Castro', 'user_type': 'sitter',
+                'username': 'rafael', 'email': 'rafael@test.com', 'name': 'Rafael Castro', 'user_type': 'provider',
                 'role': 'user', 'description': 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '5', 'experience': '5+ years', 'price': '10-15 per hour', 'pet_types': ['cats', 'dogs', 'small pets'],
                 'avatar': 'avatars/rafael.jpeg'
             },
             {
-                'username': 'maria', 'email': 'maria@test.com', 'name': 'Maria Santos', 'user_type': 'sitter',
+                'username': 'maria', 'email': 'maria@test.com', 'name': 'Maria Santos', 'user_type': 'provider',
                 'role': 'user', 'description': 'Professional dog walker from Porto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.8', 'avatar': 'avatars/maria.jpeg'
             },
             {
-                'username': 'carlos', 'email': 'carlos@test.com', 'name': 'Carlos Ferreira', 'user_type': 'sitter',
+                'username': 'carlos', 'email': 'carlos@test.com', 'name': 'Carlos Ferreira', 'user_type': 'provider',
                 'role': 'user', 'description': 'Cat sitter and groomer from Porto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.6', 'avatar': 'avatars/carlos.jpeg'
             }
@@ -71,8 +71,8 @@ class Command(BaseCommand):
                 user.save()
 
         pets_data = [
-            {'name': 'Zeus', 'type': 'dog', 'breed': 'pitbull', 'owner': User.objects.get(username='joao')},
-            {'name': 'Kyara', 'type': 'cat', 'breed': 'chiwawa', 'owner': User.objects.get(username='joao')},
+            {'name': 'Zeus', 'type': 'dog', 'breed': 'Labrador', 'owner': User.objects.get(username='joao')},
+            {'name': 'Kyara', 'type': 'cat', 'breed': 'Yorkshire', 'owner': User.objects.get(username='joao')},
             {'name': 'Sushi', 'type': 'cat', 'breed': 'black&white', 'owner': User.objects.get(username='isabel')},
             {'name': 'Quiwi', 'type': 'cat', 'breed': 'european', 'owner': User.objects.get(username='isabel')},
             {'name': 'Rei', 'type': 'cat', 'breed': 'siamese', 'owner': User.objects.get(username='ricardo')},
