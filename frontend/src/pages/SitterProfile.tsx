@@ -212,7 +212,10 @@ export default function SitterProfile() {
         if (!id && data.id) {
         const publicResponse = await fetch(`/api/users/${data.id}/`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
         });
 
         if (publicResponse.ok) {
