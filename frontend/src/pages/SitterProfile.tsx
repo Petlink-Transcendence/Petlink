@@ -269,11 +269,14 @@ export default function SitterProfile() {
 
         let mergedData: BackendUser = data;
 
-        if (!profileId && data.id) {
-          const publicResponse = await fetch(`http://localhost:8080/api/users/${data.id}/`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
+        if (!id && data.id) {
+        const publicResponse = await fetch(`/api/users/${data.id}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
 
           if (publicResponse.ok) {
             const publicData: BackendUser = await publicResponse.json();
