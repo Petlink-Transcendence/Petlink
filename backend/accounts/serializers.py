@@ -39,14 +39,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
-    post_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'role', 'avatar', 'banner', 'description',
-            'city', 'country', 'user_type', 'rating', 'followers_count', 
-            'following_count', 'post_count', 'experience', 'price', 
+            'city', 'country', 'user_type', 'rating', 'followers_count',
+            'following_count', 'experience', 'price',
             'pet_types', 'looking_for', 'created_at'
         )
         read_only_fields = fields
@@ -71,9 +70,13 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
 
     def get_followers_count(self, obj): return obj.followers.count()
     def get_following_count(self, obj): return obj.following.count()
-    def get_post_count(self, obj): return obj.posts.count()
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100, min_length=1)
+    description = serializers.CharField(max_length=500, required=False, allow_blank=True, allow_null=True)
+    country = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+    city = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = User
         fields = ('name', 'description', 'country', 'city', 'experience', 'price', 'pet_types', 'looking_for')

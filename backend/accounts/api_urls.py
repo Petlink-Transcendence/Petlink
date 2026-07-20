@@ -8,7 +8,8 @@ from .views import (
     FollowingListView,
     UserOnlineStatusView,
     UserSearchView,
-    AdminStatsView
+    AdminStatsView,
+    DeleteMeView
 )
 
 urlpatterns = [
@@ -20,5 +21,6 @@ urlpatterns = [
     path('users/<int:pk>/followers/', FollowersListView.as_view(), name='user-followers'),
     path('users/<int:pk>/following/', FollowingListView.as_view(), name='user-following'),
     path('users/<int:pk>/online/', UserOnlineStatusView.as_view(), name='user-online-status'),
-    path('users/', UserSearchView.as_view(), name='user-search')
+    path('users/', UserSearchView.as_view(), name='user-search'),
+    path('users/me/delete/', DeleteMeView.as_view(), name='user-delete-me'),
 ]

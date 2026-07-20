@@ -39,7 +39,7 @@ class User(AbstractUser):
     price = models.TextField(null=True, blank=True)  # For sitters
     pet_types = models.JSONField(default=list, blank=True)  # For sitters
     looking_for = models.JSONField(default=list, blank=True)  # For owners
-        
+
     # Status && Realtime
     online_status = models.BooleanField(default=False)
     last_seen = models.DateTimeField(null=True, blank=True)

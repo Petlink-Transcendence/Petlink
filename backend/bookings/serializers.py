@@ -20,6 +20,9 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'requester', 'status', 'price_at_booking', 'created_at')
 
 class ReviewSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(max_length=1000, required=False, allow_blank=True, allow_null=True)
+
     class Meta:
         model = Review
         fields = ('id', 'reviewer', 'reviewee', 'booking', 'rating', 'comment', 'created_at')
