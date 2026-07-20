@@ -142,6 +142,96 @@
   accent-color: var(--petlink-tan);
 }
 
+.service-price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.service-price-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #f0eeeb;
+  border-radius: 0.75rem;
+  padding: 0.85rem;
+  background: #faf8f5;
+}
+
+.service-add-item {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+}
+
+.service-remove-button {
+  border: 1px solid #d9d6d0;
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: white;
+  color: #555;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.service-remove-button:hover {
+  border-color: #b84a4a;
+  color: #b84a4a;
+  transform: translateY(-0.0625rem);
+}
+
+.service-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.service-price-row div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.service-price-row span {
+  color: #555;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.service-price-row p {
+  margin: 0;
+  color: #777;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.service-price-row strong {
+  flex-shrink: 0;
+  color: black;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.service-detail-field {
+  grid-column: 1 / -1;
+}
+
+.service-add-button {
+  grid-column: 1 / -1;
+}
+
 .availability-submit {
   border: none;
   border-radius: 1.25rem;
@@ -166,7 +256,8 @@
   }
 
   .availability-row,
-  .availability-service-grid {
+  .availability-service-grid,
+  .service-price-item {
     grid-template-columns: 1fr;
   }
 }

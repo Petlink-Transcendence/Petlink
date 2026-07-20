@@ -25,6 +25,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.45rem;
+  padding-bottom: 0.65rem;
   width: 100%;
 }
 
@@ -164,6 +165,7 @@
 .sitter-availability-window,
 .sitter-service-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   border: 0.0625rem solid #f0eeeb;
@@ -174,8 +176,11 @@
 .sitter-service-row div {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  flex: 1;
   gap: 0.15rem;
   min-width: 0;
+  text-align: center;
 }
 
 .sitter-service-row p {
@@ -183,7 +188,7 @@
   color: #777;
   font-size: 0.7rem;
   line-height: 1.35;
-  text-align: left;
+  text-align: center;
 }
 
 .sitter-service-row strong {

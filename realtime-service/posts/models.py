@@ -22,6 +22,7 @@ class Post(models.Model):
     pet_size = models.CharField(max_length=20, choices=PET_SIZE_CHOICES, null=True, blank=True)
     tags = models.JSONField(null=True, blank=True)
     text = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='posts/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 

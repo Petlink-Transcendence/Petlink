@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import './Settings.css';
 
 interface Pet {
@@ -10,12 +10,16 @@ interface Pet {
 }
 
 interface SettingsForm {
+  avatarUrl: string;
   displayName: string;
   username: string;
   email: string;
   city: string;
   country: string;
   bio: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
   accountMode: 'owner' | 'sitter';
   profileVisibility: string;
   bookingAlerts: boolean;
@@ -35,12 +39,16 @@ interface SettingsForm {
 }
 
 const initialSettings: SettingsForm = {
+  avatarUrl: '',
   displayName: 'Jane Doe',
   username: 'janedoe123',
   email: 'jane.doe@example.com',
   city: 'Porto',
   country: 'Portugal',
   bio: 'Dog and cat mom. Always looking for the best care for my pets.',
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
   accountMode: 'owner',
   profileVisibility: 'Everyone',
   bookingAlerts: true,
@@ -54,7 +62,32 @@ const initialSettings: SettingsForm = {
   ownerPetTypes: ['dogs', 'cats'],
   petsList: [],
   lookingForServices: ['Cat Sitter', 'Dog Walker'],
+  yearsOfExperience: '',
+  hourlyRate: '',
   sitterPetTypes: ['dogs', 'cats', 'small pets'],
+};
+
+const resettableSettings: Pick<
+  SettingsForm,
+  | 'profileVisibility'
+  | 'bookingAlerts'
+  | 'messageAlerts'
+  | 'reviewAlerts'
+  | 'commentAlerts'
+  | 'connectionRequestAlerts'
+  | 'showAbout'
+  | 'showPets'
+  | 'showLookingFor'
+> = {
+  profileVisibility: initialSettings.profileVisibility,
+  bookingAlerts: initialSettings.bookingAlerts,
+  messageAlerts: initialSettings.messageAlerts,
+  reviewAlerts: initialSettings.reviewAlerts,
+  commentAlerts: initialSettings.commentAlerts,
+  connectionRequestAlerts: initialSettings.connectionRequestAlerts,
+  showAbout: initialSettings.showAbout,
+  showPets: initialSettings.showPets,
+  showLookingFor: initialSettings.showLookingFor,
 };
 
 const ownerPetTypeOptions = ['dogs', 'cats', 'rabbits', 'other'];
@@ -72,6 +105,9 @@ export default function Settings() {
   const [form, setForm] = useState<SettingsForm>(initialSettings);
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleteNotice, setDeleteNotice] = useState('');
 
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
@@ -82,8 +118,37 @@ export default function Settings() {
     document.title = 'Settings | PetLink';
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (form.avatarUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(form.avatarUrl);
+      }
+    };
+  }, [form.avatarUrl]);
+
+  const profileInitials = form.displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((name) => name[0]?.toUpperCase())
+    .join('') || form.username.slice(0, 2).toUpperCase();
+
   function updateField<Key extends keyof SettingsForm>(key: Key, value: SettingsForm[Key]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const nextAvatarUrl = URL.createObjectURL(file);
+
+    setForm((current) => {
+      if (current.avatarUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(current.avatarUrl);
+      }
+      return { ...current, avatarUrl: nextAvatarUrl };
+    });
   }
 
   function toggleTagField(key: 'ownerPetTypes' | 'lookingForServices' | 'sitterPetTypes', tag: string) {
@@ -122,14 +187,50 @@ export default function Settings() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    const passwordFieldsChanged = Boolean(
+      form.currentPassword || form.newPassword || form.confirmPassword
+    );
+
+    if (passwordFieldsChanged) {
+      if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
+        setPasswordError('Fill in all password fields to change your password.');
+        return;
+      }
+
+      if (form.newPassword.length < 8) {
+        setPasswordError('New password must be at least 8 characters.');
+        return;
+      }
+
+      if (form.newPassword !== form.confirmPassword) {
+        setPasswordError('New password and confirmation do not match.');
+        return;
+      }
+    }
+
+    setPasswordError('');
+    setForm((current) => ({
+      ...current,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    }));
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2500);
   }
 
   function handleReset() {
-    setForm(initialSettings);
-    setActiveSection('profile');
+    setForm((current) => ({ ...current, ...resettableSettings }));
     setSaved(false);
+    setPasswordError('');
+    setDeleteNotice('');
+  }
+
+  function handleDeleteAccount() {
+    if (deleteConfirmation !== form.username) return;
+
+    setDeleteNotice('Connect delete endpoint here.');
   }
 
   return (
@@ -142,7 +243,9 @@ export default function Settings() {
       <form className="settings-layout" onSubmit={handleSubmit}>
         <aside className="settings-menu" aria-label="Settings sections">
           <div className="settings-profile-summary">
-            <div className="settings-avatar">JD</div>
+            <div className="settings-avatar">
+              {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
+            </div>
             <div>
               <strong>{form.displayName}</strong>
               <span>@{form.username}</span>
@@ -153,6 +256,7 @@ export default function Settings() {
           <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
           <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
           <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
+          <a className={`settings-menu-item settings-danger-menu-item ${activeSection === 'danger' ? 'active' : ''}`} href="#danger" onClick={() => setActiveSection('danger')}>Danger zone</a>
         </aside>
 
         <main className="settings-main">
@@ -161,6 +265,20 @@ export default function Settings() {
               <div>
                 <h2>Profile details</h2>
                 <p>Public account information</p>
+              </div>
+            </div>
+
+            <div className="settings-avatar-panel">
+              <div className="settings-avatar-preview">
+                {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
+              </div>
+              <div className="settings-avatar-copy">
+                <h3>Profile avatar</h3>
+                <p>Add or change the photo shown on your PetLink profile.</p>
+                <label className="settings-avatar-button">
+                  Choose photo
+                  <input type="file" accept="image/*" onChange={handleAvatarChange} />
+                </label>
               </div>
             </div>
 
@@ -197,6 +315,46 @@ export default function Settings() {
               <span>Bio</span>
               <textarea value={form.bio} rows={4} onChange={(e) => updateField('bio', e.target.value)} />
             </label>
+
+            <div className="settings-password-panel">
+              <div className="settings-password-header">
+                <h3>Change password</h3>
+                <p>Update the password you use to sign in.</p>
+              </div>
+
+              <div className="settings-grid">
+                <label className="settings-field">
+                  <span>Current password</span>
+                  <input
+                    type="password"
+                    value={form.currentPassword}
+                    onChange={(e) => updateField('currentPassword', e.target.value)}
+                    autoComplete="current-password"
+                  />
+                </label>
+                <label className="settings-field">
+                  <span>New password</span>
+                  <input
+                    type="password"
+                    value={form.newPassword}
+                    onChange={(e) => updateField('newPassword', e.target.value)}
+                    autoComplete="new-password"
+                  />
+                </label>
+              </div>
+
+              <label className="settings-field settings-confirm-password">
+                <span>Confirm new password</span>
+                <input
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={(e) => updateField('confirmPassword', e.target.value)}
+                  autoComplete="new-password"
+                />
+              </label>
+
+              {passwordError && <p className="settings-password-error">{passwordError}</p>}
+            </div>
           </section>
 
           <section className="settings-section" id="care">
@@ -409,6 +567,50 @@ export default function Settings() {
                 <span><strong>Show Looking For</strong><small>What you're looking for at PetLink</small></span>
                 <input type="checkbox" checked={form.showLookingFor} onChange={(e) => updateField('showLookingFor', e.target.checked)} />
               </label>
+            </div>
+          </section>
+
+          <section className="settings-section settings-danger-zone" id="danger">
+            <div className="settings-section-header">
+              <div>
+                <h2>Danger zone</h2>
+                <p>Permanent account actions</p>
+              </div>
+            </div>
+
+            <div className="settings-danger-content">
+              <div>
+                <h3>Delete account</h3>
+                <p>
+                  This will remove your profile, pets, bookings, messages and account access.
+                  Type your username to confirm.
+                </p>
+              </div>
+
+              <label className="settings-field settings-delete-confirm">
+                <span>Confirm username</span>
+                <input
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => {
+                    setDeleteConfirmation(e.target.value);
+                    setDeleteNotice('');
+                  }}
+                  placeholder={form.username}
+                  autoComplete="off"
+                />
+              </label>
+
+              {deleteNotice && <p className="settings-delete-notice">{deleteNotice}</p>}
+
+              <button
+                className="settings-danger-btn"
+                type="button"
+                disabled={deleteConfirmation !== form.username}
+                onClick={handleDeleteAccount}
+              >
+                Delete my account
+              </button>
             </div>
           </section>
 
