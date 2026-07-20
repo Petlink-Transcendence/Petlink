@@ -1,45 +1,131 @@
 import './Chat.css'
 import { useEffect, useState, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
+
+interface Message {
+    id: number;
+    contactId: number;
+    text: string;
+    sender: 'me' | 'them';
+    time: string;
+    attachment?: string;
+}
+
+interface Contact {
+    id: number;
+    name: string;
+    role: string;
+}
+
+interface ChatRouteState {
+    openChatId?: number;
+    contact?: {
+        id?: number;
+        name: string;
+        role: string;
+    };
+}
+
+const initialContacts: Contact[] = [
+    {id: 1, name: "Daniela Padilha", role: "animal-sitter"},
+    {id: 2, name: "Filipe Tootill", role: "dog-owner"},
+    {id: 3, name: "Rodrigo Silva", role: "cat owner"},
+    {id: 4, name: "Daddy", role: "animal lover"},
+    {id: 5, name: "João Vieira", role: "cat-sitter"},
+    {id: 6, name: "Ricardo Oliveira", role: "cat-owner"},
+    {id: 7, name: "Dar banho ao gato", role: "animal-sitter"},
+];
 
 export default function Chat() {
+    const location = useLocation();
+    const routeOpenChatId = (location.state as ChatRouteState | null)?.openChatId;
+    const routeContact = (location.state as ChatRouteState | null)?.contact;
+
     useEffect(() => {
       document.title = "Chat | PetLink";
     }, []);
 
+    function initials(name: string) {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+
     /* CHAT */
-
-    const [activeChat, setActiveChat] = useState(null);
-
+    const [activeChat, setActiveChat] = useState<number | null>(null);
+    const [contacts, setContacts] = useState<Contact[]>(initialContacts);
+    const [searchTermContacts, setSearchTermContacts] = useState("");
+    const openedRouteContactRef = useRef<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ 
-            behavior: "smooth", 
-            block: "nearest"
+            messagesEndRef.current.scrollIntoView({ 
+                behavior: "smooth", 
+                block: "nearest"
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (routeOpenChatId === undefined) {
+            return;
+        }
+
+        const contactById = contacts.find(contact => contact.id === routeOpenChatId);
+        if (contactById) {
+            setSearchTermContacts("");
+            setActiveChat(contactById.id);
+        }
+    }, [routeOpenChatId, contacts]);
+
+    useEffect(() => {
+        if (!routeContact?.name || !routeContact?.role) {
+            return;
+        }
+
+        const contactKey = `${routeContact.id ?? 'new'}|${routeContact.name}|${routeContact.role}`;
+        if (openedRouteContactRef.current === contactKey) {
+            return;
+        }
+
+        openedRouteContactRef.current = contactKey;
+        setSearchTermContacts("");
+        setContacts(currentContacts => {
+            const existingContact = currentContacts.find(contact =>
+                contact.name === routeContact.name && contact.role === routeContact.role
+            );
+
+            if (existingContact) {
+                setActiveChat(existingContact.id);
+                return currentContacts;
+            }
+
+            if (routeContact.id !== undefined) {
+                const contactById = currentContacts.find(contact => contact.id === routeContact.id);
+
+                if (contactById) {
+                    setActiveChat(contactById.id);
+                    return currentContacts;
+                }
+            }
+
+            const newContact = {
+                id: Math.max(0, ...currentContacts.map(contact => contact.id)) + 1,
+                name: routeContact.name,
+                role: routeContact.role,
+            };
+
+            setActiveChat(newContact.id);
+            return [newContact, ...currentContacts];
         });
-    }
-};
-
-    const contacts = [
-        {id: 1, name: "Daniela", role: "animal-sitter"},
-        {id: 2, name: "Filipe", role: "dog-owner"},
-        {id: 3, name: "Rodrigo", role: "cat owner"},
-        {id: 4, name: "Daddy", role: "animal lover"},
-        {id: 5, name: "João", role: "cat-sitter"},
-        {id: 6, name: "Ricardo", role: "cat-owner"},
-        {id: 7, name: "Dar banho ao gato", role: "animal-sitter"},
-    ];
-
-    const [searchTermContacts, setSearchTermContacts] = useState("");
+    }, [routeContact?.id, routeContact?.name, routeContact?.role]);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLocaleLowerCase().includes(searchTermContacts.toLocaleLowerCase())
     );
 
     /* MESSAGES */
-    
-    const [messages, setMessages] = useState([
+    const [messages, setMessages] = useState<Message[]>([
         { id: 101, contactId: 1, text: "Hi! Can you walk Jack tomorrow?", sender: "me", time: "7:00pm" },
         { id: 102, contactId: 1, text: "Sure! I love Jack.", sender: "them", time: "08:00am" },
         { id: 103, contactId: 1, text: "Great! At what time can you be there?.", sender: "me", time: "08:35am" },
@@ -48,7 +134,7 @@ export default function Chat() {
         { id: 106, contactId: 2, text: "I've asked Daniela if she could walk the dogs", sender: "me", time: "07:02pm" },
         { id: 107, contactId: 2, text: "Great, let's see what she says.", sender: "them", time: "08:45pm" },
         { id: 108, contactId: 2, text: "She's in!", sender: "them", time: "08:30am" },
-        { id: 109, contactId: 2, text: "Ask her at what time she can be here  to take Jack for his walk, please. I need to know soon.", sender: "me", time: "09:40am" },
+        { id: 109, contactId: 2, text: "Ask her at what time she can be here to take Jack for his walk, please. I need to know soon.", sender: "me", time: "09:40am" },
         { id: 110, contactId: 3, text: "How are the cats today?", sender: "me", time: "03:13pm" },
         { id: 111, contactId: 3, text: "Hmm... Quiwi just spilt another glass of water...", sender: "them", time: "04:33pm" },
         { id: 112, contactId: 4, text: "Good Two-Bags has just come in.", sender: "them", time: "02:10pm" },
@@ -68,35 +154,52 @@ export default function Chat() {
     }, [messages, activeChat]);
 
     const [message, setMessage] = useState("");
+    const [attachedPhoto, setAttachedPhoto] = useState<string | null>(null);
 
     const chatHistory = messages.filter(msg => msg.contactId === activeChat);
-
     const [searchTermMsg, setSearchTermMsg] = useState("");
 
     const filteredMessages = chatHistory.filter(msg =>
         msg.text.toLowerCase().includes(searchTermMsg.toLowerCase())
     );
 
-    const getLastMessage = (contactId) => {
+    const getLastMessage = (contactId: number) => {
         const contactHistory = messages.filter(msg => msg.contactId === contactId);
         return contactHistory.length > 0 ? contactHistory[contactHistory.length - 1] : null;
     }
 
+    const handleAttachmentClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAttachedPhoto(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSendMessage = () => {
-        if (!message.trim() || !activeChat) 
+        if ((!message.trim() && !attachedPhoto) || !activeChat) 
             return;
 
-        const newMessage = {
+        const newMessage: Message = {
             id: Date.now(),
             contactId: activeChat,
             text: message,
+            attachment: attachedPhoto || undefined,
             sender: "me",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         
         setMessages([...messages, newMessage]);
-        
         setMessage("");
+        setAttachedPhoto(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const deleteLastMessage = () => {
@@ -104,8 +207,9 @@ export default function Chat() {
         setMessages(prevMessages => prevMessages.slice(0, -1));
     };
 
-    /* TEXT AREA */
+    const activeContact = contacts.find(c => c.id === activeChat);
 
+    /* TEXT AREA */
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -113,17 +217,14 @@ export default function Chat() {
             textareaRef.current.style.height = "auto";
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
-    });    
+    });  
 
     return(
         <div className="chat-container">
-
             {/*Sidebar */}
             <aside className="chat-sidebar">
-
-                {/*Header */}
                 <div className="sidebar-header">
-                <h2 className="title">My <span className="title-messages">Messages</span></h2>
+                    <h2 className="title">My <span className="title-messages">Messages</span></h2>
                 </div>
 
                 <div className="search-box">
@@ -138,32 +239,26 @@ export default function Chat() {
                     </div>
                 </div>
 
-
-                {/*Contact list */}
                 <div className="contact-list">
                     {filteredContacts.map(contact => {
                         const lastMsgObj = getLastMessage(contact.id);
-
                         return (
                             <div 
                                 key={contact.id} 
                                 className={`contact-item ${activeChat === contact.id ? 'active' : ''}`}
                                 onClick={() => setActiveChat(contact.id)}
-                                >
-                                
-                                <div className="contact-avatar">{contact.name[0]}</div>
-
+                            >
+                                <div className="contact-avatar">{initials(contact.name)}</div>
                                 <div className="contact-info">
                                     <div className="contact-top">
                                         <span className="contact-name">{contact.name}, {contact.role}</span>
                                     </div>
-
                                     <p className="contact-last-msg">
                                         <span className="contact-time">
                                             {lastMsgObj ? lastMsgObj.time : ""}
                                         </span>
                                         <span> </span>
-                                        {lastMsgObj ? lastMsgObj.text : ""}
+                                        {lastMsgObj ? (lastMsgObj.attachment ? "📷 Image attachment" : lastMsgObj.text) : ""}
                                     </p>
                                 </div>
                             </div>
@@ -175,16 +270,14 @@ export default function Chat() {
             <main className="chat-window">
                 {activeChat ? (
                     <>
-
-                    {/* Header */}
                     <header className="chat-header">
                         <div className="header-info">
-                        <div className="header-avatar">
-                            {contacts.find(c => c.id === activeChat)?.name[0]}
-                        </div>
-                        <div>
-                            <h3>{contacts.find(c => c.id === activeChat)?.name}, {contacts.find(c => c.id === activeChat)?.role} </h3>
-                        </div>
+                            <div className="header-avatar">
+                                {activeContact ? initials(activeContact.name) : ""}
+                            </div>
+                            <div>
+                                <h3>{contacts.find(c => c.id === activeChat)?.name}, {contacts.find(c => c.id === activeChat)?.role} </h3>
+                            </div>
                         </div>
 
                         <div className="search-box">
@@ -202,10 +295,15 @@ export default function Chat() {
 
                     {/* Messages Area */}
                     <div className="messages-container">
-                        {filteredMessages.length > 0 ? (
+                        {chatHistory.length === 0 ? (
+                            <p className='no-results'>No messages yet.</p>
+                        ) : filteredMessages.length > 0 ? (
                             filteredMessages.map((msg) => (
                                 <div key={msg.id} className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}>
-                                    <p>{msg.text}</p>
+                                    {msg.attachment && (
+                                        <img src={msg.attachment} alt="Attachment" className="chat-msg-image" />
+                                    )}
+                                    {msg.text && <p>{msg.text}</p>}
                                     <div className="msg-footer">
                                         <span className="msg-time">{msg.time}</span>
                                         {msg.sender === 'me' && <span className="read-status">✓✓</span>}
@@ -218,28 +316,47 @@ export default function Chat() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
-                    <footer className="chat-input-container">
-                        <button className="attachment-btn">+</button>
-                        <textarea 
-                            ref={textareaRef}
-                            className="chat-input-textarea"
-                            placeholder="Type a message..." 
-                            value={message}
-                            rows={1}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleSendMessage();
-                                }
-                            }}
-                        />
-                        <button className="send-message-btn" onClick={handleSendMessage}>Send</button>
-                        <button className="attachment-btn delete-btn" onClick={deleteLastMessage} title="Delete last message">
-                            <span className="btn-icon">🗑️</span>
-                        </button>
-                    </footer>                
+                    <div className="chat-input-wrapper-block">
+                        {attachedPhoto && (
+                            <div className="attachment-preview-bar">
+                                <div className="preview-thumbnail-wrapper">
+                                    <img src={attachedPhoto} alt="Upload preview" />
+                                    <button className="remove-preview-btn" onClick={() => setAttachedPhoto(null)}>×</button>
+                                </div>
+                            </div>
+                        )}
+
+                        <footer className="chat-input-container">
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                style={{ display: 'none' }} 
+                                accept="image/*"
+                                onChange={handlePhotoChange} 
+                            />
+                            
+                            <button className="attachment-btn" onClick={handleAttachmentClick}>+</button>
+                            
+                            <textarea 
+                                ref={textareaRef}
+                                className="chat-input-textarea"
+                                placeholder="Type a message..." 
+                                value={message}
+                                rows={1}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendMessage();
+                                    }
+                                }}
+                            />
+                            <button className="send-message-btn" onClick={handleSendMessage}>Send</button>
+                            <button className="attachment-btn delete-btn" onClick={deleteLastMessage} title="Delete last message">
+                                <span className="btn-icon">🗑️</span>
+                            </button>
+                        </footer>                
+                    </div>
                     </>
                 ) : (
                     <p> </p>

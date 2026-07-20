@@ -5,7 +5,7 @@
 }
 
 .login-page-container {
-  min-height: calc(100vh - 4.25rem);
+  min-height: 100vh;
   width: 100%;
   top: 6.25rem;
   left: 0;
@@ -65,7 +65,7 @@
   color: var(--social-bg);
 }
 
-.input-group input {
+.input-group input:not([type="radio"]) {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 0.375rem;
@@ -74,14 +74,60 @@
   transition: border 0.3s;
 }
 
-.input-group input:focus {
+.input-group input:not([type="radio"]):focus {
   border-color: var(--petlink-tan);
 }
 
-.input-group input:focus::placeholder {
+.input-group input:not([type="radio"]):focus::placeholder {
     color: transparent;
 }
 
+.radio-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.input-group .radio-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-width: 8.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  background-color: #fafafa;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--social-bg);
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group .radio-option input {
+  accent-color: var(--petlink-tan);
+  cursor: pointer;
+  margin: 0;
+}
+
+.input-group .radio-option:hover {
+  border-color: var(--petlink-tan);
+  background-color: #fffaf2;
+}
+
+.input-group .radio-option:has(input:checked) {
+  border-color: var(--petlink-tan);
+  background-color: #fff6e8;
+  box-shadow: 0 0 0 3px rgba(219, 182, 121, 0.18);
+}
+
+.input-group .radio-option:has(input:focus-visible) {
+  outline: 2px solid var(--petlink-tan);
+  outline-offset: 2px;
+}
 
 .login-button {
   background-color: var(--petlink-tan);
@@ -119,4 +165,35 @@
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* --- 42 OAuth Styles --- */
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0.5rem 0;
+  color: #aaa;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.divider span {
+  padding: 0 10px;
+  font-size: 0.875rem;
+}
+
+.oauth-42-button {
+  background-color: #00babc;
+  color: white;
+  margin-top: 0;
+}
+
+.oauth-42-button:hover {
+  background-color: #009ba0;
 }

@@ -16,7 +16,7 @@
 
 /* --- sidebar --- */
 .chat-sidebar {
-    width: 18rem;
+    width: 25rem;
     height: 100%;
     position: sticky;
     padding-top: 6.25rem;
@@ -56,9 +56,10 @@
 /*--- sidebar title ---*/
 .title {
   color: white;
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   padding-top: 1.875rem;
   padding-bottom: 1.875rem;
+  font-weight: 800;
 }
 
 .title-messages {
@@ -95,17 +96,20 @@
   font-size: 0.875rem;
   color: black;
   outline: none;
-  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .search-input:focus {
-  background-color: #646464;
-  box-shadow: 0 0 0 0.125rem var(--petlink-tan);
-  color: white;
+    background: white;
+    color: #2d2d34;
 }
 
 .search-input::placeholder {
   color: #aaa;
+  opacity: 1;
+}
+
+.search-input:focus::placeholder {
+  color: transparent;
 }
 
 /* --- sidebar contact list ---*/
@@ -120,7 +124,6 @@
     height: 7rem;
     box-sizing: border-box;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
 .contact-info {
@@ -148,12 +151,13 @@
 .contact-avatar {
     width: 3.125rem;
     height: 3.125rem;
-    background-color: var(--bg);
+    background-color: rgba(219, 182, 121, 0.15);
+    border: 1px solid var(--petlink-tan);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--petlink-tan);
     flex-shrink: 0;
@@ -192,21 +196,23 @@
 }
 
 .contact-item:hover .contact-avatar {
-    background-color: white;
+  background-color: rgba(219, 182, 121, 0.15);
+  border: 1px solid var(--petlink-tan);
 }
 
 .contact-item.active {
   background: var(--petlink-tan);
-  color: black;
+  color: var(--social-bg);
 }
 
 .contact-item.active .contact-avatar {
-  color: black;
+  color: var(--social-bg);
   background-color: white;
+  border: 1px solid var(--social-bg);
 }
 
 .contact-item.active .contact-last-msg {
-  color: black;
+  color: var(--social-bg);
 }
 
 /*--- main chat window ---*/
@@ -237,12 +243,14 @@
 .header-avatar {
     width: 2.5rem;
     height: 2.5rem;
-    background: var(--petlink-tan);
-    color: white;
+    background-color: rgba(219, 182, 121, 0.15);
+    border: 1px solid var(--petlink-tan);
+    color: var(--petlink-tan);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.75rem;
     font-weight: bold;
 }
 
@@ -378,4 +386,61 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/*--- attachments ---*/
+
+.chat-input-wrapper-block {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #e5e4e7;
+}
+
+.attachment-preview-bar {
+    padding: 0.5rem 1rem;
+    background: #f9f9fa;
+    display: flex;
+    align-items: center;
+}
+
+.preview-thumbnail-wrapper {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.preview-thumbnail-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    border: 1px solid #dbb679;
+}
+
+.remove-preview-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #2d2d34;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-msg-image {
+    max-width: 240px;
+    max-height: 180px;
+    border-radius: 0.5rem;
+    margin-bottom: 0.25rem;
+    display: block;
+    object-fit: cover;
 }

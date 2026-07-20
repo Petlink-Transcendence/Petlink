@@ -1,0 +1,38 @@
+/* Footer container */
+.footer {
+  width: 100%;
+  padding: 1.5rem 0;
+  background-color: var(--social-bg);
+  color: #a0a0a0;
+  font-size: 0.75rem;
+  z-index: 999;
+}
+
+/* Footer content position */
+.footer-content p {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+/* Brand name */
+.footer-brand {
+  color: var(--petlink-tan);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Slogan */
+.footer-slogan {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Separator */
+.footer-content span:not(:last-child)::after {
+  content: "|";
+  margin-left: 1.5rem;
+  color: #444;
+}

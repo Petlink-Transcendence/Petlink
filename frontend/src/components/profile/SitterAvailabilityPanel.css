@@ -1,0 +1,214 @@
+.sitter-availability-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  overflow: hidden;
+}
+
+.sitter-availability-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border-bottom: 0.0625rem solid #e5e4e7;
+}
+
+.sitter-availability-header .card-title {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+}
+
+.sitter-availability-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding-bottom: 0.65rem;
+  width: 100%;
+}
+
+.sitter-availability-status {
+  flex-shrink: 0;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.35rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.sitter-availability-status.is-accepting {
+  background: rgba(78, 148, 96, 0.12);
+  color: #3e7b4f;
+}
+
+.sitter-availability-status.is-unavailable {
+  background: rgba(120, 120, 120, 0.14);
+  color: #666;
+}
+
+.sitter-availability-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #555;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 800;
+  user-select: none;
+}
+
+.sitter-availability-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sitter-availability-switch {
+  position: relative;
+  width: 2.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: #d9d6d0;
+  transition: background 0.2s;
+}
+
+.sitter-availability-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.16rem;
+  left: 0.18rem;
+  width: 0.83rem;
+  height: 0.83rem;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0.08rem 0.2rem rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.sitter-availability-toggle input:checked + .sitter-availability-switch {
+  background: var(--petlink-tan);
+}
+
+.sitter-availability-toggle input:checked + .sitter-availability-switch::after {
+  transform: translateX(1rem);
+}
+
+.sitter-availability-toggle input:focus-visible + .sitter-availability-switch {
+  outline: 0.125rem solid var(--petlink-tan);
+  outline-offset: 0.125rem;
+}
+
+.sitter-availability-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.sitter-availability-metrics div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  background: #faf8f5;
+  padding: 0.55rem 0.65rem;
+}
+
+.sitter-availability-metrics span,
+.sitter-availability-window span,
+.sitter-service-row span {
+  color: #555;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.sitter-availability-metrics strong,
+.sitter-availability-window strong,
+.sitter-service-row strong {
+  color: black;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.sitter-availability-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sitter-availability-section h4 {
+  margin: 0;
+  color: black;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.sitter-availability-windows,
+.sitter-service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sitter-availability-window,
+.sitter-service-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 0.0625rem solid #f0eeeb;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.sitter-service-row div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 0.15rem;
+  min-width: 0;
+  text-align: center;
+}
+
+.sitter-service-row p {
+  margin: 0;
+  color: #777;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.sitter-service-row strong {
+  flex-shrink: 0;
+}
+
+.sitter-availability-action {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1rem;
+  background: var(--petlink-tan);
+  color: white;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.sitter-availability-action:hover {
+  background: var(--social-bg);
+  transform: translateY(-0.0625rem);
+}

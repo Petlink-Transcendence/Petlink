@@ -1,0 +1,220 @@
+/* Right column wrapper */
+.profile-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+/* Tab bar */
+.profile-tabs {
+  display: flex;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  border-bottom: 0.125rem solid #f0eeeb;
+  padding: 0 0.5rem;
+  overflow: hidden;
+}
+
+/* Tab button */
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 0.2rem solid transparent;
+  margin-bottom: -0.125rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+}
+
+/* Active tab */
+.tab-btn.active {
+  color: var(--petlink-tan);
+  border-bottom-color: var(--petlink-tan);
+}
+
+/* Tab hover */
+.tab-btn:hover:not(.active) {
+  color: #555;
+  background: rgba(219, 182, 121, 0.05);
+}
+
+/* Tab content area */
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Posts ── */
+
+/* Post card container */
+.profile-post-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.profile-post-card:hover {
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.12);
+}
+
+/* Post header with avatar and author info */
+.profile-post-card .post-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  border-bottom: 0;
+}
+
+/* Post author avatar */
+.post-author-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--petlink-tan);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Post author name */
+.post-author-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: black;
+}
+
+/* Post timestamp */
+.profile-post-time-wrapper {
+  text-align: left;
+  margin-top: -0.25rem;    /* Pulls it slightly closer to the post body text */
+  margin-bottom: 0.5rem;   /* Leaves some breathing room above the separator bar */
+}
+
+/* Ensures the time text styling remains clean and muted */
+.profile-post-time-wrapper .post-time {
+  font-size: 0.72rem;
+  color: #aaa;
+  display: inline-block;
+}
+
+/* Post body text */
+.profile-post-text {
+  font-size: 0.9rem;
+  color: #222;
+  margin: 0 0 0.75rem;
+  text-align: left;
+  line-height: 1.5;
+}
+
+/* Post footer with time, comments and likes */
+.profile-post-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-top: 0.0625rem solid #f0eeeb;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.profile-post-actions-group {
+  display: flex;
+  gap: 0.9375rem;
+}
+
+/* Like count */
+.post-likes {
+  color: #e05575;
+  font-weight: 600;
+}
+
+/* ── Reviews ── */
+
+/* Review card container */
+.profile-review-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.profile-review-card:hover {
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.12);
+}
+
+/* Review header with avatar, author, stars and timestamp */
+.profile-review-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Reviewer avatar */
+.profile-review-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: #e8ddd0;
+  color: var(--petlink-tan);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Reviewer name and stars column */
+.profile-review-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+/* Reviewer name */
+.profile-review-author {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: black;
+}
+
+/* Star rating */
+.profile-review-stars {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+/* Review timestamp */
+.profile-review-time {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin-left: auto;
+}
+
+/* Review body text */
+.profile-review-text {
+  font-size: 0.875rem;
+  color: #555;
+  margin: 0;
+  text-align: left;
+  line-height: 1.5;
+}

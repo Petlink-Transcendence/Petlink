@@ -7,8 +7,13 @@ Routes the request to the appropriate app-level URL configuration.
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('accounts.urls')),
-]
+    path('auth/', include('accounts.urls')),
+    path('api/', include('accounts.api_urls')),
+    path('api/', include('pets.urls')),
+    path('api/', include('bookings.urls'))
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
