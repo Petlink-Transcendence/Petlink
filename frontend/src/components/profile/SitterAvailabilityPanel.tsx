@@ -1,4 +1,5 @@
 import './SitterAvailabilityPanel.css';
+import { formatAvailabilityRate } from '../../utils/availabilityRates';
 
 type AvailabilityWindow = {
   label: string;
@@ -16,25 +17,25 @@ type AvailabilityStatus = 'Accepting' | 'Not available';
 type SitterAvailabilityPanelProps = {
   status: AvailabilityStatus;
   location: string;
-  responseTime: string;
   capacity: string;
   windows: AvailabilityWindow[];
   services: ServiceRate[];
   canEdit?: boolean;
   onAvailabilityToggle: () => void;
   onUpdateAvailability: () => void;
+  onUpdateServices: () => void;
 };
 
 export default function SitterAvailabilityPanel({
   status,
   location,
-  responseTime,
   capacity,
   windows,
   services,
   canEdit = true,
   onAvailabilityToggle,
   onUpdateAvailability,
+  onUpdateServices,
 }: SitterAvailabilityPanelProps) {
   const isAccepting = status === 'Accepting';
 
@@ -63,12 +64,8 @@ export default function SitterAvailabilityPanel({
 
       <div className="sitter-availability-metrics">
         <div>
-          <span>Area</span>
+          <span>Location</span>
           <strong>{location}</strong>
-        </div>
-        <div>
-          <span>Reply time</span>
-          <strong>{responseTime}</strong>
         </div>
         <div>
           <span>Capacity</span>
@@ -88,6 +85,16 @@ export default function SitterAvailabilityPanel({
         </div>
       </div>
 
+      {canEdit && (
+        <button
+          className="sitter-availability-action"
+          type="button"
+          onClick={onUpdateAvailability}
+        >
+          Update Availability
+        </button>
+      )}
+
       <div className="sitter-availability-section">
         <h4>Services</h4>
         <div className="sitter-service-list">
@@ -97,7 +104,7 @@ export default function SitterAvailabilityPanel({
                 <span>{service.name}</span>
                 <p>{service.detail}</p>
               </div>
-              <strong>{service.rate}</strong>
+              <strong>{formatAvailabilityRate(service.rate)}</strong>
             </div>
           ))}
         </div>
@@ -105,11 +112,11 @@ export default function SitterAvailabilityPanel({
 
       {canEdit && (
         <button
-          className="sitter-availability-action"
+          className="sitter-availability-action sitter-services-action"
           type="button"
-          onClick={onUpdateAvailability}
+          onClick={onUpdateServices}
         >
-          Update Availability
+          Update services
         </button>
       )}
     </div>

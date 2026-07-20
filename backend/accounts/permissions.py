@@ -21,7 +21,7 @@ class IsOwnerOrAdmin(BasePermission):
     if he is owner of the object or if it is a admin
     """
     def has_object_permission(self, request, view, obj):
-        if not request.user.is_authenticated:
+        if not request.user or not request.user.is_authenticated:
             return False
         if request.user.role == 'admin':
             return True
@@ -42,7 +42,7 @@ class IsOwnerAdminModeratorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if not request.user.is_authenticated:
+        if not request.user or not request.user.is_authenticated:
             return False
         if request.user.role in ['admin', 'moderator']:
             return True
