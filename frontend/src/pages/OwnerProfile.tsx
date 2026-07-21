@@ -7,7 +7,7 @@ import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 
-interface BackendUser {
+export interface BackendUser {
   id: number;
   username?: string;
   name?: string;
@@ -24,7 +24,7 @@ interface BackendUser {
   looking_for?: string[] | null;
 }
 
-interface BackendPet {
+export interface BackendPet {
   id: number;
   name: string;
   type: string;
@@ -55,7 +55,7 @@ type ProfileReview = {
   time: string;
 };
 
-interface ProfileData {
+export interface ProfileData {
   id: string;
   username: string;
   name: string;
@@ -102,7 +102,7 @@ function getPets(pets: BackendPet[]): BackendPet[] {
   return Array.from(petsByKey.values());
 }
 
-function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
+export function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
   const uniquePets = getPets(pets);

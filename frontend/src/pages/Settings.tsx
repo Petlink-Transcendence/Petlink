@@ -1,4 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { getInitials, type BackendUser, type ProfileData, mapBackendToProfile } from './OwnerProfile';
 import './Settings.css';
 
 interface Pet {
@@ -40,12 +41,12 @@ interface SettingsForm {
 
 const initialSettings: SettingsForm = {
   avatarUrl: '',
-  displayName: 'Jane Doe',
-  username: 'janedoe123',
-  email: 'jane.doe@example.com',
-  city: 'Porto',
-  country: 'Portugal',
-  bio: 'Dog and cat mom. Always looking for the best care for my pets.',
+  displayName: '',
+  username: '',
+  email: '',
+  city: '',
+  country: '',
+  bio: '',
   currentPassword: '',
   newPassword: '',
   confirmPassword: '',
@@ -79,15 +80,15 @@ const resettableSettings: Pick<
   | 'showPets'
   | 'showLookingFor'
 > = {
-  profileVisibility: initialSettings.profileVisibility,
-  bookingAlerts: initialSettings.bookingAlerts,
-  messageAlerts: initialSettings.messageAlerts,
-  reviewAlerts: initialSettings.reviewAlerts,
-  commentAlerts: initialSettings.commentAlerts,
-  connectionRequestAlerts: initialSettings.connectionRequestAlerts,
-  showAbout: initialSettings.showAbout,
-  showPets: initialSettings.showPets,
-  showLookingFor: initialSettings.showLookingFor,
+  profileVisibility: 'Everyone',
+  bookingAlerts: true,
+  messageAlerts: true,
+  reviewAlerts: true,
+  commentAlerts: true,
+  connectionRequestAlerts: true,
+  showAbout: true,
+  showPets: true,
+  showLookingFor: true,
 };
 
 const ownerPetTypeOptions = ['dogs', 'cats', 'rabbits', 'other'];
@@ -113,12 +114,62 @@ export default function Settings() {
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
   const [newPetBreed, setNewPetBreed] = useState('');
-  const [newPetAge, setNewPetAge] = useState('');
+  const [newPetAge, setNewPetAge] = useState('<1 yr');
+  const [profile, setAccountData] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [oauthProvider, setOauthProvider] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = 'Settings | PetLink';
   }, []);
+
+  useEffect(() => {
+  const fetchProfileData = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+
+      const response = await fetch(`/auth/me/`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json', 
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch account data.');
+      }
+
+      const data: BackendUser & { email?: string } = await response.json();
+      
+      const mappedProfile = mapBackendToProfile(data);
+      setAccountData(mappedProfile);
+
+      setForm((prev) => ({
+        ...prev,
+        displayName: data.name || mappedProfile.name,
+        username: (data.username || mappedProfile.username).replace('@', ''),
+        email: data.email || '',
+        city: data.city || '',
+        country: data.country || '',
+        avatarUrl: data.avatar || mappedProfile.imageUrl || '',
+        bio: data.description || (mappedProfile.bio !== 'No bio available.' ? mappedProfile.bio : ''),
+      }));
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to load account data.');
+      console.error("Fetch error details:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfileData();
+}, []);
 
   useEffect(() => {
     return () => {
@@ -153,11 +204,8 @@ export default function Settings() {
   }, []);
 
   const profileInitials = form.displayName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((name) => name[0]?.toUpperCase())
-    .join('') || form.username.slice(0, 2).toUpperCase();
+    ? getInitials(form.displayName)
+    : profile?.initials || 'U';
 
   function updateField<Key extends keyof SettingsForm>(key: Key, value: SettingsForm[Key]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -308,6 +356,10 @@ export default function Settings() {
     }
   }
 
+  if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
+  if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
+  if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
+
   return (
     <div className="settings-page">
       <div className="settings-heading">
@@ -316,14 +368,18 @@ export default function Settings() {
       </div>
 
       <form className="settings-layout" onSubmit={handleSubmit}>
-        <aside className="settings-menu" aria-label="Settings sections">
+        <aside className="settings-menu" aria-label="Settings sections">          
           <div className="settings-profile-summary">
             <div className="settings-avatar">
-              {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
+              {form.avatarUrl ? (
+                <img src={form.avatarUrl} alt={form.displayName || profile.name} />
+              ) : (
+                profileInitials
+              )}
             </div>
             <div>
-              <strong>{form.displayName}</strong>
-              <span>@{form.username}</span>
+              <strong>{form.displayName || profile.name}</strong>
+              <span>@{form.username || profile.username.replace('@', '')}</span>
             </div>
           </div>
 
@@ -372,12 +428,12 @@ export default function Settings() {
             <div className="settings-contact-row">
               <label className="settings-field">
                 <span>Email</span>
-                <input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} />
+                <input type="email" value={form.email} onChange={(e) => updateField('ma', e.target.value)} />
               </label>
 
               <div className="settings-location-row">
                 <label className="settings-field settings-compact-field">
-                  <span>City</span>
+                  <span>Location</span>
                   <input type="text" value={form.city} onChange={(e) => updateField('city', e.target.value)} />
                 </label>
                 <label className="settings-field settings-compact-field">
@@ -470,7 +526,6 @@ export default function Settings() {
 
             {form.accountMode === 'owner' && (
               <div className="mode-specific-fields owner-mode animate-fade-in">
-                
                 <div className="settings-input-group">
                   <span className="settings-group-label">My Pets are:</span>
                   <div className="settings-service-list">
