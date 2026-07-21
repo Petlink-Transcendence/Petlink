@@ -21,7 +21,7 @@ interface SettingsForm {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
-  accountMode: 'owner' | 'sitter';
+  accountMode: string;
   profileVisibility: string;
   bookingAlerts: boolean;
   messageAlerts: boolean;
@@ -143,11 +143,13 @@ export default function Settings() {
       if (!response.ok) {
         throw new Error('Failed to fetch account data.');
       }
-
-      const data: BackendUser & { email?: string } = await response.json();
+      const data: BackendUser & { email?: string; user_type?: string } = await response.json();
       
       const mappedProfile = mapBackendToProfile(data);
       setAccountData(mappedProfile);
+
+      const userRole = data.user_type;
+      const initialMode = userRole === 'owner' ? 'owner' : 'sitter';
 
       setForm((prev) => ({
         ...prev,
@@ -158,6 +160,7 @@ export default function Settings() {
         country: data.country || '',
         avatarUrl: data.avatar || mappedProfile.imageUrl || '',
         bio: data.description || (mappedProfile.bio !== 'No bio available.' ? mappedProfile.bio : ''),
+        accountMode: initialMode
       }));
 
     } catch (err: any) {
@@ -428,7 +431,7 @@ export default function Settings() {
             <div className="settings-contact-row">
               <label className="settings-field">
                 <span>Email</span>
-                <input type="email" value={form.email} onChange={(e) => updateField('ma', e.target.value)} />
+                <input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} />
               </label>
 
               <div className="settings-location-row">
@@ -509,19 +512,6 @@ export default function Settings() {
                 <h2>Pet care</h2>
                 <p>Profile mode, pets and service preferences</p>
               </div>
-            </div>
-
-            <div className="settings-segmented" aria-label="Account mode">
-              {(['owner', 'sitter'] as const).map((mode) => (
-                <button
-                  className={form.accountMode === mode ? 'active' : ''}
-                  key={mode}
-                  type="button"
-                  onClick={() => updateField('accountMode', mode)}
-                >
-                  {mode === 'owner' ? 'Owner' : 'Sitter'}
-                </button>
-              ))}
             </div>
 
             {form.accountMode === 'owner' && (
