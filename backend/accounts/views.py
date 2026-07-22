@@ -1,6 +1,7 @@
 import os
 import requests
 from django.shortcuts import redirect, get_object_or_404
+from django.core.files.base import ContentFile
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, status
@@ -123,6 +124,17 @@ class OAuth42CallbackView(APIView):
 
         if created:
             user.set_unusable_password()
+            
+            # Extract and save profile picture
+            image_url = user_data.get('image', {}).get('link') or user_data.get('image_url')
+            if image_url:
+                try:
+                    img_res = requests.get(image_url, timeout=5)
+                    if img_res.ok:
+                        user.avatar.save(f"{ft_login}_42_avatar.jpg", ContentFile(img_res.content), save=False)
+                except requests.RequestException:
+                    pass
+            
             user.save()
 
         refresh = RefreshToken.for_user(user)
