@@ -1,16 +1,21 @@
 import './Auth.css';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         document.title = "Login | PetLink";
-    }, []);
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('error') === 'account_deleted') {
+            setError('Account temporarily unavailable');
+        }
+    }, [location]);
 
     // Local authentication
     const handleLogin = async () => {

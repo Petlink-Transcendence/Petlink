@@ -107,7 +107,7 @@ class OAuth42CallbackView(APIView):
         ft_login = user_data.get('login')
         email = user_data.get('email')
 
-        user, created = User.objects.get_or_create(
+        user, created = User.all_objects.get_or_create(
             username=ft_login,
             defaults={
                 'email': email,
@@ -117,6 +117,9 @@ class OAuth42CallbackView(APIView):
                 'oauth_id': str(user_data.get('id')),
             }
         )
+
+        if not created and user.deleted_at:
+            return redirect("https://localhost:5173/login?error=account_deleted")
 
         if created:
             user.set_unusable_password()

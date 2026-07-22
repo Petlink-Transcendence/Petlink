@@ -138,6 +138,12 @@ export default function Settings() {
         if (res.ok) {
           const data = await res.json();
           setOauthProvider(data.oauth_provider || null);
+          setForm(current => ({
+            ...current,
+            username: data.username,
+            displayName: data.name || current.displayName,
+            email: data.email || current.email
+          }));
         }
       } catch (err) {
         console.error('Failed to fetch user', err);
