@@ -33,7 +33,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 'pet_types', 'looking_for')
+        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 'pet_types', 'looking_for', 'oauth_provider')
         read_only_fields = fields
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
@@ -96,3 +96,13 @@ class UserOnlineStatusSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'online_status', 'last_seen')
         read_only_fields = fields
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        min_req = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$'
+        if not re.match(min_req, value):
+            raise serializers.ValidationError("Password must contain at least 8 chars, one lower, one upper, one number, and one special char.")
+        return value

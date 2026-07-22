@@ -106,6 +106,7 @@ export default function Settings() {
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteNotice, setDeleteNotice] = useState('');
 
@@ -113,6 +114,7 @@ export default function Settings() {
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
   const [newPetBreed, setNewPetBreed] = useState('');
   const [newPetAge, setNewPetAge] = useState('');
+  const [oauthProvider, setOauthProvider] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = 'Settings | PetLink';
@@ -125,6 +127,30 @@ export default function Settings() {
       }
     };
   }, [form.avatarUrl]);
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const token = localStorage.getItem('access');
+        const res = await fetch('/auth/me/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setOauthProvider(data.oauth_provider || null);
+          setForm(current => ({
+            ...current,
+            username: data.username,
+            displayName: data.name || current.displayName,
+            email: data.email || current.email
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch user', err);
+      }
+    }
+    fetchUser();
+  }, []);
 
   const profileInitials = form.displayName
     .split(' ')
@@ -185,30 +211,48 @@ export default function Settings() {
     updateField('petsList', form.petsList.filter((pet) => pet.id !== id));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const passwordFieldsChanged = Boolean(
-      form.currentPassword || form.newPassword || form.confirmPassword
-    );
-
-    if (passwordFieldsChanged) {
-      if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
-        setPasswordError('Fill in all password fields to change your password.');
-        return;
-      }
-
-      if (form.newPassword.length < 8) {
-        setPasswordError('New password must be at least 8 characters.');
-        return;
-      }
-
-      if (form.newPassword !== form.confirmPassword) {
-        setPasswordError('New password and confirmation do not match.');
-        return;
-      }
+  async function handlePasswordSubmit() {
+    if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
+      setPasswordError('Fill in all password fields to change your password.');
+      return;
     }
 
+    if (form.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.');
+      return;
+    }
+
+    if (form.newPassword !== form.confirmPassword) {
+      setPasswordError('New password and confirmation do not match.');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch('/auth/password/change/', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          old_password: form.currentPassword,
+          new_password: form.newPassword
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setPasswordError(data.old_password?.[0] || data.new_password?.[0] || data.detail || 'Failed to update password.');
+        return;
+      }
+    } catch (err) {
+      setPasswordError('Error connecting to server.');
+      return;
+    }
+    
+    setPasswordSuccess('Password changed successfully.');
+    window.setTimeout(() => setPasswordSuccess(''), 3000);
     setPasswordError('');
     setForm((current) => ({
       ...current,
@@ -216,6 +260,11 @@ export default function Settings() {
       newPassword: '',
       confirmPassword: '',
     }));
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2500);
   }
@@ -227,10 +276,36 @@ export default function Settings() {
     setDeleteNotice('');
   }
 
-  function handleDeleteAccount() {
-    if (deleteConfirmation !== form.username) return;
+  async function handleDeleteAccount() {
+    if (!deleteConfirmation) return;
 
-    setDeleteNotice('Connect delete endpoint here.');
+    if (oauthProvider && deleteConfirmation !== form.username) {
+      setDeleteNotice('Username does not match.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch('/auth/me/', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(oauthProvider ? {} : { password: deleteConfirmation })
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
+        window.location.href = '/';
+      } else {
+        const data = await response.json();
+        setDeleteNotice(data.detail || 'Failed to delete account.');
+      }
+    } catch (err) {
+      setDeleteNotice('Error connecting to server.');
+    }
   }
 
   return (
@@ -253,6 +328,7 @@ export default function Settings() {
           </div>
 
           <a className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} href="#profile" onClick={() => setActiveSection('profile')}>Profile</a>
+          {!oauthProvider && <a className={`settings-menu-item ${activeSection === 'security' ? 'active' : ''}`} href="#security" onClick={() => setActiveSection('security')}>Security</a>}
           <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
           <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
           <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
@@ -316,46 +392,60 @@ export default function Settings() {
               <textarea value={form.bio} rows={4} onChange={(e) => updateField('bio', e.target.value)} />
             </label>
 
-            <div className="settings-password-panel">
-              <div className="settings-password-header">
-                <h3>Change password</h3>
-                <p>Update the password you use to sign in.</p>
+          </section>
+
+          {!oauthProvider && (
+            <section className="settings-section" id="security">
+              <div className="settings-section-header">
+                <div>
+                  <h2>Security</h2>
+                  <p>Update the password you use to sign in.</p>
+                </div>
               </div>
 
-              <div className="settings-grid">
-                <label className="settings-field">
-                  <span>Current password</span>
+              <div>
+                {passwordSuccess && <p className="settings-saved" style={{ marginBottom: '1rem' }}>{passwordSuccess}</p>}
+                {passwordError && <p className="settings-password-error">{passwordError}</p>}
+
+                <div className="settings-grid">
+                  <label className="settings-field">
+                    <span>Current password</span>
+                    <input
+                      type="password"
+                      value={form.currentPassword}
+                      onChange={(e) => updateField('currentPassword', e.target.value)}
+                      autoComplete="current-password"
+                    />
+                  </label>
+                  <label className="settings-field">
+                    <span>New password</span>
+                    <input
+                      type="password"
+                      value={form.newPassword}
+                      onChange={(e) => updateField('newPassword', e.target.value)}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                </div>
+
+                <label className="settings-field settings-confirm-password">
+                  <span>Confirm new password</span>
                   <input
                     type="password"
-                    value={form.currentPassword}
-                    onChange={(e) => updateField('currentPassword', e.target.value)}
-                    autoComplete="current-password"
-                  />
-                </label>
-                <label className="settings-field">
-                  <span>New password</span>
-                  <input
-                    type="password"
-                    value={form.newPassword}
-                    onChange={(e) => updateField('newPassword', e.target.value)}
+                    value={form.confirmPassword}
+                    onChange={(e) => updateField('confirmPassword', e.target.value)}
                     autoComplete="new-password"
                   />
                 </label>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                  <button type="button" className="settings-primary-btn" onClick={handlePasswordSubmit}>
+                    Change password
+                  </button>
+                </div>
               </div>
-
-              <label className="settings-field settings-confirm-password">
-                <span>Confirm new password</span>
-                <input
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  autoComplete="new-password"
-                />
-              </label>
-
-              {passwordError && <p className="settings-password-error">{passwordError}</p>}
-            </div>
-          </section>
+            </section>
+          )}
 
           <section className="settings-section" id="care">
             <div className="settings-section-header">
@@ -583,21 +673,21 @@ export default function Settings() {
                 <h3>Delete account</h3>
                 <p>
                   This will remove your profile, pets, bookings, messages and account access.
-                  Type your username to confirm.
+                  {oauthProvider ? " Type your username to confirm." : " Type your password to confirm."}
                 </p>
               </div>
 
               <label className="settings-field settings-delete-confirm">
-                <span>Confirm username</span>
+                <span>{oauthProvider ? "Confirm username" : "Confirm password"}</span>
                 <input
-                  type="text"
+                  type={oauthProvider ? "text" : "password"}
                   value={deleteConfirmation}
                   onChange={(e) => {
                     setDeleteConfirmation(e.target.value);
                     setDeleteNotice('');
                   }}
-                  placeholder={form.username}
-                  autoComplete="off"
+                  placeholder={oauthProvider ? form.username : "Enter your password"}
+                  autoComplete="new-password"
                 />
               </label>
 
@@ -606,7 +696,7 @@ export default function Settings() {
               <button
                 className="settings-danger-btn"
                 type="button"
-                disabled={deleteConfirmation !== form.username}
+                disabled={!deleteConfirmation || (!!oauthProvider && deleteConfirmation !== form.username)}
                 onClick={handleDeleteAccount}
               >
                 Delete my account
