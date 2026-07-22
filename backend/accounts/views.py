@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
     UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer,
-    UserOnlineStatusSerializer
+    UserOnlineStatusSerializer, ChangePasswordSerializer
 )
 from .permissions import IsOwnerAdminModeratorOrReadOnly, IsAdmin
 from .models import Follower
@@ -46,6 +46,20 @@ class UserMeView(APIView):
         """Returns the serialized data of the user making the request"""
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
+
+    def delete(self, request):
+        """Soft delete the logged-in user"""
+        user = request.user
+        if user.deleted_at:
+            return Response({"detail": "User is already deleted."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not user.oauth_provider:
+            password = request.data.get('password')
+            if not password or not user.check_password(password):
+                return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.soft_delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class OAuth42LoginView(APIView):
     """
@@ -310,3 +324,22 @@ class DeleteMeView(APIView):
         user.description = None
         user.soft_delete()
         return Response(status=204)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            
+            if user.oauth_provider:
+                return Response({"detail": "Password change is not available for OAuth users."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

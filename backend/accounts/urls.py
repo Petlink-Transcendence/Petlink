@@ -16,7 +16,8 @@ from .views import (
     AdminUserDeleteView,
     AdminUserActivateView,
     LogoutView,
-    AdminStatsView
+    AdminStatsView,
+    ChangePasswordView
 )
 
 urlpatterns = [
@@ -26,6 +27,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='auth_logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', UserMeView.as_view(), name='user_me'),
+    path('password/change/', ChangePasswordView.as_view(), name='password_change'),
 
     # 42 Intranet OAuth
     path('42/login/', OAuth42LoginView.as_view(), name='oauth_42_login'),
