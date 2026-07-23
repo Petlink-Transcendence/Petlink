@@ -109,6 +109,7 @@ export default function Settings() {
   const [newPetBreed, setNewPetBreed] = useState('');
   const [newPetAge, setNewPetAge] = useState('<1 yr');
   const [profile, setAccountData] = useState<ProfileData | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [oauthProvider, setOauthProvider] = useState<string | null>(null);
@@ -136,8 +137,9 @@ export default function Settings() {
       if (!response.ok) {
         throw new Error('Failed to fetch account data.');
       }
-      const data: BackendUser & { email?: string; user_type?: string } = await response.json();
+      const data: BackendUser & { email?: string; user_type?: string; id?: number } = await response.json();
       
+      setUserId(data.id ?? null);
       const mappedProfile = mapBackendToProfile(data);
       setAccountData(mappedProfile);
 
@@ -272,12 +274,12 @@ export default function Settings() {
     }
     
     try {
-      const token = localStorage.getItem('access');
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
       const response = await fetch('/auth/password/change/', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token && { 'Authorization': `Bearer ${token}` }),
         },
         body: JSON.stringify({
           old_password: form.currentPassword,
@@ -309,8 +311,38 @@ export default function Settings() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 2500);
+    if (!userId) {
+      setError('Cannot save: user ID not loaded.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch(`/auth/users/${userId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          username: form.username,
+          name: form.displayName,
+          description: form.bio,
+          city: form.city,
+          country: form.country,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        const firstError = Object.values(errorData)[0];
+        setPasswordError(Array.isArray(firstError) ? firstError[0] : String(firstError));
+        return;
+      }
+    } catch {
+      setError('Failed to save changes. Please try again.');
+      return;
+    }
   }
 
   function handleReset() {
