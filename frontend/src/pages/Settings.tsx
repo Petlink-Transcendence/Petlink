@@ -101,6 +101,7 @@ export default function Settings() {
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [inlineError, setInlineError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteNotice, setDeleteNotice] = useState('');
@@ -108,6 +109,7 @@ export default function Settings() {
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
   const [newPetBreed, setNewPetBreed] = useState('');
   const [newPetAge, setNewPetAge] = useState('<1 yr');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [profile, setAccountData] = useState<ProfileData | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -214,6 +216,7 @@ export default function Settings() {
     if (!file) return;
 
     const nextAvatarUrl = URL.createObjectURL(file);
+    setAvatarFile(file);
 
     setForm((current) => {
       if (current.avatarUrl.startsWith('blob:')) {
@@ -312,7 +315,7 @@ export default function Settings() {
     event.preventDefault();
 
     if (!userId) {
-      setError('Cannot save: user ID not loaded.');
+      setInlineError('Cannot save: user ID not loaded.');
       return;
     }
 
@@ -334,21 +337,46 @@ export default function Settings() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        const firstError = Object.values(errorData)[0];
-        setPasswordError(Array.isArray(firstError) ? firstError[0] : String(firstError));
+        let message = `Server error ${response.status}`;
+        try {
+          const errorData = await response.json();
+          const firstError = Object.values(errorData)[0];
+          message = Array.isArray(firstError) ? firstError[0] : String(firstError);
+        } catch {
+          // backend returned non-JSON (e.g. HTML 500 page) — use status text
+          message = response.statusText || message;
+        }
+        setInlineError(message);
         return;
       }
-    } catch {
-      setError('Failed to save changes. Please try again.');
+
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        const avatarResponse = await fetch(`/auth/users/${userId}/avatar/`, {
+          method: 'POST',
+          headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+          body: formData,
+        });
+        if (avatarResponse.ok) {
+          setAvatarFile(null);
+        }
+      }
+    } catch (err) {
+      console.error('Settings save failed:', err);
+      setInlineError('Failed to save changes. Please try again.');
       return;
     }
+
+    setSaved(true);
+    setInlineError('');
+    window.setTimeout(() => setSaved(false), 2500);
   }
 
   function handleReset() {
     setForm((current) => ({ ...current, ...resettableSettings }));
     setSaved(false);
-    setPasswordError('');
+    setInlineError('');
     setDeleteNotice('');
   }
   
@@ -519,6 +547,7 @@ export default function Settings() {
           />
 
           <div className="settings-actions">
+            {inlineError && <span className="settings-password-error">{inlineError}</span>}
             {saved && <span className="settings-saved">Changes saved</span>}
             <button className="settings-secondary-btn" type="button" onClick={handleReset}>Reset</button>
             <button className="settings-primary-btn" type="submit">Save changes</button>
