@@ -4,7 +4,9 @@ interface DangerZoneSectionProps {
   username: string;
   deleteConfirmation: string;
   deleteNotice: string;
+  oauthProvider?: string | null;
   setDeleteConfirmation: (v: string) => void;
+  setDeleteNotice: (v: string) => void;
   handleDeleteAccount: () => void;
 }
 
@@ -12,7 +14,9 @@ export default function DangerZoneSection({
   username,
   deleteConfirmation,
   deleteNotice,
+  oauthProvider,
   setDeleteConfirmation,
+  setDeleteNotice,
   handleDeleteAccount,
 }: DangerZoneSectionProps) {
   return (
@@ -29,19 +33,21 @@ export default function DangerZoneSection({
           <h3>Delete account</h3>
           <p>
             This will remove your profile, pets, bookings, messages and account access.
-            Type your username to confirm.
+            {oauthProvider ? " Type your username to confirm." : " Type your password to confirm."}
           </p>
         </div>
 
         <label className="settings-field settings-delete-confirm">
-          <span>Confirm username</span>
+          <span>{oauthProvider ? "Confirm username" : "Confirm password"}</span>
           <input
-            type="text"
+            type={oauthProvider ? "text" : "password"}
             value={deleteConfirmation}
             onChange={(e) => {
               setDeleteConfirmation(e.target.value);
+              setDeleteNotice('');
             }}
-            autoComplete="off"
+            placeholder={oauthProvider ? username : "Enter your password"}
+            autoComplete="new-password"
           />
         </label>
 
@@ -50,7 +56,7 @@ export default function DangerZoneSection({
         <button
           className="settings-danger-btn"
           type="button"
-          disabled={deleteConfirmation !== username}
+          disabled={!deleteConfirmation || (!!oauthProvider && deleteConfirmation !== username)}
           onClick={handleDeleteAccount}
         >
           Delete my account

@@ -5,6 +5,7 @@ import ProfileSection from '../components/settings/ProfileSection';
 import PetCareSection from '../components/settings/PetCareSection';
 import PrivacySection from '../components/settings/PrivacySection';
 import DangerZoneSection from '../components/settings/DangerZoneSection';
+import SecuritySection from '../components/settings/SecuritySection';
 
 export interface Pet {
   id: string;
@@ -103,7 +104,6 @@ export default function Settings() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteNotice, setDeleteNotice] = useState('');
-
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
   const [newPetBreed, setNewPetBreed] = useState('');
@@ -319,7 +319,7 @@ export default function Settings() {
     setPasswordError('');
     setDeleteNotice('');
   }
-
+  
   async function handleDeleteAccount() {
     if (!deleteConfirmation) return;
 
@@ -380,7 +380,7 @@ export default function Settings() {
           </div>
 
           <a className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} href="#profile" onClick={() => setActiveSection('profile')}>Profile</a>
-          {!oauthProvider && <a className={`settings-menu-item ${activeSection === 'security' ? 'active' : ''}`} href="#security" onClick={() => setActiveSection('security')}>Security</a>}
+          {!oauthProvider && <a className={`settings-menu-item ${activeSection === 'security' ? 'active' : ''}`} href="#security" onClick={() => setActiveSection('security')}>Security</a>}          
           <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
           <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
           <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
@@ -396,13 +396,20 @@ export default function Settings() {
             city={form.city}
             country={form.country}
             bio={form.bio}
+            profileInitials={profileInitials}
+            updateField={updateField}
+            handleAvatarChange={handleAvatarChange}
+          />
+
+          <SecuritySection
+            oauthProvider={oauthProvider}
+            passwordSuccess={passwordSuccess}
+            passwordError={passwordError}
             currentPassword={form.currentPassword}
             newPassword={form.newPassword}
             confirmPassword={form.confirmPassword}
-            profileInitials={profileInitials}
-            passwordError={passwordError}
             updateField={updateField}
-            handleAvatarChange={handleAvatarChange}
+            handlePasswordSubmit={handlePasswordSubmit}
           />
 
           <PetCareSection
@@ -470,10 +477,12 @@ export default function Settings() {
             username={form.username}
             deleteConfirmation={deleteConfirmation}
             deleteNotice={deleteNotice}
+            oauthProvider={oauthProvider}
             setDeleteConfirmation={(v) => {
               setDeleteConfirmation(v);
               setDeleteNotice('');
             }}
+            setDeleteNotice={setDeleteNotice}
             handleDeleteAccount={handleDeleteAccount}
           />
 
