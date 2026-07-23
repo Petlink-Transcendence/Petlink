@@ -36,7 +36,6 @@ export interface SettingsForm {
   showAbout: boolean;
   showPets: boolean;
   showLookingFor: boolean;
-  ownerPetTypes: string[];
   petsList: Pet[];
   lookingForServices: string[];
   yearsOfExperience: string;
@@ -65,9 +64,8 @@ const initialSettings: SettingsForm = {
   showAbout: true,
   showPets: true,
   showLookingFor: true,
-  ownerPetTypes: ['dogs', 'cats'],
   petsList: [],
-  lookingForServices: ['Cat Sitter', 'Dog Walker'],
+  lookingForServices: ['cat sitter', 'dog walker'],
   yearsOfExperience: '',
   hourlyRate: '',
   sitterPetTypes: ['dogs', 'cats', 'small pets'],
@@ -140,7 +138,7 @@ export default function Settings() {
         throw new Error('Failed to fetch account data.');
       }
       const data: BackendUser & { email?: string; user_type?: string; id?: number } = await response.json();
-      
+    
       setUserId(data.id ?? null);
       const mappedProfile = mapBackendToProfile(data);
       setAccountData(mappedProfile);
@@ -148,6 +146,7 @@ export default function Settings() {
       const userRole = data.user_type;
       const initialMode = userRole === 'owner' ? 'owner' : 'sitter';
 
+      const backendData = data as BackendUser & { email?: string; user_type?: string; id?: number; experience?: number | null; price?: number | string | null; sitter_pet_types?: string[]; looking_for?: string[] };
       setForm((prev) => ({
         ...prev,
         displayName: data.name || mappedProfile.name,
@@ -157,7 +156,11 @@ export default function Settings() {
         country: data.country || '',
         avatarUrl: data.avatar || mappedProfile.imageUrl || '',
         bio: data.description || (mappedProfile.bio !== 'No bio available.' ? mappedProfile.bio : ''),
-        accountMode: initialMode
+        accountMode: initialMode,
+        yearsOfExperience: backendData.experience != null ? String(backendData.experience) : '',
+        hourlyRate: backendData.price != null ? String(backendData.price) : '',
+        sitterPetTypes: (backendData.sitter_pet_types ?? prev.sitterPetTypes).map((s: string) => s.toLowerCase()),
+        lookingForServices: (backendData.looking_for ?? prev.lookingForServices).map((s: string) => s.toLowerCase()),
       }));
 
     } catch (err: any) {
@@ -226,7 +229,7 @@ export default function Settings() {
     });
   }
 
-  function toggleTagField(key: 'ownerPetTypes' | 'lookingForServices' | 'sitterPetTypes', tag: string) {
+  function toggleTagField(key: 'lookingForServices' | 'sitterPetTypes', tag: string) {
     setForm((current) => {
       const currentTags = current[key] as string[];
       const updatedTags = currentTags.includes(tag)
@@ -333,6 +336,10 @@ export default function Settings() {
           description: form.bio,
           city: form.city,
           country: form.country,
+          experience: form.yearsOfExperience || null,
+          price: form.hourlyRate || null,
+          looking_for: form.lookingForServices,
+          sitter_pet_types: form.sitterPetTypes,
         }),
       });
 
@@ -343,7 +350,6 @@ export default function Settings() {
           const firstError = Object.values(errorData)[0];
           message = Array.isArray(firstError) ? firstError[0] : String(firstError);
         } catch {
-          // backend returned non-JSON (e.g. HTML 500 page) — use status text
           message = response.statusText || message;
         }
         setInlineError(message);
@@ -474,7 +480,6 @@ export default function Settings() {
 
           <PetCareSection
             accountMode={form.accountMode}
-            ownerPetTypes={form.ownerPetTypes}
             petsList={form.petsList}
             lookingForServices={form.lookingForServices}
             yearsOfExperience={form.yearsOfExperience}

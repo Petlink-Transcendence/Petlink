@@ -37,7 +37,8 @@ class User(AbstractUser):
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
     experience = models.TextField(null=True, blank=True)  # For sitters
     price = models.TextField(null=True, blank=True)  # For sitters
-    pet_types = models.JSONField(default=list, blank=True)  # For sitters
+    pet_types = models.JSONField(default=list, blank=True)  # For owners
+    sitter_pet_types = models.JSONField(default=list, blank=True)  # For sitters
     looking_for = models.JSONField(default=list, blank=True)  # For owners
 
     # Status && Realtime

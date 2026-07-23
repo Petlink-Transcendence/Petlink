@@ -32,7 +32,7 @@ interface BackendUser {
   created_at?: string | null;
   experience?: string | null;
   price?: string | number | null;
-  pet_types?: string[] | null;
+  sitter_pet_types?: string[] | null;
 }
 
 type ProfileStat = {
@@ -81,7 +81,7 @@ interface ProfileSitterData {
   reviews: ProfileReview[];
   experience?: string;
   price?: string | number;
-  pet_types?: string[];
+  sitter_pet_types?: string[];
   availability: SitterAvailability;
 }
 
@@ -89,7 +89,7 @@ function formatPetType(type: string): string {
   return type.replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
-function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
+export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
 
@@ -120,7 +120,7 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
       {
         title: 'Pet Types',
         type: 'tags',
-        items: data.pet_types && data.pet_types.length > 0 ? data.pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
+        items: data.sitter_pet_types && data.sitter_pet_types.length > 0 ? data.sitter_pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
       },
     ],
     /* Uncoment and integrate when backend provides posts, reviews and availability*/

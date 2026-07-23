@@ -43,8 +43,8 @@ class Command(BaseCommand):
             {
                 'username': 'rafael', 'email': 'rafael@test.com', 'name': 'Rafael Castro', 'user_type': 'provider',
                 'role': 'user', 'description': 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '5', 'experience': '5+ years', 'price': '10-15 per hour', 'pet_types': ['cats', 'dogs', 'small pets'],
-                'avatar': 'avatars/rafael.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '5', 'experience': '5+ years', 'price': '10-15 per hour',
+                'sitter_pet_types': ['cats', 'dogs', 'small pets'], 'avatar': 'avatars/rafael.jpeg'
             },
             {
                 'username': 'maria', 'email': 'maria@test.com', 'name': 'Maria Santos', 'user_type': 'provider',
@@ -64,7 +64,7 @@ class Command(BaseCommand):
                 'role': data['role'], 'description': data['description'], 'country': data['country'],
                 'city': data['city'], 'rating': data['rating'], 'avatar': data.get('avatar'),
                 'experience': data.get('experience'), 'price': data.get('price'),
-                'pet_types': data.get('pet_types', []), 'looking_for': data.get('looking_for', [])
+                'looking_for': data.get('looking_for', []), 'sitter_pet_types': data.get('sitter_pet_types', [])
             })
             if created:
                 user.set_password('Test1234!')

@@ -1,8 +1,7 @@
 import type { Pet, SettingsForm } from '../../pages/Settings';
 import '../../pages/Settings.css';
 
-const ownerPetTypeOptions = ['dogs', 'cats', 'rabbits', 'other'];
-const lookingForOptions = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
+const lookingForOptions = ['cat sitter', 'dog walker', 'home visits', 'overnight stay'];
 const sitterPetTypeOptions = ['dogs', 'cats', 'rabbits', 'small pets', 'big pets'];
 
 const ageOptions = [
@@ -14,7 +13,6 @@ const ageOptions = [
 
 interface PetCareSectionProps {
   accountMode: string;
-  ownerPetTypes: string[];
   petsList: Pet[];
   lookingForServices: string[];
   yearsOfExperience: string;
@@ -28,7 +26,7 @@ interface PetCareSectionProps {
   setNewPetType: (v: Pet['type']) => void;
   setNewPetBreed: (v: string) => void;
   setNewPetAge: (v: string) => void;
-  toggleTagField: (key: 'ownerPetTypes' | 'lookingForServices' | 'sitterPetTypes', tag: string) => void;
+  toggleTagField: (key: 'lookingForServices' | 'sitterPetTypes', tag: string) => void;
   handleAddPet: () => void;
   handleRemovePet: (id: string) => void;
   updateField: <K extends keyof SettingsForm>(key: K, value: SettingsForm[K]) => void;
@@ -36,7 +34,6 @@ interface PetCareSectionProps {
 
 export default function PetCareSection({
   accountMode,
-  ownerPetTypes,
   petsList,
   lookingForServices,
   yearsOfExperience,
@@ -66,22 +63,6 @@ export default function PetCareSection({
 
       {accountMode === 'owner' && (
         <div className="mode-specific-fields owner-mode animate-fade-in">
-          <div className="settings-input-group">
-            <span className="settings-group-label">My Pets are:</span>
-            <div className="settings-service-list">
-              {ownerPetTypeOptions.map((type) => (
-                <label className="settings-check-row" key={type}>
-                  <input
-                    type="checkbox"
-                    checked={ownerPetTypes.includes(type)}
-                    onChange={() => toggleTagField('ownerPetTypes', type)}
-                  />
-                  <span className="capitalize-text">{type}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
           <div className="settings-input-group">
             <span className="settings-group-label">Manage My Pets:</span>
 

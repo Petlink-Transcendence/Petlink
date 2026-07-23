@@ -22,6 +22,7 @@ export interface BackendUser {
   following_count?: number;
   created_at?: string | null;
   looking_for?: string[] | null;
+  sitter_pet_types?: string[] | null;
 }
 
 export interface BackendPet {
