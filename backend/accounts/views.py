@@ -49,17 +49,15 @@ class UserMeView(APIView):
         return Response(serializer.data)
 
     def delete(self, request):
-        """Soft delete the logged-in user"""
+        """Hard delete the logged-in user"""
         user = request.user
-        if user.deleted_at:
-            return Response({"detail": "User is already deleted."}, status=status.HTTP_400_BAD_REQUEST)
         
         if not user.oauth_provider:
             password = request.data.get('password')
             if not password or not user.check_password(password):
                 return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user.soft_delete()
+        user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class OAuth42LoginView(APIView):
