@@ -57,17 +57,9 @@ export default function FollowsContainer({ onClose, initialTab = 'followers' }: 
                     <div className="follows-tabs">
                         <button 
                             type="button" 
-                            className={`tab-btn ${activeTab === 'followers' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('followers')}
+                            className="tab-btn active"
                         >
-                            Followers
-                        </button>
-                        <button 
-                            type="button" 
-                            className={`tab-btn ${activeTab === 'following' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('following')}
-                        >
-                            Following
+                            Connections
                         </button>
                     </div>
                     <button type="button" className='close-btn' onClick={onClose}>&times;</button>
@@ -104,7 +96,7 @@ export default function FollowsContainer({ onClose, initialTab = 'followers' }: 
                                                     className="follow-btn-action primary follow-back-btn"
                                                     onClick={() => handleFollowBackClick(user.id)}
                                                 >
-                                                    Connect
+                                                    Connect back
                                                 </button>
                                             )}
 
