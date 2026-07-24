@@ -20,7 +20,7 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
   const [activeFollowsTab, setActiveFollowsTab] = useState<'followers' | 'following'>('followers');
 
   const handleStatClick = (label: string) => {
-    const lowerLabel = label.toLocaleLowerCase();
+    const lowerLabel = String(label).toLowerCase();
 
     if (lowerLabel === 'posts' ||
         lowerLabel === 'rating' ||
@@ -28,7 +28,7 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
         lowerLabel === 'bookings') { 
       return; 
     }
-    if (lowerLabel == 'following'){
+    if (lowerLabel == 'connected' || lowerLabel == 'following'){
       setActiveFollowsTab('following');
     } else {
       setActiveFollowsTab('followers');

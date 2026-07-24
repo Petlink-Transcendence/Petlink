@@ -103,8 +103,7 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
     imageUrl: data.avatar || undefined,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
-      { value: data.followers_count ?? 0, label: 'Followers' },
-      { value: data.following_count ?? 0, label: 'Following' },
+      { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
       {
@@ -168,8 +167,7 @@ const rafaelFallbackProfile: ProfileSitterData = {
   imageUrl: 'avatars/rafael.jpeg',
   stats: [
     { value: '5', label: 'Rating' },
-    { value: 0, label: 'Followers' },
-    { value: 0, label: 'Following' },
+    { value: 0, label: 'Connections' },
   ],
   sidebarCards: [
     {

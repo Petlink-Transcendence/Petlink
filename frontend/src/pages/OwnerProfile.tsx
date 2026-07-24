@@ -117,8 +117,7 @@ function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): Profil
     imageUrl: data.avatar || undefined,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
-      { value: data.followers_count ?? 0, label: 'Followers' },
-      { value: data.following_count ?? 0, label: 'Following' },
+      { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
       {title: 'About',
