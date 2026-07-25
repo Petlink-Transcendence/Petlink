@@ -60,6 +60,21 @@ class UserMeView(APIView):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class SetRoleView(APIView):
+    """API view to set user_type for newly created users via 42 OAuth"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        new_role = request.data.get('user_type')
+        
+        if new_role not in ['owner', 'provider']:
+            return Response({"error": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user.user_type = new_role
+        user.save()
+        return Response({"message": f"Role successfully updated to {new_role}."})
+
 class OAuth42LoginView(APIView):
     """
     Outbound Route: React calls this view to discover the official
@@ -137,7 +152,8 @@ class OAuth42CallbackView(APIView):
 
         refresh = RefreshToken.for_user(user)
 
-        frontend_url = f"https://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
+        is_new = str(created).lower()
+        frontend_url = f"https://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}&is_new={is_new}"
         return redirect(frontend_url)
 
 class UserProfileView(generics.RetrieveUpdateAPIView):

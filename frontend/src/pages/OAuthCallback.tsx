@@ -10,13 +10,19 @@ export default function OAuthCallback() {
         const access = searchParams.get('access');
         const refresh = searchParams.get('refresh');
 
+        const isNew = searchParams.get('is_new');
+
         if (access && refresh) {
             // Save tokens using the same keys as traditional login
             localStorage.setItem('access', access);
             localStorage.setItem('refresh', refresh);
 
-            // Redirect user to the feed/home page
-            navigate('/');
+            if (isNew === 'true') {
+                navigate('/choose-role');
+            } else {
+                // Redirect user to the feed/home page
+                navigate('/');
+            }
         } else {
             // If something goes wrong (e.g., missing tokens), return to login
             navigate('/login');

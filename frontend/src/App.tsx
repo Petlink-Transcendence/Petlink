@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OAuthCallback from './pages/OAuthCallback';
+import ChooseRole from './pages/ChooseRole';
 import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
@@ -45,6 +46,12 @@ function App() {
 
           {/* 42 OAuth Callback Route */}
           <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+          <Route path="/choose-role" element={
+            <ProtectedRoute>
+              <ChooseRole />
+            </ProtectedRoute>
+          } />
 
           <Route path="/chat" element={
             <ProtectedRoute>
