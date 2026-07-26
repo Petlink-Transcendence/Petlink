@@ -246,8 +246,8 @@ export default function SitterProfile() {
       setError('');
 
       const endpoint = profileId
-        ? `http://localhost:8080/api/users/${profileId}/`
-        : `http://localhost:8080/auth/me/`;
+        ? `/api/users/${profileId}/`
+        : `/auth/me/`;
 
       try {
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
@@ -267,7 +267,7 @@ export default function SitterProfile() {
 
         let mergedData: BackendUser = data;
 
-        if (!id && data.id) {
+        if (!profileId && data.id) {
         const publicResponse = await fetch(`/api/users/${data.id}/`, {
           method: 'GET',
           headers: {

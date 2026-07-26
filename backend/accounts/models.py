@@ -62,6 +62,14 @@ class User(AbstractUser):
         self.is_active = False
         self.save()
 
+    def delete(self, *args, **kwargs):
+        """Hard delete the user and completely erase their uploaded files from storage"""
+        if self.avatar:
+            self.avatar.delete(save=False)
+        if self.banner:
+            self.banner.delete(save=False)
+        super().delete(*args, **kwargs)
+
     def reactivate(self):
         """Restores a logically deleted account"""
         self.deleted_at = None
