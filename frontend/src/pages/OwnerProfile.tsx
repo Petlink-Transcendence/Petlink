@@ -60,6 +60,7 @@ export interface ProfileData {
   id: string;
   username: string;
   name: string;
+  user_type?: string;
   role: string;
   bio: string;
   initials: string;
@@ -112,7 +113,8 @@ export function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []):
     id: String(data.id),
     name,
     username,
-    role: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'sitter' ? 'Pet Sitter' : (data.role || 'User'),
+    user_type: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'provider' ? 'Pet Sitter' : (data.user_type || ''),
+    role: data.role || '',
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
     imageUrl: data.avatar || undefined,
@@ -249,7 +251,7 @@ export default function Profile() {
         contact: {
           id: Number(profile.id),
           name: profile.name,
-          role: profile.role,
+          user_type: profile.user_type || '',
         },
       },
     });
@@ -265,7 +267,7 @@ export default function Profile() {
       <ProfileInfoBar
         name={profile.name}
         username={profile.username}
-        role={profile.role}
+        user_type={profile.user_type}
         bio={profile.bio}
         stats={profile.stats}
         actions={isOwnProfile

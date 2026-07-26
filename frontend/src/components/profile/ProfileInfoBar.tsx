@@ -9,13 +9,13 @@ type Action = { label: string; variant: 'primary' | 'secondary'; onClick?: () =>
 type ProfileInfoBarProps = {
   name: string;
   username: string;
-  role: string;
+  user_type?: string;
   bio: string;
   stats: Stat[];
   actions?: Action[];
 };
 
-export default function ProfileInfoBar({ name, username, role, bio, stats, actions }: ProfileInfoBarProps) {
+export default function ProfileInfoBar({ name, username, user_type, bio, stats, actions }: ProfileInfoBarProps) {
   const [isFollowsOpen, setisFollowsOpen] = useState(false);
   const [activeFollowsTab, setActiveFollowsTab] = useState<'followers' | 'following'>('followers');
 
@@ -60,7 +60,7 @@ export default function ProfileInfoBar({ name, username, role, bio, stats, actio
       <div className="profile-identity">
         <div className="profile-name-row">
           <h2 className="profile-name">{name}</h2>
-          <span className="profile-role-tag">{role}</span>
+          <span className="profile-user-type-tag">{user_type}</span>
         </div>
         <p className="profile-username">{username}</p>
         <p className="profile-bio">{bio}</p>
