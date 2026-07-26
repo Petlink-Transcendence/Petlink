@@ -12,6 +12,7 @@ export default function Header() {
       
       {/* Right Side: Navigation Links */}
       <nav className="header-nav">
+        <Link to="/admin" className="nav-item">Admin</Link>
         <Link to="/search" className="nav-item">Search</Link>
         <Link to="/notifications" className="nav-item">Notifications</Link>
         <Link to="/chat" className="nav-item">Chat </Link>

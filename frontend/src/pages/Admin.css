@@ -18,6 +18,24 @@
   font-weight: 700;
 }
 
+.admin-user-card .result-avatar {
+  overflow: hidden;
+}
+
+.admin-user-card .result-avatar img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.admin-user-email {
+  color: #888;
+  font-size: 0.74rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
 .admin-user-stats {
   display: flex;
   flex-wrap: wrap;
@@ -91,9 +109,22 @@
   transform: translateY(-0.0625rem);
 }
 
+.admin-delete-btn:disabled,
+.admin-search-card .search-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
 .admin-delete-message {
   color: #a82727;
   font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-error-message {
+  color: #a82727;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 

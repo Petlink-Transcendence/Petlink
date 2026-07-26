@@ -9,6 +9,7 @@ import ChooseRole from './pages/ChooseRole';
 import Chat from './pages/Chat';
 import Profile from './pages/OwnerProfile';
 import Notifications from "./pages/Notifications";
+import Admin from "./pages/Admin";
 import Reviews from './pages/Reviews';
 import Bookings from './pages/Bookings';
 import SitterProfile from './pages/SitterProfile';
@@ -90,6 +91,12 @@ function App() {
             <ProtectedRoute>
               <Notifications />
               </ProtectedRoute>
+          } />
+
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <Admin />
+            </ProtectedRoute>
           } />
 
           <Route path="/search" element={
