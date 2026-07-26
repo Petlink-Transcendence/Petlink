@@ -149,7 +149,7 @@
   background: #e05575;
 }
 
-.btn-remove {
+.admin-btn-remove {
   width: 2rem;
   height: 2rem;
   color: white;
@@ -164,7 +164,7 @@
   transition: all 0.2s;
 }
 
-.btn-remove:hover {
+.admin-btn-remove:hover {
   background-color: var(--petlink-tan);
   border: none;
   transform: scale(1.1);
