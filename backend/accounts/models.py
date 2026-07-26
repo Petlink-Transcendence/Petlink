@@ -39,6 +39,17 @@ class User(AbstractUser):
     price = models.TextField(null=True, blank=True)  # For sitters
     pet_types = models.JSONField(default=list, blank=True)  # For sitters
     looking_for = models.JSONField(default=list, blank=True)  # For owners
+    availability_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Accepting', 'Accepting'),
+            ('Not available', 'Not available'),
+        ],
+        default='Not available',
+    )
+    availability_location = models.CharField(max_length=255, null=True, blank=True)
+    availability_capacity = models.CharField(max_length=100, null=True, blank=True)
+    available_times = models.JSONField(default=list, blank=True)
 
     # Status && Realtime
     online_status = models.BooleanField(default=False)

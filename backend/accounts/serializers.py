@@ -33,7 +33,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 'pet_types', 'looking_for', 'oauth_provider')
+        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 'pet_types', 'looking_for', 'availability_status', 'availability_location', 'availability_capacity', 'available_times', 'oauth_provider')
         read_only_fields = fields
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
@@ -46,7 +46,9 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'id', 'name', 'role', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count',
             'following_count', 'experience', 'price',
-            'pet_types', 'looking_for', 'created_at'
+            'pet_types', 'looking_for', 'availability_status',
+            'availability_location', 'availability_capacity',
+            'available_times', 'created_at'
         )
         read_only_fields = fields
 
@@ -79,7 +81,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('name', 'description', 'country', 'city', 'experience', 'price', 'pet_types', 'looking_for')
+        fields = ('name', 'description', 'country', 'city', 'experience', 'price', 'pet_types', 'looking_for', 'availability_status', 'availability_location', 'availability_capacity', 'available_times')
 
 class AvatarUploadSerializer(serializers.ModelSerializer):
     class Meta:
