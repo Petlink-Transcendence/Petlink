@@ -115,6 +115,12 @@ class Command(BaseCommand):
                 'reviewee': daniela,
                 'rating': 4,
                 'comment': 'Daniela was organized and thoughtful as a pet owner, with everything ready for a smooth visit.'
+            },
+            {
+                'reviewer': daniela,
+                'reviewee': isabel,
+                'rating': 5,
+                'comment': 'Isabel is a thoughtful pet owner. And Kiwi and Sushi are the best cats ever, well behaved and cute.'
             }
         ]
 
