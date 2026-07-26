@@ -11,6 +11,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         users_data = [
             {
+                'username': 'Admin', 'email': 'admin@petlink.local', 'name': 'Admin',
+                'user_type': 'owner', 'role': 'admin', 'description': 'PetLink administrator account',
+                'country': 'Portugal', 'city': 'Porto', 'rating': None,
+                'looking_for': []
+            },
+            {
                 'username': 'joao', 'email': 'joao@test.com', 'name': 'Joao Vieira',
                 'user_type': 'owner', 'role': 'user', 'description': 'Dog lover from Vila Nova de Gaia',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/joao.jpeg',
