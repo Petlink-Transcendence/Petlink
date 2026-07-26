@@ -165,22 +165,23 @@
 .sitter-availability-window,
 .sitter-service-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
   border: 0.0625rem solid #f0eeeb;
   border-radius: 0.5rem;
   padding: 0.55rem 0.65rem;
+  min-width: 0;
 }
 
 .sitter-service-row div {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   flex: 1;
   gap: 0.15rem;
   min-width: 0;
-  text-align: center;
+  text-align: left;
 }
 
 .sitter-service-row p {
@@ -188,11 +189,15 @@
   color: #777;
   font-size: 0.7rem;
   line-height: 1.35;
-  text-align: center;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 
 .sitter-service-row strong {
   flex-shrink: 0;
+  max-width: 38%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .sitter-availability-action {

@@ -36,6 +36,28 @@ interface BackendUser {
   show_looking_for?: boolean | null;
 }
 
+interface BackendAvailability {
+  id: number;
+  user: number;
+  start_date: string;
+  end_date: string;
+  time_slots: string;
+  price: string | number;
+  currency?: string;
+  notes?: string | null;
+}
+
+interface BackendService {
+  id: number;
+  user: number;
+  type: string;
+  description?: string | null;
+  price: string | number;
+  currency?: string;
+  price_unit: string;
+  is_active: boolean;
+}
+
 type ProfileStat = {
   value: string | number;
   label: string;
@@ -65,7 +87,7 @@ type SitterAvailability = {
   location: string;
   capacity: string;
   windows: { label: string; time: string }[];
-  services: { name: string; rate: string; detail: string }[];
+  services: ServiceRateFormData[];
 };
 
 interface ProfileSitterData {
@@ -168,6 +190,113 @@ function formatAvailabilityLocation(location: string) {
   return location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim();
 }
 
+function parseAvailabilityNotes(notes?: string | null) {
+  const values = { location: '', capacity: '' };
+
+  for (const part of (notes || '').split(';')) {
+    const [key, ...valueParts] = part.split(':');
+    const value = valueParts.join(':').trim();
+
+    if (key?.trim().toLowerCase() === 'location') values.location = value;
+    if (key?.trim().toLowerCase() === 'capacity') values.capacity = value;
+  }
+
+  return values;
+}
+
+const serviceLabels: Record<string, string> = {
+  dog_walking: 'Dog Walking',
+  cat_sitting: 'Cat Sitting',
+  home_visits: 'Home Visits',
+  overnight_stay: 'Overnight Stay',
+  grooming: 'Grooming',
+};
+
+function mapBackendServices(records: BackendService[], profileId: string): ServiceRateFormData[] {
+  return records
+    .filter(service => service.user === Number(profileId) && service.is_active)
+    .map(service => ({
+      id: service.id,
+      name: serviceLabels[service.type] || service.type,
+      rate: `${service.price} ${service.currency || 'EUR'}${service.price_unit ? ` ${service.price_unit.replace('per_', 'per ')}` : ''}`,
+      detail: service.description || '',
+    }));
+}
+
+function getServiceType(name: string) {
+  const normalizedName = name.trim().toLowerCase().replace(/\s+/g, '_');
+  const aliases: Record<string, string> = {
+    dog_walking: 'dog_walking',
+    dog_walk: 'dog_walking',
+    cat_sitting: 'cat_sitting',
+    cat_sitting_service: 'cat_sitting',
+    home_visits: 'home_visits',
+    home_visit: 'home_visits',
+    overnight_stay: 'overnight_stay',
+    overnight: 'overnight_stay',
+    grooming: 'grooming',
+  };
+
+  return aliases[normalizedName];
+}
+
+function getServicePayload(service: ServiceRateFormData) {
+  const amount = service.rate.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',', '.') || '';
+  const currency = service.rate.match(/\b(€|EUR|USD|GBP)\b/i)?.[0].toUpperCase() || 'EUR';
+  const normalizedRate = service.rate.toLowerCase();
+  const priceUnit = normalizedRate.includes('day') || normalizedRate.includes('overnight')
+    ? 'per_day'
+    : normalizedRate.includes('hour')
+      ? 'per_hour'
+      : 'per_session';
+
+  return {
+    type: getServiceType(service.name),
+    description: service.detail,
+    price: amount,
+    currency: currency === '€' ? 'EUR' : currency,
+    price_unit: priceUnit,
+  };
+}
+
+function mapBackendAvailability(
+  records: BackendAvailability[],
+  profile: ProfileSitterData,
+): Pick<SitterAvailability, 'status' | 'location' | 'capacity' | 'windows'> {
+  const today = new Date().toISOString().slice(0, 10);
+  const currentRecords = records.filter(record => (
+    record.start_date <= today && record.end_date >= today
+  ));
+
+  if (currentRecords.length === 0) {
+    return {
+      status: 'Not available',
+      location: '',
+      capacity: '',
+      windows: [],
+    };
+  }
+
+  const notes = parseAvailabilityNotes(currentRecords[0].notes);
+  const windows = currentRecords.flatMap(record => record.time_slots
+    .split(/\r?\n/)
+    .map(slot => slot.trim())
+    .filter(Boolean)
+    .map((slot, index) => {
+      const labeledSlot = slot.match(/^(.+?):\s*(.+)$/);
+      return labeledSlot
+        ? { label: labeledSlot[1].trim(), time: labeledSlot[2].trim() }
+        : { label: `Availability ${index + 1}`, time: slot };
+    }));
+
+  return {
+    status: 'Accepting',
+    location: formatAvailabilityLocation(notes.location || profile.sidebarCards[0]?.items.find(item => item.startsWith('📍'))?.replace('📍 ', '') || ''),
+    capacity: notes.capacity,
+    windows,
+  };
+}
+
 export default function SitterProfile() {
   const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
@@ -187,7 +316,7 @@ export default function SitterProfile() {
   const [availabilityLocation, setAvailabilityLocation] = useState('');
   const [availabilityCapacity, setAvailabilityCapacity] = useState('');
   const [availabilityWindows, setAvailabilityWindows] = useState<AvailabilityTimeSlot[]>([]);
-  const [currentServiceRates, setCurrentServiceRates] = useState<{ name: string; rate: string; detail: string }[]>([]);
+  const [currentServiceRates, setCurrentServiceRates] = useState<ServiceRateFormData[]>([]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -231,7 +360,46 @@ export default function SitterProfile() {
           }
         }
 
-        setProfile(mapBackendToSitterProfile(mergedData));
+        let nextProfile = mapBackendToSitterProfile(mergedData);
+        const availabilityResponse = await fetch(`/api/availability/${mergedData.id}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
+
+        if (availabilityResponse.ok) {
+          const availabilityRecords: BackendAvailability[] = await availabilityResponse.json();
+          nextProfile = {
+            ...nextProfile,
+            availability: {
+              ...nextProfile.availability,
+              ...mapBackendAvailability(availabilityRecords, nextProfile),
+            },
+          };
+        }
+
+        const servicesResponse = await fetch('/api/services/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
+
+        if (servicesResponse.ok) {
+          const serviceRecords: BackendService[] = await servicesResponse.json();
+          nextProfile = {
+            ...nextProfile,
+            availability: {
+              ...nextProfile.availability,
+              services: mapBackendServices(serviceRecords, nextProfile.id),
+            },
+          };
+        }
+
+        setProfile(nextProfile);
       } catch (err: any) {
         console.error("Fetch error details:", err);
         setError('');
@@ -288,8 +456,95 @@ export default function SitterProfile() {
     setAvailabilityWindows(availability.availableTimes);
   };
 
-  const handleServicesSave = (services: ServiceRateFormData[]) => {
-    setCurrentServiceRates(services);
+  const handleServicesSave = async (services: ServiceRateFormData[]) => {
+    if (!profile) return;
+
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+    const savedIds: number[] = [];
+
+    for (const service of services) {
+      const payload = getServicePayload(service);
+
+      if (!payload.type || !payload.price) {
+        throw new Error(`Unsupported service or invalid price: ${service.name}`);
+      }
+
+      const response = await fetch(
+        service.id ? `/api/services/${service.id}/` : '/api/services/',
+        {
+          method: service.id ? 'PUT' : 'POST',
+          headers,
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Unable to save ${service.name}.`);
+      }
+
+      const savedService: BackendService = await response.json();
+      savedIds.push(savedService.id);
+    }
+
+    setCurrentServiceRates(services.map((service, index) => ({
+      ...service,
+      id: service.id || savedIds[index],
+    })));
+  };
+
+  const handleServiceAdd = async (service: ServiceRateFormData) => {
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const payload = getServicePayload(service);
+
+    if (!payload.type || !payload.price) {
+      throw new Error(`Unsupported service or invalid price: ${service.name}`);
+    }
+
+    const response = await fetch('/api/services/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Unable to add ${service.name}.`);
+    }
+
+    const savedService: BackendService = await response.json();
+    const savedFormService = mapBackendServices([savedService], profile?.id || '')[0];
+
+    if (!savedFormService) {
+      throw new Error(`Unable to read the new ${service.name} service.`);
+    }
+
+    setCurrentServiceRates(currentServices => [...currentServices, savedFormService]);
+    return savedFormService;
+  };
+
+  const handleServiceRemove = async (service: ServiceRateFormData) => {
+    if (!service.id) return;
+
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const response = await fetch(`/api/services/${service.id}/`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Unable to remove ${service.name}.`);
+    }
+
+    setCurrentServiceRates(currentServices => currentServices.filter(currentService => currentService.id !== service.id));
   };
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -365,6 +620,8 @@ export default function SitterProfile() {
           services={currentServiceRates}
           onClose={() => setIsServicesOpen(false)}
           onSaveServices={handleServicesSave}
+          onAddService={handleServiceAdd}
+          onRemoveService={handleServiceRemove}
         />
       )}
     </div>
