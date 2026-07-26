@@ -33,10 +33,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 
-                  'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 
-                  'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
-                  'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for' )
+        fields = (
+            'id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 
+            'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 
+            'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
+            'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for',
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
+        )
         read_only_fields = fields
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
@@ -49,7 +52,8 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'id', 'name', 'role', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count',
             'following_count', 'experience', 'price',
-            'looking_for', 'created_at', 'sitter_pet_types'
+            'sitter_pet_types', 'looking_for', 'created_at',
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
         )
         read_only_fields = fields
 
@@ -95,10 +99,13 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'name', 'description', 'country', 'city', 'experience', 'price', 
-                  'sitter_pet_types', 'looking_for', 'notify_bookings', 'notify_messages', 
-                  'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 
-                  'show_pets', 'show_looking_for')
+        fields = (
+            'username', 'name', 'description', 'country', 'city', 'experience', 'price', 
+            'sitter_pet_types', 'looking_for', 'notify_bookings', 'notify_messages', 
+            'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 
+            'show_pets', 'show_looking_for', 'availability_status', 'availability_location', 
+            'availability_capacity', 'available_times'
+        )
 
     def validate_username(self, value):
         if User.objects.filter(username__iexact=value).exclude(pk=self.instance.pk).exists():
