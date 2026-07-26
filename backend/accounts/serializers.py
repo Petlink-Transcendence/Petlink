@@ -33,7 +33,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 'sitter_pet_types', 'looking_for', 'oauth_provider')
+        fields = ('id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 
+                  'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 
+                  'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
+                  'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for' )
         read_only_fields = fields
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
@@ -77,14 +80,25 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=500, required=False, allow_blank=True, allow_null=True)
     country = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
     city = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
-    experience = serializers.IntegerField(required=False, min_value=0, allow_null=True)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    experience = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    price = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     sitter_pet_types = serializers.ListField(child=serializers.CharField(max_length=50), required=False, allow_empty=True)
     looking_for = serializers.ListField(child=serializers.CharField(max_length=50), required=False, allow_empty=True)
+    notify_bookings = serializers.BooleanField(required=False)
+    notify_messages = serializers.BooleanField(required=False)
+    notify_reviews = serializers.BooleanField(required=False)
+    notify_comments = serializers.BooleanField(required=False)
+    notify_connections = serializers.BooleanField(required=False)
+    show_about = serializers.BooleanField(required=False)
+    show_pets = serializers.BooleanField(required=False)
+    show_looking_for = serializers.BooleanField(required=False)
 
     class Meta:
         model = User
-        fields = ('username', 'name', 'description', 'country', 'city', 'experience', 'price', 'sitter_pet_types', 'looking_for')
+        fields = ('username', 'name', 'description', 'country', 'city', 'experience', 'price', 
+                  'sitter_pet_types', 'looking_for', 'notify_bookings', 'notify_messages', 
+                  'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 
+                  'show_pets', 'show_looking_for')
 
     def validate_username(self, value):
         if User.objects.filter(username__iexact=value).exclude(pk=self.instance.pk).exists():

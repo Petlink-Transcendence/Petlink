@@ -35,7 +35,7 @@ class Command(BaseCommand):
                 'looking_for': ['dog walker', 'home visits', 'overnight stay']
             },
             {
-                'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel LaRoque', 'user_type': 'owner',
+                'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel La Rocque', 'user_type': 'owner',
                 'role': 'user', 'description': 'Cat & Dog lover from Porto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/gabriel.jpeg',
                 'looking_for': ['cat sitter']
