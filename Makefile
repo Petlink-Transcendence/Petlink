@@ -6,7 +6,7 @@
 #    By: gde-la-r <gde-la-r@student.42porto.com>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/06 17:44:03 by gde-la-r          #+#    #+#              #
-#    Updated: 2026/07/26 12:21:03 by gde-la-r         ###   ########.fr        #
+#    Updated: 2026/07/26 12:39:19 by gde-la-r         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ images:
 	docker images
 
 seed:
-	cat .env.example > .env \
+	cat .env.example > .env
 	$(DOCKER) down -v --remove-orphans && docker compose up -d --build postgres redis \
 	&& $(DOCKER) run --rm core-service python manage.py migrate \
 	&& $(DOCKER)  run --rm core-service python manage.py seed \
