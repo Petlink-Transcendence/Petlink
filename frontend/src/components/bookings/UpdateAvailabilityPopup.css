@@ -152,7 +152,7 @@
 .service-price-item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  align-items: start;
   gap: 0.75rem;
   border: 1px solid #f0eeeb;
   border-radius: 0.75rem;
@@ -195,11 +195,11 @@
 .service-price-row div {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.15rem;
   justify-content: center;
   min-width: 0;
-  text-align: center;
+  text-align: left;
 }
 
 .service-price-row span {
@@ -213,15 +213,19 @@
   color: #777;
   font-size: 0.7rem;
   line-height: 1.35;
-  text-align: center;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 
 .service-price-row strong {
   flex-shrink: 0;
+  max-width: 38%;
+  overflow-wrap: anywhere;
   color: black;
   font-size: 0.76rem;
   font-weight: 800;
   text-align: right;
+  white-space: normal;
 }
 
 .service-detail-field {
