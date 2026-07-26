@@ -13,7 +13,7 @@
 DOCKER = docker compose
 
 all:
-	cat .env.example > .env \
+	cat .env.example > .env
 	$(DOCKER) up --build -d
 
 up:

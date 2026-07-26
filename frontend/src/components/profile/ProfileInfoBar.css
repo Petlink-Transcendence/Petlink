@@ -87,7 +87,7 @@
 }
 
 /* Role badge */
-.profile-role-tag {
+.profile-user-type-tag {
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--petlink-tan);

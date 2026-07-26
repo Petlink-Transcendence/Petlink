@@ -463,34 +463,6 @@ html {
   opacity: 0.45;
 }
 
-.settings-segmented {
-  display: inline-flex;
-  background: #f0eeeb;
-  border-radius: 1.5rem;
-  gap: 0.25rem;
-  margin-bottom: 1rem;
-  padding: 0.25rem;
-}
-
-.settings-segmented button {
-  background: transparent;
-  border: none;
-  border-radius: 1.25rem;
-  color: #666;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 800;
-  min-width: 5.5rem;
-  padding: 0.55rem 0.9rem;
-  transition: background 0.2s, color 0.2s;
-}
-
-.settings-segmented button.active,
-.settings-segmented button:hover {
-  background: var(--petlink-tan);
-  color: var(--white);
-}
-
 .settings-service-list {
   display: flex;
   flex-wrap: wrap;
