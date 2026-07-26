@@ -17,6 +17,7 @@ import Search from './pages/Search';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
+import AdminOnlyRoute from './components/AdminOnlyRoute';
 import MyProfileRedirect from './components/MyProfileRedirect';
 import './App.css';
 
@@ -94,9 +95,9 @@ function App() {
           } />
 
           <Route path="/admin" element={
-            <ProtectedRoute>
+            <AdminOnlyRoute>
               <Admin />
-            </ProtectedRoute>
+            </AdminOnlyRoute>
           } />
 
           <Route path="/search" element={

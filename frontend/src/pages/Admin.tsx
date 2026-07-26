@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import './Notifications.css';
-import './Admin.css';
 import '../components/search/SearchSidebar.css';
-import '../components/search/SearchResults.css';
+import './Admin.css';
 
 type AdminUserProfile = {
     id: number;
@@ -43,8 +41,51 @@ function getInitials(name: string, username: string) {
 
 function getDisplayRole(user: AdminUserProfile) {
     if (user.user_type === 'provider') return 'Pet Sitter';
+    if (user.user_type === 'sitter') return 'Pet Sitter';
     if (user.user_type === 'owner') return 'Pet Owner';
     return user.user_type || 'User';
+}
+
+function formatProfileTagValue(value: string) {
+    return value
+        .replace(/[_-]/g, ' ')
+        .split(' ')
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+        .replace(/\bCats\b/g, 'Cat')
+        .replace(/\bDogs\b/g, 'Dog')
+        .replace(/\bRabbits\b/g, 'Rabbit');
+}
+
+function getProfileTag(user: AdminUserProfile) {
+    const isSitter = user.user_type === 'provider' || user.user_type === 'sitter';
+    const firstPetType = user.pet_types?.find(Boolean);
+    const firstLookingFor = user.looking_for?.find(Boolean);
+
+    if (isSitter && firstPetType) {
+        return `${formatProfileTagValue(firstPetType)} Sitter`;
+    }
+
+    if (user.user_type === 'owner' && firstPetType) {
+        return `${formatProfileTagValue(firstPetType)} Owner`;
+    }
+
+    if (user.user_type === 'owner' && firstLookingFor) {
+        return formatProfileTagValue(firstLookingFor);
+    }
+
+    return getDisplayRole(user);
+}
+
+function getProfileTags(user: AdminUserProfile) {
+    const tags = [
+        getProfileTag(user),
+        ...(user.pet_types ?? []).map(formatProfileTagValue),
+        ...(user.looking_for ?? []).map(formatProfileTagValue),
+    ];
+
+    return Array.from(new Set(tags.filter(Boolean))).slice(0, 5);
 }
 
 function getProfileLocation(user: AdminUserProfile) {
@@ -156,90 +197,162 @@ export default function Admin() {
     };
 
     return (
-        <div className="notifications-container">
-            <div className="notifications-box">
-                <h2 className="notif-title">Admin page</h2>
-                <div className="search-card admin-search-card">
-                    <h3 className="search-card-title">Search by username</h3>
-                    <div className="search-input-wrapper">
-                        <span className="search-icon">🔍</span>
-                        <input
-                            className="search-input"
-                            type="text"
-                            placeholder="Unique username"
-                            value={userQuery}
-                            onChange={e => setUserQuery(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleUserSearch(); }}
-                        />
-                        {userQuery && (
-                            <button
-                                className="search-clear"
-                                onClick={() => {
-                                    setUserQuery('');
-                                    setSearchedUser('');
-                                    setSelectedUser(null);
-                                    setDeleteMessage('');
-                                    setSearchError('');
-                                }}
-                            >
-                                ✕
+        <main className="admin-page">
+            <div className="admin-shell">
+                <header className="admin-heading">
+                    <div>
+                        <p className="admin-kicker">Admin</p>
+                        <h1>User management</h1>
+                    </div>
+                </header>
+
+                <section className="admin-grid" aria-label="Admin user controls">
+                    <aside className="admin-panel admin-search-panel">
+                        <div className="admin-panel-header">
+                            <h2>Find user</h2>
+                            <p>Search by the exact unique username stored in the database.</p>
+                        </div>
+
+                        <div className="admin-search-form">
+                            <div className="search-input-wrapper">
+                                <span className="search-icon">🔍</span>
+                                <input
+                                    className="search-input"
+                                    type="text"
+                                    placeholder="Unique username"
+                                    value={userQuery}
+                                    onChange={e => setUserQuery(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleUserSearch(); }}
+                                />
+                                {userQuery && (
+                                    <button
+                                        className="search-clear"
+                                        onClick={() => {
+                                            setUserQuery('');
+                                            setSearchedUser('');
+                                            setSelectedUser(null);
+                                            setDeleteMessage('');
+                                            setSearchError('');
+                                        }}
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                            <button className="search-btn admin-search-btn" onClick={handleUserSearch} disabled={isSearching}>
+                                {isSearching ? 'Searching...' : 'Search'}
                             </button>
+                        </div>
+
+                        {searchError && (
+                            <span className="admin-error-message">{searchError}</span>
+                        )}
+
+                        {deleteMessage && (
+                            <span className="admin-delete-message">{deleteMessage}</span>
+                        )}
+                    </aside>
+
+                    <div className="admin-panel admin-result-panel">
+                        <div className="admin-panel-header">
+                            <h2>Profile details</h2>
+                            <p>Review the user information before taking account actions.</p>
+                        </div>
+
+                        {!searchedUser && !selectedUser && (
+                            <div className="admin-empty-state">
+                                <span className="admin-empty-icon">🔍</span>
+                                <h3>No user selected</h3>
+                                <p>Search a username to load the matching database profile.</p>
+                            </div>
+                        )}
+
+                        {searchedUser && !selectedUser && !isSearching && !searchError && (
+                            <div className="admin-empty-state">
+                                <span className="admin-empty-icon">🔍</span>
+                                <h3>No user found for "{searchedUser}"</h3>
+                                <p>Enter the exact unique username.</p>
+                            </div>
+                        )}
+
+                        {searchedUser && selectedUser && (
+                            <>
+                                <div className="admin-user-card">
+                                    <div className="admin-user-banner" />
+                                    <div className="admin-user-avatar">
+                                        {selectedUser.avatar ? (
+                                            <img src={selectedUser.avatar} alt={selectedUser.name || selectedUser.username} />
+                                        ) : (
+                                            getInitials(selectedUser.name, selectedUser.username)
+                                        )}
+                                    </div>
+                                    <div className="admin-user-info">
+                                        <span className="admin-profile-tag">{getProfileTag(selectedUser)}</span>
+                                        <div className="admin-identity">
+                                            <div>
+                                                <span className="admin-field-label">Name</span>
+                                                <strong>{selectedUser.name || selectedUser.username}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="admin-field-label">Username</span>
+                                                <strong>{selectedUser.username}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div className="admin-detail-grid">
+                                            <div>
+                                                <span className="admin-field-label">Email</span>
+                                                <strong>{selectedUser.email}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="admin-field-label">Location</span>
+                                                <strong>{getProfileLocation(selectedUser)}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="admin-field-label">Role</span>
+                                                <strong>{selectedUser.role}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="admin-field-label">Joined</span>
+                                                <strong>{formatJoinedDate(selectedUser.created_at)}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="admin-field-label">Status</span>
+                                                <strong>{selectedUser.online_status || 'unknown'}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="admin-field-label">Rating</span>
+                                                <strong>{selectedUser.rating || 'No rating'}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div className="admin-profile-tags" aria-label="Profile tags">
+                                            {getProfileTags(selectedUser).map(tag => (
+                                                <span key={tag}>{tag}</span>
+                                            ))}
+                                        </div>
+
+                                        <div className="admin-bio-block">
+                                            <span className="admin-field-label">Bio</span>
+                                            <p>{selectedUser.description || 'This user has no profile description.'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="admin-danger-panel">
+                                    <div>
+                                        <h3>Delete user</h3>
+                                        <p>This will soft-delete the selected account from PetLink.</p>
+                                    </div>
+                                    <button className="admin-delete-btn" onClick={handleDeleteUser} disabled={isDeleting}>
+                                        {isDeleting ? 'Deleting...' : 'Delete user'}
+                                    </button>
+                                </div>
+                            </>
                         )}
                     </div>
-                    <button className="search-btn" onClick={handleUserSearch} disabled={isSearching}>
-                        {isSearching ? 'Searching...' : 'Search'}
-                    </button>
-                </div>
-                {searchError && (
-                    <span className="admin-error-message">{searchError}</span>
-                )}
-                {searchedUser && selectedUser && (
-                    <div className="result-card admin-user-card">
-                        <div className="result-card-banner" />
-                        <div className="result-avatar">
-                            {selectedUser.avatar ? (
-                                <img src={selectedUser.avatar} alt={selectedUser.name || selectedUser.username} />
-                            ) : (
-                                getInitials(selectedUser.name, selectedUser.username)
-                            )}
-                        </div>
-                        <div className="result-info">
-                            <span className="result-name">{selectedUser.name || selectedUser.username}</span>
-                            <span className="admin-user-username">{selectedUser.username}</span>
-                            <span className="result-role">{getDisplayRole(selectedUser)}</span>
-                            <span className="result-location">📍 {getProfileLocation(selectedUser)}</span>
-                            <span className="admin-user-email">{selectedUser.email}</span>
-                            <div className="admin-user-stats">
-                                <span><strong>{selectedUser.role}</strong> role</span>
-                                <span><strong>{selectedUser.online_status || 'unknown'}</strong> status</span>
-                                <span><strong>{formatJoinedDate(selectedUser.created_at)}</strong> joined</span>
-                                {selectedUser.rating && <span><strong>{selectedUser.rating}</strong> rating</span>}
-                            </div>
-                            <p className="admin-user-bio">
-                                {selectedUser.description || 'This user has no profile description.'}
-                            </p>
-                        </div>
-                    </div>
-                )}
-                {searchedUser && !selectedUser && !isSearching && !searchError && (
-                    <div className="empty-results-card admin-empty-card">
-                        <span className="empty-results-icon">🔍</span>
-                        <h3 className="empty-results-title">No user found for "{searchedUser}"</h3>
-                        <p className="empty-results-text">Enter the exact unique username.</p>
-                    </div>
-                )}
-                {selectedUser && (
-                    <div className="admin-delete-panel">
-                        <span className="admin-delete-copy">Selected username: {selectedUser.username}</span>
-                        <button className="admin-delete-btn" onClick={handleDeleteUser} disabled={isDeleting}>
-                            {isDeleting ? 'Deleting...' : 'Delete user'}
-                        </button>
-                    </div>
-                )}
-                {deleteMessage && (
-                    <span className="admin-delete-message">{deleteMessage}</span>
-                )}
+                </section>
             </div>
-        </div>
+        </main>
     );
 }
