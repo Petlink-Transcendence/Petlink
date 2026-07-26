@@ -33,6 +33,7 @@ export interface BackendPet {
   name: string;
   type: string;
   breed?: string | null;
+  age?: string | null;
 }
 
 type ProfileStat = {
@@ -92,7 +93,8 @@ export function formatMemberSince(isoDate: string): string {
 
 function formatPetLabel(pet: BackendPet): string {
   const nameLabel = pet.name ? `${pet.name[0].toUpperCase()}${pet.name.slice(1)}` : 'Unnamed Pet';
-  return pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${pet.name} | ${pet.type}`;
+  const base = pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${nameLabel} | ${pet.type}`;
+  return pet.age ? `${base} | ${pet.age}` : base;
 }
 
 function getPets(pets: BackendPet[]): BackendPet[] {

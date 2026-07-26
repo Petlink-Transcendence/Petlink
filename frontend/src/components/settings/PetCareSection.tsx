@@ -86,7 +86,7 @@ export default function PetCareSection({
               </select>
               <input
                 type="text"
-                placeholder="Breed"
+                placeholder="Breed / Color"
                 value={newPetBreed}
                 onChange={(e) => setNewPetBreed(e.target.value)}
                 className="pet-input-field pet-breed-input"

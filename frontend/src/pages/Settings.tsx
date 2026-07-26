@@ -161,16 +161,26 @@ export default function Settings() {
         show_looking_for?: boolean;
       };
 
-      console.log('[Settings] /auth/me/ bool fields:', {
-        notify_bookings: backendData.notify_bookings,
-        notify_messages: backendData.notify_messages,
-        notify_reviews: backendData.notify_reviews,
-        notify_comments: backendData.notify_comments,
-        notify_connections: backendData.notify_connections,
-        show_about: backendData.show_about,
-        show_pets: backendData.show_pets,
-        show_looking_for: backendData.show_looking_for
-      });
+      let petsData: Pet[] = [];
+      if (data.id) {
+        try {
+          const petsRes = await fetch(`/api/users/${data.id}/pets/`, {
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (petsRes.ok) {
+            const rawPets = await petsRes.json();
+            petsData = rawPets.map((p: any) => ({
+              id: String(p.id),
+              name: p.name,
+              type: p.type as Pet['type'],
+              breed: p.breed || '',
+              age: p.age || '',
+            }));
+          }
+        } catch {
+          // non-critical, continue without pets
+        }
+      }
 
       setForm((prev) => ({
         ...prev,
@@ -193,7 +203,8 @@ export default function Settings() {
         connectionRequestAlerts: backendData.notify_connections ?? prev.connectionRequestAlerts,
         showAbout: backendData.show_about ?? prev.showAbout,
         showPets: backendData.show_pets ?? prev.showPets,
-        showLookingFor: backendData.show_looking_for ?? prev.showLookingFor
+        showLookingFor: backendData.show_looking_for ?? prev.showLookingFor,
+        petsList: petsData,
       }));
 
     } catch (err: any) {
@@ -272,28 +283,66 @@ export default function Settings() {
     });
   }
 
-  function handleAddPet() {
+  async function handleAddPet() {
     if (!newPetName.trim()) return;
-    
-    const formattedAge = newPetAge.includes('yr') ? newPetAge.replace('yrs', 'years old').replace('yr', 'year old') : newPetAge;
 
-    const newPet: Pet = {
-      id: Date.now().toString(),
-      name: newPetName.trim(),
-      type: newPetType,
-      breed: newPetBreed.trim() || 'Unknown',
-      age: formattedAge,
-    };
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch('/api/pets/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          name: newPetName.trim(),
+          type: newPetType,
+          breed: newPetBreed.trim() || null,
+          age: newPetAge,
+        }),
+      });
 
-    updateField('petsList', [...form.petsList, newPet]);
-    setNewPetName('');
-    setNewPetBreed('');
-    setNewPetType('dog');
-    setNewPetAge('<1 yr');
+      if (!response.ok) {
+        setInlineError('Failed to add pet. Please try again.');
+        return;
+      }
+
+      const created = await response.json();
+      const newPet: Pet = {
+        id: String(created.id),
+        name: created.name,
+        type: created.type as Pet['type'],
+        breed: created.breed || '',
+        age: created.age || newPetAge,
+      };
+
+      updateField('petsList', [...form.petsList, newPet]);
+      setNewPetName('');
+      setNewPetBreed('');
+      setNewPetType('dog');
+      setNewPetAge('<1 yr');
+    } catch {
+      setInlineError('Failed to add pet. Please try again.');
+    }
   }
 
-  function handleRemovePet(id: string) {
-    updateField('petsList', form.petsList.filter((pet) => pet.id !== id));
+  async function handleRemovePet(id: string) {
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch(`/api/pets/${id}/`, {
+        method: 'DELETE',
+        headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        setInlineError('Failed to remove pet. Please try again.');
+        return;
+      }
+
+      updateField('petsList', form.petsList.filter((pet) => pet.id !== id));
+    } catch {
+      setInlineError('Failed to remove pet. Please try again.');
+    }
   }
 
   async function handlePasswordSubmit() {
@@ -376,7 +425,6 @@ export default function Settings() {
           show_pets: form.showPets,
           show_looking_for: form.showLookingFor
       };
-      console.log('[Settings] PATCH body:', patchBody);
       const response = await fetch(`/auth/users/${userId}/`, {
         method: 'PATCH',
         headers: {
