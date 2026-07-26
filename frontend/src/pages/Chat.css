@@ -4,10 +4,20 @@
   --white: #ffffff;
 }
 
+html:has(.chat-container),
+body:has(.chat-container) {
+  overflow-x: auto;
+}
+
+body:has(.chat-container) .footer {
+  min-width: 64rem;
+}
+
 /*--- main layout --- */
 .chat-container {
     height: 100vh;
-    width: 100%;  
+    width: 100%;
+    min-width: 64rem;
     display: flex;
     background-color: var(--social-bg);
     box-sizing: border-box;
@@ -17,10 +27,10 @@
 /* --- sidebar --- */
 .chat-sidebar {
     width: 25rem;
+    flex: 0 0 25rem;
     height: 100%;
     position: sticky;
     padding-top: 6.25rem;
-    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -218,6 +228,7 @@
 /*--- main chat window ---*/
 .chat-window {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -443,4 +454,117 @@
     margin-bottom: 0.25rem;
     display: block;
     object-fit: cover;
+}
+
+@media (max-width: 64rem) {
+  body:has(.chat-container) .footer,
+  .chat-container {
+    min-width: 56rem;
+  }
+
+  .chat-sidebar {
+    flex-basis: 20rem;
+    width: 20rem;
+    margin-left: 0.75rem;
+  }
+
+  .title {
+    font-size: 1.85rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .chat-container .search-box {
+    padding: 0 0.75rem 1.75rem;
+  }
+
+  .contact-item {
+    height: 6rem;
+    padding: 1rem;
+  }
+
+  .contact-avatar {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .chat-header {
+    padding: 1.25rem 1.25rem 0.875rem;
+  }
+
+  .messages-container {
+    padding: 1rem 1.5rem;
+  }
+
+  .message {
+    max-width: 72%;
+  }
+
+  .chat-input-container {
+    padding: 1rem 1.25rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  body:has(.chat-container) .footer,
+  .chat-container {
+    min-width: 52rem;
+  }
+
+  .chat-sidebar {
+    flex-basis: 18rem;
+    width: 18rem;
+    margin-left: 0.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .contact-item {
+    height: 5.5rem;
+    gap: 0.625rem;
+    padding: 0.875rem;
+  }
+
+  .contact-name,
+  .contact-last-msg {
+    font-size: 0.875rem;
+  }
+
+  .chat-header {
+    padding: 1rem 1rem 0.75rem;
+  }
+
+  .header-info h3 {
+    font-size: 1rem;
+    margin: 0;
+    text-align: left;
+  }
+
+  .messages-container {
+    padding: 0.875rem 1rem;
+  }
+
+  .message {
+    max-width: 78%;
+    font-size: 0.875rem;
+  }
+
+  .chat-input-container {
+    gap: 0.625rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .attachment-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .send-message-btn {
+    padding: 0.625rem 0.875rem;
+    flex-shrink: 0;
+  }
 }
