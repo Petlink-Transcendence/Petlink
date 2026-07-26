@@ -134,7 +134,7 @@ export default function Admin() {
 
         try {
             setIsSearching(true);
-            const response = await fetch('/auth/users/', {
+            const response = await fetch('/auth/users/?is_active=true', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
