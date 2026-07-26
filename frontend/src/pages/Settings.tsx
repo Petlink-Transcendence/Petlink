@@ -5,6 +5,7 @@ import ProfileSection from '../components/settings/ProfileSection';
 import PetCareSection from '../components/settings/PetCareSection';
 import PrivacySection from '../components/settings/PrivacySection';
 import DangerZoneSection from '../components/settings/DangerZoneSection';
+import NotificationsSection from '../components/settings/NotificationsSection';
 import SecuritySection from '../components/settings/SecuritySection';
 
 export interface Pet {
@@ -26,8 +27,7 @@ export interface SettingsForm {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
-  accountMode: string;
-  profileVisibility: string;
+  userType: string;
   bookingAlerts: boolean;
   messageAlerts: boolean;
   reviewAlerts: boolean;
@@ -54,8 +54,7 @@ const initialSettings: SettingsForm = {
   currentPassword: '',
   newPassword: '',
   confirmPassword: '',
-  accountMode: 'owner',
-  profileVisibility: 'Everyone',
+  userType: 'owner',
   bookingAlerts: true,
   messageAlerts: true,
   reviewAlerts: true,
@@ -73,7 +72,6 @@ const initialSettings: SettingsForm = {
 
 const resettableSettings: Pick<
   SettingsForm,
-  | 'profileVisibility'
   | 'bookingAlerts'
   | 'messageAlerts'
   | 'reviewAlerts'
@@ -83,7 +81,6 @@ const resettableSettings: Pick<
   | 'showPets'
   | 'showLookingFor'
 > = {
-  profileVisibility: 'Everyone',
   bookingAlerts: true,
   messageAlerts: true,
   reviewAlerts: true,
@@ -143,10 +140,38 @@ export default function Settings() {
       const mappedProfile = mapBackendToProfile(data);
       setAccountData(mappedProfile);
 
-      const userRole = data.user_type;
-      const initialMode = userRole === 'owner' ? 'owner' : 'sitter';
+      const userType = data.user_type;
+      const initialMode = userType === 'owner' ? 'owner' : 'sitter';
 
-      const backendData = data as BackendUser & { email?: string; user_type?: string; id?: number; experience?: number | null; price?: number | string | null; sitter_pet_types?: string[]; looking_for?: string[] };
+      const backendData = data as BackendUser & { 
+        email?: string; 
+        user_type?: string; 
+        id?: number; 
+        experience?: number | null; 
+        price?: number | string | null; 
+        sitter_pet_types?: string[]; 
+        looking_for?: string[]; 
+        notify_bookings?: boolean; 
+        notify_messages?: boolean; 
+        notify_reviews?: boolean; 
+        notify_comments?: boolean; 
+        notify_connections?: boolean;
+        show_about?: boolean;
+        show_pets?: boolean;
+        show_looking_for?: boolean;
+      };
+
+      console.log('[Settings] /auth/me/ bool fields:', {
+        notify_bookings: backendData.notify_bookings,
+        notify_messages: backendData.notify_messages,
+        notify_reviews: backendData.notify_reviews,
+        notify_comments: backendData.notify_comments,
+        notify_connections: backendData.notify_connections,
+        show_about: backendData.show_about,
+        show_pets: backendData.show_pets,
+        show_looking_for: backendData.show_looking_for
+      });
+
       setForm((prev) => ({
         ...prev,
         displayName: data.name || mappedProfile.name,
@@ -156,11 +181,19 @@ export default function Settings() {
         country: data.country || '',
         avatarUrl: data.avatar || mappedProfile.imageUrl || '',
         bio: data.description || (mappedProfile.bio !== 'No bio available.' ? mappedProfile.bio : ''),
-        accountMode: initialMode,
+        userType: initialMode,
         yearsOfExperience: backendData.experience != null ? String(backendData.experience) : '',
         hourlyRate: backendData.price != null ? String(backendData.price) : '',
         sitterPetTypes: (backendData.sitter_pet_types ?? prev.sitterPetTypes).map((s: string) => s.toLowerCase()),
         lookingForServices: (backendData.looking_for ?? prev.lookingForServices).map((s: string) => s.toLowerCase()),
+        bookingAlerts: backendData.notify_bookings ?? prev.bookingAlerts,
+        messageAlerts: backendData.notify_messages ?? prev.messageAlerts,
+        reviewAlerts: backendData.notify_reviews ?? prev.reviewAlerts,
+        commentAlerts: backendData.notify_comments ?? prev.commentAlerts,
+        connectionRequestAlerts: backendData.notify_connections ?? prev.connectionRequestAlerts,
+        showAbout: backendData.show_about ?? prev.showAbout,
+        showPets: backendData.show_pets ?? prev.showPets,
+        showLookingFor: backendData.show_looking_for ?? prev.showLookingFor
       }));
 
     } catch (err: any) {
@@ -324,13 +357,7 @@ export default function Settings() {
 
     try {
       const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-      const response = await fetch(`/auth/users/${userId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
+      const patchBody = {
           username: form.username,
           name: form.displayName,
           description: form.bio,
@@ -340,7 +367,23 @@ export default function Settings() {
           price: form.hourlyRate || null,
           looking_for: form.lookingForServices,
           sitter_pet_types: form.sitterPetTypes,
-        }),
+          notify_bookings: form.bookingAlerts,
+          notify_messages: form.messageAlerts,
+          notify_reviews: form.reviewAlerts,
+          notify_comments: form.commentAlerts,
+          notify_connections: form.connectionRequestAlerts,
+          show_about: form.showAbout,
+          show_pets: form.showPets,
+          show_looking_for: form.showLookingFor
+      };
+      console.log('[Settings] PATCH body:', patchBody);
+      const response = await fetch(`/auth/users/${userId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify(patchBody),
       });
 
       if (!response.ok) {
@@ -479,7 +522,7 @@ export default function Settings() {
           />
 
           <PetCareSection
-            accountMode={form.accountMode}
+            userType={form.userType}
             petsList={form.petsList}
             lookingForServices={form.lookingForServices}
             yearsOfExperience={form.yearsOfExperience}
@@ -498,7 +541,7 @@ export default function Settings() {
             handleRemovePet={handleRemovePet}
             updateField={updateField}
           />
-
+          
           <NotificationsSection
             bookingAlerts={form.bookingAlerts}
             messageAlerts={form.messageAlerts}
@@ -509,6 +552,7 @@ export default function Settings() {
           />
 
           <PrivacySection
+            userType={form.userType}
             showAbout={form.showAbout}
             showPets={form.showPets}
             showLookingFor={form.showLookingFor}

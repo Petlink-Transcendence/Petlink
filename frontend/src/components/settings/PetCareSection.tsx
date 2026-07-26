@@ -12,7 +12,7 @@ const ageOptions = [
 ];
 
 interface PetCareSectionProps {
-  accountMode: string;
+  userType: string;
   petsList: Pet[];
   lookingForServices: string[];
   yearsOfExperience: string;
@@ -33,7 +33,7 @@ interface PetCareSectionProps {
 }
 
 export default function PetCareSection({
-  accountMode,
+  userType,
   petsList,
   lookingForServices,
   yearsOfExperience,
@@ -61,7 +61,7 @@ export default function PetCareSection({
         </div>
       </div>
 
-      {accountMode === 'owner' && (
+      {userType === 'owner' && (
         <div className="mode-specific-fields owner-mode animate-fade-in">
           <div className="settings-input-group">
             <span className="settings-group-label">Manage My Pets:</span>
@@ -141,7 +141,7 @@ export default function PetCareSection({
         </div>
       )}
 
-      {accountMode === 'sitter' && (
+      {userType === 'sitter' && (
         <div className="mode-specific-fields sitter-mode animate-fade-in">
           <div className="settings-grid">
             <label className="settings-field sitter-open-field">

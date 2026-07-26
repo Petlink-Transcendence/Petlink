@@ -23,6 +23,9 @@ export interface BackendUser {
   created_at?: string | null;
   looking_for?: string[] | null;
   sitter_pet_types?: string[] | null;
+  show_about?: boolean | null;
+  show_pets?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 export interface BackendPet {
@@ -70,6 +73,9 @@ export interface ProfileData {
   posts: ProfilePost[];
   reviews: ProfileReview[];
   looking_for?: string[];
+  show_about?: boolean | null;
+  show_pets?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 export function getInitials(name: string): string {
@@ -118,27 +124,33 @@ export function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []):
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
     imageUrl: data.avatar || undefined,
+    show_about: data.show_about ?? true,
+    show_pets: data.show_pets ?? true,
+    show_looking_for: data.show_looking_for ?? true,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
       { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
-      {title: 'About',
-        type: 'meta',
+      ...(data.show_about !== false ? [{
+        title: 'About',
+        type: 'meta' as const,
         items: [
           data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
           data.city ? `📍 ${data.city}` : '📍 Location not set',
           data.country ? `🌍 ${data.country}` : '🌍 Country not set',
         ],
-      },
-      {title: 'My Pets',
-        type: 'tags',
+      }] : []),
+      ...(data.show_pets !== false ? [{
+        title: 'My Pets',
+        type: 'tags' as const,
         items: petItems,
-      },
-      {title: 'Looking for',
-        type: 'tags',
+      }] : []),
+      ...(data.show_looking_for !== false ? [{
+        title: 'Looking for',
+        type: 'tags' as const,
         items: data.looking_for && data.looking_for.length > 0 ? data.looking_for.map(item => item.charAt(0).toUpperCase() + item.slice(1)) : ['No preferences set'],
-      },
+      }] : []),
     ],
    /* Uncoment and integrate when backend provides posts and reviews */
     // posts: [],

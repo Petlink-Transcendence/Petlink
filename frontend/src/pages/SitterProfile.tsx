@@ -13,7 +13,6 @@ import UpdateAvailabilityPopup, {
   type AvailabilityTimeSlot,
 } from '../components/bookings/UpdateAvailabilityPopup';
 import UpdateServicesPopup, { type ServiceRateFormData } from '../components/bookings/UpdateServicesPopup';
-import { getSitterProfile, sitterProfiles } from '../data/profileData';
 import { getInitials, formatMemberSince } from './OwnerProfile';
 
 interface BackendUser {
@@ -33,6 +32,8 @@ interface BackendUser {
   experience?: string | null;
   price?: string | number | null;
   sitter_pet_types?: string[] | null;
+  show_about?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 type ProfileStat = {
@@ -84,6 +85,8 @@ interface ProfileSitterData {
   price?: string | number;
   sitter_pet_types?: string[];
   availability: SitterAvailability;
+  show_about?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 function formatPetType(type: string): string {
@@ -103,14 +106,16 @@ export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData 
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
     imageUrl: data.avatar || undefined,
+    show_about: data.show_about ?? true,
+    show_looking_for: data.show_looking_for ?? true,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
       { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
-      {
+      ...(data.show_about !== false ? [{
         title: 'About',
-        type: 'meta',
+        type: 'meta' as const,
         items: [
           data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
           data.city ? `📍 ${data.city}` : '📍 Location not set',
@@ -118,12 +123,12 @@ export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData 
           data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
           data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
         ],
-      },
-      {
+      }] : []),
+      ...(data.show_looking_for !== false ? [{
         title: 'Pet Types',
-        type: 'tags',
+        type: 'tags' as const,
         items: data.sitter_pet_types && data.sitter_pet_types.length > 0 ? data.sitter_pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
-      },
+      }] : []),
     ],
     /* Uncoment and integrate when backend provides posts, reviews and availability*/
     // posts: [],

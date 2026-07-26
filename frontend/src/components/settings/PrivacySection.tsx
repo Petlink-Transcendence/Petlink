@@ -2,6 +2,7 @@ import type { SettingsForm } from '../../pages/Settings';
 import '../../pages/Settings.css';
 
 interface PrivacySectionProps {
+  userType: string;
   showAbout: boolean;
   showPets: boolean;
   showLookingFor: boolean;
@@ -9,6 +10,7 @@ interface PrivacySectionProps {
 }
 
 export default function PrivacySection({
+  userType,
   showAbout,
   showPets,
   showLookingFor,
@@ -35,17 +37,21 @@ export default function PrivacySection({
             onChange={(e) => updateField('showAbout', e.target.checked)}
           />
         </label>
-        <label className="settings-toggle-row">
-          <span>
-            <strong>Show Pets</strong>
-            <small>Your pets or pets you petsit</small>
-          </span>
-          <input
-            type="checkbox"
-            checked={showPets}
-            onChange={(e) => updateField('showPets', e.target.checked)}
-          />
-        </label>
+
+        {userType === 'owner' && (
+          <label className="settings-toggle-row">
+            <span>
+              <strong>Show Pets</strong>
+              <small>Your pets or pets you petsit</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={showPets}
+              onChange={(e) => updateField('showPets', e.target.checked)}
+            />
+          </label>
+        )}
+        
         <label className="settings-toggle-row">
           <span>
             <strong>Show Looking For</strong>
