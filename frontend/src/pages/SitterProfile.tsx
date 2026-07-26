@@ -35,6 +35,17 @@ interface BackendUser {
   pet_types?: string[] | null;
 }
 
+interface BackendAvailability {
+  id: number;
+  user: number;
+  start_date: string;
+  end_date: string;
+  time_slots: string;
+  price: string | number;
+  currency?: string;
+  notes?: string | null;
+}
+
 type ProfileStat = {
   value: string | number;
   label: string;
@@ -219,6 +230,58 @@ function formatAvailabilityLocation(location: string) {
   return location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim();
 }
 
+function parseAvailabilityNotes(notes?: string | null) {
+  const values = { location: '', capacity: '' };
+
+  for (const part of (notes || '').split(';')) {
+    const [key, ...valueParts] = part.split(':');
+    const value = valueParts.join(':').trim();
+
+    if (key?.trim().toLowerCase() === 'location') values.location = value;
+    if (key?.trim().toLowerCase() === 'capacity') values.capacity = value;
+  }
+
+  return values;
+}
+
+function mapBackendAvailability(
+  records: BackendAvailability[],
+  profile: ProfileSitterData,
+): Pick<SitterAvailability, 'status' | 'location' | 'capacity' | 'windows'> {
+  const today = new Date().toISOString().slice(0, 10);
+  const currentRecords = records.filter(record => (
+    record.start_date <= today && record.end_date >= today
+  ));
+
+  if (currentRecords.length === 0) {
+    return {
+      status: 'Not available',
+      location: '',
+      capacity: '',
+      windows: [],
+    };
+  }
+
+  const notes = parseAvailabilityNotes(currentRecords[0].notes);
+  const windows = currentRecords.flatMap(record => record.time_slots
+    .split(/\r?\n/)
+    .map(slot => slot.trim())
+    .filter(Boolean)
+    .map((slot, index) => {
+      const labeledSlot = slot.match(/^(.+?):\s*(.+)$/);
+      return labeledSlot
+        ? { label: labeledSlot[1].trim(), time: labeledSlot[2].trim() }
+        : { label: `Availability ${index + 1}`, time: slot };
+    }));
+
+  return {
+    status: 'Accepting',
+    location: formatAvailabilityLocation(notes.location || profile.sidebarCards[0]?.items.find(item => item.startsWith('📍'))?.replace('📍 ', '') || ''),
+    capacity: notes.capacity,
+    windows,
+  };
+}
+
 export default function SitterProfile() {
   const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
@@ -282,7 +345,27 @@ export default function SitterProfile() {
           }
         }
 
-        setProfile(mapBackendToSitterProfile(mergedData));
+        let nextProfile = mapBackendToSitterProfile(mergedData);
+        const availabilityResponse = await fetch(`/api/availability/${mergedData.id}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
+
+        if (availabilityResponse.ok) {
+          const availabilityRecords: BackendAvailability[] = await availabilityResponse.json();
+          nextProfile = {
+            ...nextProfile,
+            availability: {
+              ...nextProfile.availability,
+              ...mapBackendAvailability(availabilityRecords, nextProfile),
+            },
+          };
+        }
+
+        setProfile(nextProfile);
       } catch (err: any) {
         console.error("Fetch error details:", err);
         setProfile(getSitterFallbackProfile(profileId));

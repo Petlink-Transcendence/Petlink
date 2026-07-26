@@ -96,6 +96,20 @@ class Command(BaseCommand):
         service_maria, _ = Service.objects.get_or_create(user=maria, type='dog_walking', defaults={'description': 'Daily walks', 'price': '15.00', 'currency': 'EUR', 'price_unit': 'per_hour'})
         service_carlos, _ = Service.objects.get_or_create(user=carlos, type='cat_sitting', defaults={'description': 'Cat sitting', 'price': '12.00', 'currency': 'EUR', 'price_unit': 'per_day'})
 
+        rafael = User.objects.get(username='rafael')
+
+        Availability.objects.get_or_create(
+            user=rafael,
+            start_date='2026-07-01',
+            end_date='2026-12-31',
+            defaults={
+                'time_slots': 'Mon - Fri: 09:00 - 12:00\nSaturday: 14:00 - 19:00\nSunday: On request',
+                'price': '15.00',
+                'currency': 'EUR',
+                'notes': 'Location: Porto; Capacity: 2 bookings/day',
+            },
+        )
+
         Availability.objects.get_or_create(user=maria, start_date='2026-07-14', end_date='2026-07-31', defaults={'time_slots': 'Weekdays 09:00-12:00', 'price': '15.00', 'currency': 'EUR'})
         Availability.objects.get_or_create(user=carlos, start_date='2026-07-14', end_date='2026-07-31', defaults={'time_slots': 'Weekends 10:00-18:00', 'price': '12.00', 'currency': 'EUR'})
 
