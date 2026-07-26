@@ -197,3 +197,73 @@
 .oauth-42-button:hover {
   background-color: #009ba0;
 }
+
+/* --- Sign Up Responsiveness --- */
+html:has(.signup-page-container),
+body:has(.signup-page-container) {
+  overflow-x: auto;
+}
+
+.signup-page-container {
+  min-width: 20rem;
+}
+
+@media (max-width: 48rem) {
+  .signup-page-container {
+    justify-content: flex-start;
+    padding: 1rem;
+  }
+
+  .signup-page-container .welcome-message {
+    width: 100%;
+    margin-top: 5.25rem;
+    margin-bottom: 1.25rem;
+    font-size: 2.5rem;
+    line-height: 1.1;
+  }
+
+  .signup-page-container .login-box {
+    max-width: 26rem;
+    padding: 1.75rem;
+    gap: 1rem;
+  }
+
+  .signup-page-container .login-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .signup-page-container {
+    min-width: 20rem;
+    padding: 0.75rem;
+  }
+
+  .signup-page-container .welcome-message {
+    margin-top: 4.75rem;
+    font-size: 2rem;
+  }
+
+  .signup-page-container .login-box {
+    padding: 1.25rem;
+    border-radius: 0.625rem;
+  }
+
+  .signup-page-container .input-group input:not([type="radio"]) {
+    font-size: 0.9375rem;
+  }
+
+  .signup-page-container .radio-options {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .signup-page-container .input-group .radio-option {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .signup-page-container .sign-up-container {
+    flex-wrap: wrap;
+  }
+}

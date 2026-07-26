@@ -75,7 +75,7 @@ export default function Register() {
     };
 
     return (
-        <div className="login-page-container">
+        <div className="login-page-container signup-page-container">
             <h1 className="welcome-message">
                 Welcome to <span className="welcome-message-petlink">PetLink</span>
             </h1>
