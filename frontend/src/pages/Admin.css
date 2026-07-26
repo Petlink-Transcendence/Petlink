@@ -310,6 +310,90 @@
   transform: none;
 }
 
+.admin-modal-backdrop {
+  align-items: center;
+  background: rgba(22, 22, 28, 0.62);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 2000;
+}
+
+.admin-confirm-modal {
+  background: var(--white);
+  border-radius: 0.75rem;
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+  display: grid;
+  gap: 1rem;
+  max-width: 28rem;
+  padding: 1.25rem;
+  text-align: left;
+  width: 100%;
+}
+
+.admin-confirm-icon {
+  align-items: center;
+  background: #fff8f8;
+  border: 0.0625rem solid rgba(198, 40, 40, 0.2);
+  border-radius: 50%;
+  color: #c62828;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 900;
+  height: 2.5rem;
+  justify-content: center;
+  width: 2.5rem;
+}
+
+.admin-confirm-copy h2 {
+  color: #202027;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 0.4rem;
+}
+
+.admin-confirm-copy p {
+  color: #5f5f68;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.admin-confirm-copy strong {
+  color: #202027;
+}
+
+.admin-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.admin-cancel-btn {
+  background: #f4f4f6;
+  border: 0.0625rem solid #dcdce2;
+  border-radius: 0.5rem;
+  color: #44444c;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.65rem 1rem;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.admin-cancel-btn:hover {
+  background: #ebebef;
+  border-color: #cfcfd7;
+}
+
+.admin-cancel-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .admin-delete-message,
 .admin-error-message {
   border-radius: 0.5rem;
@@ -363,6 +447,11 @@
     flex-direction: column;
   }
 
+  .admin-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .admin-cancel-btn,
   .admin-delete-btn {
     width: 100%;
   }

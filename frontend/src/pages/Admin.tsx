@@ -109,6 +109,7 @@ export default function Admin() {
     const [searchError, setSearchError] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
     useEffect(() => {
         document.title = 'Admin | Petlink';
@@ -189,6 +190,7 @@ export default function Admin() {
             setUserQuery('');
             setSearchedUser('');
             setSelectedUser(null);
+            setIsDeleteConfirmOpen(false);
         } catch {
             setSearchError('Error connecting to the server.');
         } finally {
@@ -233,6 +235,7 @@ export default function Admin() {
                                             setSelectedUser(null);
                                             setDeleteMessage('');
                                             setSearchError('');
+                                            setIsDeleteConfirmOpen(false);
                                         }}
                                     >
                                         ✕
@@ -344,8 +347,8 @@ export default function Admin() {
                                         <h3>Delete user</h3>
                                         <p>This will soft-delete the selected account from PetLink.</p>
                                     </div>
-                                    <button className="admin-delete-btn" onClick={handleDeleteUser} disabled={isDeleting}>
-                                        {isDeleting ? 'Deleting...' : 'Delete user'}
+                                    <button className="admin-delete-btn" onClick={() => setIsDeleteConfirmOpen(true)} disabled={isDeleting}>
+                                        Delete user
                                     </button>
                                 </div>
                             </>
@@ -353,6 +356,36 @@ export default function Admin() {
                     </div>
                 </section>
             </div>
+            {isDeleteConfirmOpen && selectedUser && (
+                <div className="admin-modal-backdrop" role="presentation">
+                    <div className="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-user-title">
+                        <div className="admin-confirm-icon">!</div>
+                        <div className="admin-confirm-copy">
+                            <h2 id="delete-user-title">Delete this account?</h2>
+                            <p>
+                                You are about to delete <strong>{selectedUser.name || selectedUser.username}</strong> ({selectedUser.username}).
+                                This account will no longer be active in PetLink.
+                            </p>
+                        </div>
+                        <div className="admin-confirm-actions">
+                            <button
+                                className="admin-cancel-btn"
+                                onClick={() => setIsDeleteConfirmOpen(false)}
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="admin-delete-btn"
+                                onClick={handleDeleteUser}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? 'Deleting...' : 'Confirm delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
