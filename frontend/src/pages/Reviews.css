@@ -98,6 +98,16 @@
   gap: 1rem;
 }
 
+.reviews-status {
+  margin: 0;
+  padding: 1.25rem;
+  background: white;
+  border-radius: 0.75rem;
+  color: #666;
+  font-size: 0.95rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+}
+
 /* Filters */
 
 .reviews-filters {

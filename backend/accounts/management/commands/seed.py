@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from pets.models import Pet, UserPet
-from bookings.models import Service, Availability, Booking
+from bookings.models import Service, Availability, Booking, Review
 
 User = get_user_model()
 
@@ -90,6 +90,7 @@ class Command(BaseCommand):
         carlos = User.objects.get(username='carlos')
         joao = User.objects.get(username='joao')
         isabel = User.objects.get(username='isabel')
+        daniela = User.objects.get(username='daniela')
         zeus = Pet.objects.get(name='Zeus')
         sushi = Pet.objects.get(name='Sushi')
 
@@ -101,5 +102,30 @@ class Command(BaseCommand):
 
         Booking.objects.get_or_create(requester=joao, provider=maria, service=service_maria, pet=zeus, date='2026-07-15', defaults={'start_time': '09:00', 'end_time': '10:00', 'location': 'Porto', 'message': 'Walk', 'currency': 'EUR'})
         Booking.objects.get_or_create(requester=isabel, provider=carlos, service=service_carlos, pet=sushi, date='2026-07-16', defaults={'start_time': '10:00', 'end_time': '18:00', 'location': 'Porto', 'message': 'Feed', 'currency': 'EUR'})
+
+        reviews_data = [
+            {
+                'reviewer': joao,
+                'reviewee': daniela,
+                'rating': 5,
+                'comment': 'Daniela gave clear care instructions, responded quickly, and made the booking easy from start to finish.'
+            },
+            {
+                'reviewer': isabel,
+                'reviewee': daniela,
+                'rating': 4,
+                'comment': 'Daniela was organized and thoughtful as a pet owner, with everything ready for a smooth visit.'
+            }
+        ]
+
+        for data in reviews_data:
+            Review.objects.update_or_create(
+                reviewer=data['reviewer'],
+                reviewee=data['reviewee'],
+                defaults={
+                    'rating': data['rating'],
+                    'comment': data['comment']
+                }
+            )
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
