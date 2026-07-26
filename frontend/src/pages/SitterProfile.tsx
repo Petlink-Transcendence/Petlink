@@ -13,7 +13,6 @@ import UpdateAvailabilityPopup, {
   type AvailabilityTimeSlot,
 } from '../components/bookings/UpdateAvailabilityPopup';
 import UpdateServicesPopup, { type ServiceRateFormData } from '../components/bookings/UpdateServicesPopup';
-import { getSitterProfile, sitterProfiles } from '../data/profileData';
 import { getInitials, formatMemberSince } from './OwnerProfile';
 
 interface BackendUser {
@@ -32,7 +31,9 @@ interface BackendUser {
   created_at?: string | null;
   experience?: string | null;
   price?: string | number | null;
-  pet_types?: string[] | null;
+  sitter_pet_types?: string[] | null;
+  show_about?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 type ProfileStat = {
@@ -71,6 +72,7 @@ interface ProfileSitterData {
   id: string;
   username: string;
   name: string;
+  user_type?: string;
   role: string;
   bio: string;
   initials: string;
@@ -81,15 +83,17 @@ interface ProfileSitterData {
   reviews: ProfileReview[];
   experience?: string;
   price?: string | number;
-  pet_types?: string[];
+  sitter_pet_types?: string[];
   availability: SitterAvailability;
+  show_about?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 function formatPetType(type: string): string {
   return type.replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
-function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
+export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
 
@@ -97,18 +101,21 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
     id: String(data.id),
     name,
     username,
-    role: data.user_type === 'sitter' ? 'Pet Sitter' : data.user_type === 'owner' ? 'Pet Owner' : (data.role || 'User'),
+    user_type: data.user_type === 'provider' ? 'Pet Sitter' : data.user_type === 'owner' ? 'Pet Owner' : (data.user_type || ''),
+    role: data.role || '',
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
     imageUrl: data.avatar || undefined,
+    show_about: data.show_about ?? true,
+    show_looking_for: data.show_looking_for ?? true,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
       { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
-      {
+      ...(data.show_about !== false ? [{
         title: 'About',
-        type: 'meta',
+        type: 'meta' as const,
         items: [
           data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
           data.city ? `📍 ${data.city}` : '📍 Location not set',
@@ -116,12 +123,12 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
           data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
           data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
         ],
-      },
-      {
+      }] : []),
+      ...(data.show_looking_for !== false ? [{
         title: 'Pet Types',
-        type: 'tags',
-        items: data.pet_types && data.pet_types.length > 0 ? data.pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
-      },
+        type: 'tags' as const,
+        items: data.sitter_pet_types && data.sitter_pet_types.length > 0 ? data.sitter_pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
+      }] : []),
     ],
     /* Uncoment and integrate when backend provides posts, reviews and availability*/
     // posts: [],
@@ -155,64 +162,6 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
     },
     /* end of hardcode */
   };
-}
-
-const rafaelFallbackProfile: ProfileSitterData = {
-  id: 'rafael',
-  username: '@rafael',
-  name: 'Rafael Castro',
-  role: 'Pet Sitter',
-  bio: 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
-  initials: 'RC',
-  imageUrl: 'avatars/rafael.jpeg',
-  stats: [
-    { value: '5', label: 'Rating' },
-    { value: 0, label: 'Connections' },
-  ],
-  sidebarCards: [
-    {
-      title: 'About',
-      type: 'meta',
-      items: [
-        '📍 Porto',
-        '🌍 Portugal',
-        '🐾 Experience: 5+ years',
-        '💰 Price: 10-15 per hour',
-      ],
-    },
-    {
-      title: 'Pet Types',
-      type: 'tags',
-      items: ['Cats', 'Dogs', 'Small Pets'],
-    },
-  ],
-  posts: [
-    { id: 1, text: 'Available for cat sitting, dog care, and small pet visits around Porto.', time: '1h ago', likes: 12 },
-    { id: 2, text: 'I have new availability for weekday visits and weekend bookings.', time: '3 days ago', likes: 18 },
-  ],
-  reviews: [
-    { id: 1, author: 'Ana C.', rating: 5, text: 'Rafael is caring, reliable, and very attentive with pets.', time: '2 weeks ago' },
-    { id: 2, author: 'Miguel R.', rating: 5, text: 'Great communication and excellent care throughout the booking.', time: '1 month ago' },
-  ],
-  availability: {
-    status: 'Accepting',
-    location: 'Porto',
-    capacity: '2 bookings/day',
-    windows: [
-      { label: 'Mon - Fri', time: '09:00 - 12:00' },
-      { label: 'Saturday', time: '14:00 - 18:00' },
-      { label: 'Sunday', time: 'On request' },
-    ],
-    services: [
-      { name: 'Cat Sitting', rate: '15 EUR', detail: 'Daily visits, feeding, litter care' },
-      { name: 'Dog Care', rate: '15 EUR', detail: 'Feeding, playtime, and basic care' },
-      { name: 'Home Visits', rate: '10 EUR', detail: 'Short check-ins for cats, dogs, and small pets' },
-    ],
-  },
-};
-
-function getSitterFallbackProfile(profileId?: string) {
-  return profileId && sitterProfiles[profileId] ? getSitterProfile(profileId) : rafaelFallbackProfile;
 }
 
 function formatAvailabilityLocation(location: string) {
@@ -285,7 +234,6 @@ export default function SitterProfile() {
         setProfile(mapBackendToSitterProfile(mergedData));
       } catch (err: any) {
         console.error("Fetch error details:", err);
-        setProfile(getSitterFallbackProfile(profileId));
         setError('');
       } finally {
         setLoading(false);
@@ -308,7 +256,7 @@ export default function SitterProfile() {
         contact: {
           id: Number(profile.id),
           name: profile.name,
-          role: profile.role,
+          user_type: profile.user_type,
         },
       },
     });
@@ -354,7 +302,7 @@ export default function SitterProfile() {
       <ProfileInfoBar
         name={profile.name}
         username={profile.username}
-        role={profile.role}
+        user_type={profile.user_type}
         bio={profile.bio}
         stats={profile.stats}
         actions={isOwnProfile

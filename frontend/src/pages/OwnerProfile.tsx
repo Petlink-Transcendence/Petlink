@@ -7,7 +7,7 @@ import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
 import ProfileContent from '../components/profile/ProfileContent';
 
-interface BackendUser {
+export interface BackendUser {
   id: number;
   username?: string;
   name?: string;
@@ -22,13 +22,18 @@ interface BackendUser {
   following_count?: number;
   created_at?: string | null;
   looking_for?: string[] | null;
+  sitter_pet_types?: string[] | null;
+  show_about?: boolean | null;
+  show_pets?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
-interface BackendPet {
+export interface BackendPet {
   id: number;
   name: string;
   type: string;
   breed?: string | null;
+  age?: string | null;
 }
 
 type ProfileStat = {
@@ -55,10 +60,11 @@ type ProfileReview = {
   time: string;
 };
 
-interface ProfileData {
+export interface ProfileData {
   id: string;
   username: string;
   name: string;
+  user_type?: string;
   role: string;
   bio: string;
   initials: string;
@@ -68,6 +74,9 @@ interface ProfileData {
   posts: ProfilePost[];
   reviews: ProfileReview[];
   looking_for?: string[];
+  show_about?: boolean | null;
+  show_pets?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 export function getInitials(name: string): string {
@@ -84,7 +93,8 @@ export function formatMemberSince(isoDate: string): string {
 
 function formatPetLabel(pet: BackendPet): string {
   const nameLabel = pet.name ? `${pet.name[0].toUpperCase()}${pet.name.slice(1)}` : 'Unnamed Pet';
-  return pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${pet.name} | ${pet.type}`;
+  const base = pet.breed ? `${nameLabel} | ${pet.type} | ${pet.breed}` : `${nameLabel} | ${pet.type}`;
+  return pet.age ? `${base} | ${pet.age}` : base;
 }
 
 function getPets(pets: BackendPet[]): BackendPet[] {
@@ -102,7 +112,7 @@ function getPets(pets: BackendPet[]): BackendPet[] {
   return Array.from(petsByKey.values());
 }
 
-function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
+export function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): ProfileData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
   const uniquePets = getPets(pets);
@@ -111,31 +121,38 @@ function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []): Profil
     id: String(data.id),
     name,
     username,
-    role: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'sitter' ? 'Pet Sitter' : (data.role || 'User'),
+    user_type: data.user_type === 'owner' ? 'Pet Owner' : data.user_type === 'provider' ? 'Pet Sitter' : (data.user_type || ''),
+    role: data.role || '',
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
     imageUrl: data.avatar || undefined,
+    show_about: data.show_about ?? true,
+    show_pets: data.show_pets ?? true,
+    show_looking_for: data.show_looking_for ?? true,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
       { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
-      {title: 'About',
-        type: 'meta',
+      ...(data.show_about !== false ? [{
+        title: 'About',
+        type: 'meta' as const,
         items: [
           data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
           data.city ? `📍 ${data.city}` : '📍 Location not set',
           data.country ? `🌍 ${data.country}` : '🌍 Country not set',
         ],
-      },
-      {title: 'My Pets',
-        type: 'tags',
+      }] : []),
+      ...(data.show_pets !== false ? [{
+        title: 'My Pets',
+        type: 'tags' as const,
         items: petItems,
-      },
-      {title: 'Looking for',
-        type: 'tags',
+      }] : []),
+      ...(data.show_looking_for !== false ? [{
+        title: 'Looking for',
+        type: 'tags' as const,
         items: data.looking_for && data.looking_for.length > 0 ? data.looking_for.map(item => item.charAt(0).toUpperCase() + item.slice(1)) : ['No preferences set'],
-      },
+      }] : []),
     ],
    /* Uncoment and integrate when backend provides posts and reviews */
     // posts: [],
@@ -248,7 +265,7 @@ export default function Profile() {
         contact: {
           id: Number(profile.id),
           name: profile.name,
-          role: profile.role,
+          user_type: profile.user_type || '',
         },
       },
     });
@@ -264,7 +281,7 @@ export default function Profile() {
       <ProfileInfoBar
         name={profile.name}
         username={profile.username}
-        role={profile.role}
+        user_type={profile.user_type}
         bio={profile.bio}
         stats={profile.stats}
         actions={isOwnProfile

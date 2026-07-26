@@ -37,12 +37,25 @@ class User(AbstractUser):
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
     experience = models.TextField(null=True, blank=True)  # For sitters
     price = models.TextField(null=True, blank=True)  # For sitters
-    pet_types = models.JSONField(default=list, blank=True)  # For sitters
+    pet_types = models.JSONField(default=list, blank=True)  # For owners
+    sitter_pet_types = models.JSONField(default=list, blank=True)  # For sitters
     looking_for = models.JSONField(default=list, blank=True)  # For owners
 
     # Status && Realtime
     online_status = models.BooleanField(default=False)
     last_seen = models.DateTimeField(null=True, blank=True)
+
+    # Notification preferences
+    notify_bookings = models.BooleanField(default=True)
+    notify_messages = models.BooleanField(default=True)
+    notify_reviews = models.BooleanField(default=True)
+    notify_comments = models.BooleanField(default=True)
+    notify_connections = models.BooleanField(default=True)
+
+    #Privacy settings
+    show_about = models.BooleanField(default=True)
+    show_pets = models.BooleanField(default=True)
+    show_looking_for = models.BooleanField(default=True)
 
     # OAuth (42 Intranet)
     oauth_provider = models.CharField(max_length=50, null=True, blank=True)

@@ -16,6 +16,7 @@ class Pet(models.Model):
 
     # Optional fields
     breed = models.CharField(max_length=100, null=True, blank=True)
+    age = models.CharField(max_length=20, null=True, blank=True)
     avatar = models.URLField(max_length=500, null=True, blank=True)
 
     # Timestamps
