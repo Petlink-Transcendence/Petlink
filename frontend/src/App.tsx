@@ -19,9 +19,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import AdminOnlyRoute from './components/AdminOnlyRoute';
 import MyProfileRedirect from './components/MyProfileRedirect';
+import UserProfileRedirect from './components/UserProfileRedirect';
+import { useWebSocket } from './hooks/useWebSocket';
 import './App.css';
 
 function App() {
+  useWebSocket();
+
   return (
     <div className="app-container">
     <Router>
@@ -65,6 +69,11 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <MyProfileRedirect />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile/:id" element={
+            <ProtectedRoute>
+              <UserProfileRedirect />
             </ProtectedRoute>
           } />
           <Route path="/ownerprofile" element={

@@ -20,8 +20,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     
     async def send_notification(self, event):
         await self.send(text_data=json.dumps({
-            'type': event['notification_type'],
-            'content': event['content'],
+            'type': event.get('notification_type', 'notification'),
+            'content': event.get('content', ''),
             'reference_id': event.get('reference_id'),
             'reference_type': event.get('reference_type'),
+        }))
+
+    async def connection_updated(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'connection_updated',
+            'action': event.get('action'),
+            'follower_id': event.get('follower_id'),
+            'following_id': event.get('following_id'),
+            'content': event.get('content', '')
         }))

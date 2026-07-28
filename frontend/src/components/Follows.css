@@ -31,6 +31,13 @@
     border-bottom: 2px solid #e5e4e7; 
 }
 
+.follows-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d2d34;
+    margin: 0;
+}
+
 .follows-tabs {
     display: flex;
     gap: 1.5rem;
@@ -153,17 +160,18 @@
 .static-friends {
     color: white;
     background-color: var(--petlink-tan);
-    padding: 0.2rem 0.4rem;
+    padding: 0.2rem 0.6rem;
     border-radius: 0.5rem;
     font-size: 0.8rem;
 }
 
-.static-following {
-    color: white;
-    background-color: var(--petlink-tan);
+.static-pending {
+    color: #555;
+    background-color: #f0f0f0;
+    padding: 0.2rem 0.6rem;
     border-radius: 0.5rem;
-    padding: 0.2rem 0.4rem;
     font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .follow-btn-action {

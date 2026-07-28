@@ -20,6 +20,13 @@ from .permissions import IsOwnerAdminModeratorOrReadOnly, IsAdmin
 from .models import Follower
 from django.db import models
 
+try:
+    from channels.layers import get_channel_layer
+    from asgiref.sync import async_to_sync
+except ImportError:
+    get_channel_layer = None
+    async_to_sync = None
+
 User = get_user_model()
 
 class RegisterRateThrottle(AnonRateThrottle):
@@ -262,11 +269,47 @@ class FollowView(APIView):
     def post(self, request, pk):
         target = get_object_or_404(User, pk=pk)
         Follower.objects.get_or_create(follower=request.user, following=target)
+
+        # Broadcast real-time WebSocket event
+        try:
+            if callable(get_channel_layer) and async_to_sync:
+                channel_layer = get_channel_layer()
+                if channel_layer:
+                    event_data = {
+                        'type': 'connection_updated',
+                        'action': 'follow',
+                        'follower_id': request.user.id,
+                        'following_id': target.id,
+                        'content': f"{request.user.name or request.user.username} started following you."
+                    }
+                    async_to_sync(channel_layer.group_send)(f'notifications_{target.id}', event_data)
+                    async_to_sync(channel_layer.group_send)(f'notifications_{request.user.id}', event_data)
+        except Exception:
+            pass
+
         return Response(status=204)
 
     def delete(self, request, pk):
         target = get_object_or_404(User, pk=pk)
         Follower.objects.filter(follower=request.user, following=target).delete()
+
+        # Broadcast real-time WebSocket event
+        try:
+            if callable(get_channel_layer) and async_to_sync:
+                channel_layer = get_channel_layer()
+                if channel_layer:
+                    event_data = {
+                        'type': 'connection_updated',
+                        'action': 'unfollow',
+                        'follower_id': request.user.id,
+                        'following_id': target.id,
+                        'content': f"{request.user.name or request.user.username} unfollowed you."
+                    }
+                    async_to_sync(channel_layer.group_send)(f'notifications_{target.id}', event_data)
+                    async_to_sync(channel_layer.group_send)(f'notifications_{request.user.id}', event_data)
+        except Exception:
+            pass
+
         return Response(status=204)
 
 class FollowersListView(generics.ListAPIView):
@@ -291,9 +334,31 @@ class UserSearchView(generics.ListAPIView):
 
     def get_queryset(self):
         query = self.request.query_params.get('q', '')
-        return User.objects.filter(
+        return User.objects.exclude(role=User.Role.ADMIN).exclude(is_superuser=True).filter(
             models.Q(name__icontains=query) | models.Q(username__icontains=query)
         )
+
+class SuggestedConnectionsView(generics.ListAPIView):
+    """
+    Returns random user profiles from the DB which aren't yet connections of the signed-in account.
+    """
+    serializer_class = UserPublicProfileSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = User.objects.exclude(role=User.Role.ADMIN).exclude(is_superuser=True)
+        if self.request.user.is_authenticated:
+            queryset = queryset.exclude(id=self.request.user.id)
+            following_ids = Follower.objects.filter(follower=self.request.user).values_list('following_id', flat=True)
+            queryset = queryset.exclude(id__in=following_ids)
+
+        limit_param = self.request.query_params.get('limit', '5')
+        try:
+            limit = int(limit_param)
+        except ValueError:
+            limit = 5
+
+        return queryset.order_by('?')[:limit]
 
 class UserOnlineStatusView(generics.RetrieveAPIView):
     queryset = User.objects.all()

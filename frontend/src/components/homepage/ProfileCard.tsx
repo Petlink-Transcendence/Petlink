@@ -30,9 +30,10 @@ interface ProfileData {
 }
 
 function getInitials(name: string): string {
-	const parts = name.split(' ').filter(Boolean);
+	const parts = name.trim().split(/\s+/).filter(Boolean);
+	if (parts.length === 0) return 'U';
 	if (parts.length === 1) return parts[0][0].toUpperCase();
-	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+	return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 function mapBackendUserToProfileData(user: BackendUser): ProfileData {
@@ -55,7 +56,6 @@ function mapBackendUserToProfileData(user: BackendUser): ProfileData {
 
 export default function ProfileCard() {
   const [isFollowsOpen, setIsFollowsOpen] = useState(false);
-  const [followsTab, setFollowsTab] = useState<'followers' | 'following'>('followers');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -64,14 +64,9 @@ export default function ProfileCard() {
   const [error, setError] = useState('');
   const [imgError, setImgError] = useState(false);
 
-  const openFollowsPopup = (tabName: 'followers' | 'following') => {
-    setFollowsTab(tabName);
-    setIsFollowsOpen(true);
-  };
-
   useEffect(() => {
-    const fetchProfileCardData = async () => {
-      setLoading(true);
+    const fetchProfileCardData = async (isBackground = false) => {
+      if (!isBackground) setLoading(true);
       setError('');
 
       const endpoint = `/auth/me/`;
@@ -95,12 +90,15 @@ export default function ProfileCard() {
       } catch (err: any) {
         setError(err.message || 'Failed to load profile card.');
         console.error("Fetch error details:", err);
-        } finally {
+      } finally {
         setLoading(false);
       }
-  };
+    };
   
-  fetchProfileCardData();
+    fetchProfileCardData();
+    const handleConnectionUpdate = () => fetchProfileCardData(true);
+    window.addEventListener('connectionUpdated', handleConnectionUpdate);
+    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, [id]);
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -131,7 +129,7 @@ export default function ProfileCard() {
                 <p className="nbr">{profileCard.stats.find(s => s.label === 'Posts')?.value ?? 0}</p>
                 <p className='stats-label'>Posts</p>
               </div>
-              <div className='stats-group' onClick={() => openFollowsPopup('followers')}>
+              <div className='stats-group' onClick={() => setIsFollowsOpen(true)}>
                 <p className='nbr'>{profileCard.stats.find(s => s.label === 'Connections')?.value ?? 0}</p>
                 <p className='stats-label'>Connections</p>
               </div>
@@ -141,8 +139,8 @@ export default function ProfileCard() {
 
       {isFollowsOpen && (
         <FollowsContainer 
-        initialTab={followsTab}
-        onClose={() => setIsFollowsOpen(false)} />
+          onClose={() => setIsFollowsOpen(false)} 
+        />
       )}
     </div>
 	);

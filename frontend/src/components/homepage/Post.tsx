@@ -58,7 +58,15 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
       .catch(() => undefined);
   }, []);
   
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const getInitials = (authorName: string) => {
+    if (!authorName) return 'U';
+    const parts = authorName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return 'U';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
+  const initials = getInitials(name);
   const profilePath = authorType === 'sitter' ? `/sitterprofile/${authorId}` : `/profile/${authorId}`;
 
   const handleLike = () => {
@@ -92,7 +100,7 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
   };
 
   const getCommentInitials = (authorName: string) => {
-    return authorName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return getInitials(authorName);
   };
 
    const handleMessageClick = () => {
