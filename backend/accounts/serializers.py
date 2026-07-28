@@ -1,6 +1,7 @@
 import re
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Follower
 
 User = get_user_model()
 
@@ -52,13 +53,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
+    is_connected = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'username', 'role', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count',
-            'following_count', 'experience', 'price',
+            'following_count', 'is_following', 'is_connected', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times'
         )
@@ -70,7 +73,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         if not request or not request.user.is_authenticated:
             public_fields = {'id', 'name', 'username', 'role', 'avatar', 'banner', 'followers_count', 'following_count'}
         else:
-            public_fields = set(fields.keys())
+            public_fields = set(fields.keys()) | {'is_following', 'is_connected'}
         for field in list(fields.keys()):
             if field not in public_fields:
                 fields.pop(field, None)
@@ -89,6 +92,19 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     def get_following_count(self, obj):
         follower_ids = obj.followers.values_list('follower_id', flat=True)
         return obj.following.filter(following_id__in=follower_ids).count()
+
+    def get_is_following(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        return Follower.objects.filter(follower=request.user, following=obj).exists()
+
+    def get_is_connected(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        return Follower.objects.filter(follower=request.user, following=obj).exists() and \
+               Follower.objects.filter(follower=obj, following=request.user).exists()
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150, min_length=1, required=False)

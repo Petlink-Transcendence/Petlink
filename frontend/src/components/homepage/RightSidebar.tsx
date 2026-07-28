@@ -52,6 +52,9 @@ export default function RightSidebar() {
 
   useEffect(() => {
     fetchSuggestedConnections();
+    const handleConnectionUpdate = () => fetchSuggestedConnections();
+    window.addEventListener('connectionUpdated', handleConnectionUpdate);
+    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, []);
 
   const handleConnect = async (userId: number) => {

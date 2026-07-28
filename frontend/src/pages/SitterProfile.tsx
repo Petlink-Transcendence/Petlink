@@ -360,6 +360,13 @@ export default function SitterProfile() {
           }
         }
 
+        if (mergedData.id && (mergedData as any).is_following !== undefined) {
+          setConnections(prev => ({
+            ...prev,
+            [mergedData.id]: Boolean((mergedData as any).is_following || (mergedData as any).is_connected)
+          }));
+        }
+
         let nextProfile = mapBackendToSitterProfile(mergedData);
         const availabilityResponse = await fetch(`/api/availability/${mergedData.id}/`, {
           method: 'GET',

@@ -186,8 +186,8 @@ export default function Profile() {
   const isConnected = profile ? Boolean(connections[profile.id]) : false;
   
   useEffect(() => {
-    const fetchProfileData = async () => {
-      setLoading(true);
+    const fetchProfileData = async (isBackground = false) => {
+      if (!isBackground) setLoading(true);
       setError('');
 
       const endpoint = id 
@@ -240,6 +240,13 @@ export default function Profile() {
         }
       }
 
+      if (mergedData.id && (mergedData as any).is_following !== undefined) {
+        setConnections(prev => ({
+          ...prev,
+          [mergedData.id]: Boolean((mergedData as any).is_following || (mergedData as any).is_connected)
+        }));
+      }
+
       setProfile(mapBackendToProfile(mergedData, petsData));
     
   } catch (err: any) {
@@ -251,7 +258,7 @@ export default function Profile() {
   };
 
     fetchProfileData();
-    const handleConnectionUpdate = () => fetchProfileData();
+    const handleConnectionUpdate = () => fetchProfileData(true);
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
     return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, [id]);

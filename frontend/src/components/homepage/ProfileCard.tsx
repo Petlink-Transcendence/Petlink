@@ -71,8 +71,8 @@ export default function ProfileCard() {
   };
 
   useEffect(() => {
-    const fetchProfileCardData = async () => {
-      setLoading(true);
+    const fetchProfileCardData = async (isBackground = false) => {
+      if (!isBackground) setLoading(true);
       setError('');
 
       const endpoint = `/auth/me/`;
@@ -102,7 +102,7 @@ export default function ProfileCard() {
     };
   
     fetchProfileCardData();
-    const handleConnectionUpdate = () => fetchProfileCardData();
+    const handleConnectionUpdate = () => fetchProfileCardData(true);
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
     return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, [id]);
