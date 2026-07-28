@@ -6,3 +6,5 @@ psycopg2-binary
 requests
 Pillow
 redis
+channels>=4.0
+channels-redis>=4.0
