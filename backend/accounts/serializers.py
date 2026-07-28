@@ -71,7 +71,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
-            public_fields = {'id', 'name', 'username', 'role', 'avatar', 'banner', 'followers_count', 'following_count'}
+            public_fields = {'id', 'name', 'username', 'role', 'user_type', 'avatar', 'banner', 'followers_count', 'following_count'}
         else:
             public_fields = set(fields.keys()) | {'is_following', 'is_connected'}
         for field in list(fields.keys()):

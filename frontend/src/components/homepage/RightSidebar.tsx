@@ -92,9 +92,9 @@ export default function RightSidebar() {
           <ul className="rs-list">
             {suggestedSitters.map(s => {
               const displayName = s.name || s.username || `User ${s.id}`;
-              const displayRole = s.role || (s.user_type === 'provider' ? 'Pet Sitter' : 'Pet Owner');
+              const isSitter = s.user_type === 'provider' || s.user_type === 'sitter' || s.role === 'Pet Sitter' || s.role === 'sitter';
+              const displayRole = isSitter ? 'Pet Sitter' : 'Pet Owner';
               const displayLocation = [s.city, s.country].filter(Boolean).join(', ') || 'Portugal';
-              const isSitter = s.user_type === 'provider' || s.role === 'Pet Sitter';
               const hasRating = isSitter && s.rating !== null && s.rating !== undefined;
               const formattedRating = hasRating ? Number(s.rating).toFixed(1) : null;
               const profilePath = isSitter ? `/sitterprofile/${s.id}` : `/ownerprofile/${s.id}`;
