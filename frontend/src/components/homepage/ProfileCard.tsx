@@ -56,7 +56,6 @@ function mapBackendUserToProfileData(user: BackendUser): ProfileData {
 
 export default function ProfileCard() {
   const [isFollowsOpen, setIsFollowsOpen] = useState(false);
-  const [followsTab, setFollowsTab] = useState<'followers' | 'following'>('followers');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -64,11 +63,6 @@ export default function ProfileCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [imgError, setImgError] = useState(false);
-
-  const openFollowsPopup = (tabName: 'followers' | 'following') => {
-    setFollowsTab(tabName);
-    setIsFollowsOpen(true);
-  };
 
   useEffect(() => {
     const fetchProfileCardData = async (isBackground = false) => {
@@ -135,7 +129,7 @@ export default function ProfileCard() {
                 <p className="nbr">{profileCard.stats.find(s => s.label === 'Posts')?.value ?? 0}</p>
                 <p className='stats-label'>Posts</p>
               </div>
-              <div className='stats-group' onClick={() => openFollowsPopup('followers')}>
+              <div className='stats-group' onClick={() => setIsFollowsOpen(true)}>
                 <p className='nbr'>{profileCard.stats.find(s => s.label === 'Connections')?.value ?? 0}</p>
                 <p className='stats-label'>Connections</p>
               </div>
@@ -145,8 +139,8 @@ export default function ProfileCard() {
 
       {isFollowsOpen && (
         <FollowsContainer 
-        initialTab={followsTab}
-        onClose={() => setIsFollowsOpen(false)} />
+          onClose={() => setIsFollowsOpen(false)} 
+        />
       )}
     </div>
 	);

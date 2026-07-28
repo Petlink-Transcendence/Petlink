@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getLoggedInUserId } from '../utils/auth';
 import './Follows.css'
 
 interface FollowsProps {
     onClose: () => void;
-    initialTab?: 'followers' | 'following';
+    initialTab?: 'connections' | 'pending';
     targetUserId?: number;
 }
 
@@ -16,21 +17,21 @@ interface BackendFollowUser {
     avatar?: string | null;
 }
 
-interface FollowUser {
+interface ConnectionUser {
     id: number;
     name: string;
     username: string;
     user_type?: string;
     avatar?: string | null;
-    isFollowingBack: boolean;
-    hasJustFollowed?: boolean;
+    requestType?: 'incoming' | 'outgoing';
 }
 
-export default function FollowsContainer({ onClose, initialTab = 'followers', targetUserId }: FollowsProps) {
-    const [activeTab, setActiveTab] = useState<'followers' | 'following'>(initialTab);
-    const [followers, setFollowers] = useState<FollowUser[]>([]);
-    const [following, setFollowing] = useState<FollowUser[]>([]);
+export default function FollowsContainer({ onClose, initialTab = 'connections', targetUserId }: FollowsProps) {
+    const [activeTab, setActiveTab] = useState<'connections' | 'pending'>(initialTab);
+    const [connections, setConnections] = useState<ConnectionUser[]>([]);
+    const [pendingRequests, setPendingRequests] = useState<ConnectionUser[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isOwnProfile, setIsOwnProfile] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,8 +39,8 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
             setLoading(true);
             try {
                 const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-                
-                // Determine target user id
+                const loggedInId = getLoggedInUserId();
+
                 let uid = targetUserId;
                 if (!uid) {
                     const meRes = await fetch('/auth/me/', {
@@ -55,6 +56,9 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
                 }
 
                 if (!uid) return;
+
+                const ownProfileCheck = Boolean(!targetUserId || (loggedInId && String(targetUserId) === String(loggedInId)));
+                setIsOwnProfile(ownProfileCheck);
 
                 const [followersRes, followingRes] = await Promise.all([
                     fetch(`/api/users/${uid}/followers/`, {
@@ -73,24 +77,43 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
 
                 const followingIds = new Set(followingData.map(u => u.id));
                 const followerIds = new Set(followersData.map(u => u.id));
+                
+                // 1. Mutual connections (users present in both followers and following)
+                const mutualUsers = followersData.filter(u => followingIds.has(u.id));
 
-                setFollowers(followersData.map(u => ({
+                setConnections(mutualUsers.map(u => ({
                     id: u.id,
                     name: u.name || u.username || `User ${u.id}`,
                     username: u.username ? `@${u.username}` : `@user-${u.id}`,
                     user_type: u.user_type,
-                    avatar: u.avatar,
-                    isFollowingBack: followingIds.has(u.id)
+                    avatar: u.avatar
                 })));
 
-                setFollowing(followingData.map(u => ({
-                    id: u.id,
-                    name: u.name || u.username || `User ${u.id}`,
-                    username: u.username ? `@${u.username}` : `@user-${u.id}`,
-                    user_type: u.user_type,
-                    avatar: u.avatar,
-                    isFollowingBack: followerIds.has(u.id)
-                })));
+                // 2. Incoming Requests (Followers that I have not followed back yet)
+                const incoming = followersData
+                    .filter(u => !followingIds.has(u.id))
+                    .map(u => ({
+                        id: u.id,
+                        name: u.name || u.username || `User ${u.id}`,
+                        username: u.username ? `@${u.username}` : `@user-${u.id}`,
+                        user_type: u.user_type,
+                        avatar: u.avatar,
+                        requestType: 'incoming' as const
+                    }));
+
+                // 3. Outgoing Requests (Users I follow who have not followed me back yet)
+                const outgoing = followingData
+                    .filter(u => !followerIds.has(u.id))
+                    .map(u => ({
+                        id: u.id,
+                        name: u.name || u.username || `User ${u.id}`,
+                        username: u.username ? `@${u.username}` : `@user-${u.id}`,
+                        user_type: u.user_type,
+                        avatar: u.avatar,
+                        requestType: 'outgoing' as const
+                    }));
+
+                setPendingRequests([...incoming, ...outgoing]);
             } catch (err) {
                 console.error('Error fetching connections:', err);
             } finally {
@@ -104,8 +127,6 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
         return () => window.removeEventListener('connectionUpdated', handleUpdate);
     }, [targetUserId]);
 
-    const currentList = activeTab === 'followers' ? followers : following;
-
     const getInitials = (name: string) => {
         if (!name) return 'U';
         const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -114,10 +135,17 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
         return (parts[0][0] + parts[1][0]).toUpperCase();
     };
 
-    const handleFollowBackClick = async (id: number) => {
+    const handleProfileNavigation = (user: ConnectionUser) => {
+        onClose();
+        const isSitter = user.user_type === 'provider' || user.user_type === 'sitter';
+        const path = isSitter ? `/sitterprofile/${user.id}` : `/ownerprofile/${user.id}`;
+        navigate(path);
+    };
+
+    const handleAcceptConnection = async (userId: number) => {
         try {
             const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-            const res = await fetch(`/api/users/${id}/follow/`, {
+            const res = await fetch(`/api/users/${userId}/follow/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -126,43 +154,39 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
             });
             if (res.ok) {
                 window.dispatchEvent(new Event('connectionUpdated'));
-                setFollowers(prev =>
-                    prev.map(user => user.id === id ? { ...user, isFollowingBack: true, hasJustFollowed: true } : user)
-                );
             }
         } catch (err) {
-            console.error('Error connecting back:', err);
+            console.error('Error accepting connection:', err);
         }
     };
 
-    const handleProfileNavigation = (user: FollowUser) => {
-        onClose();
-        const isSitter = user.user_type === 'provider' || user.user_type === 'sitter';
-        const path = isSitter ? `/sitterprofile/${user.id}` : `/ownerprofile/${user.id}`;
-        navigate(path);
-    };
+    const currentList = activeTab === 'connections' || !isOwnProfile ? connections : pendingRequests;
 
     return (
         <div className='follows-overlay' onClick={onClose}>
             <div className='follows-container' onClick={(e) => e.stopPropagation()}>
                 
                 <div className='follows-header'>
-                    <div className="follows-tabs">
-                        <button 
-                            type="button" 
-                            className={`tab-btn ${activeTab === 'followers' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('followers')}
-                        >
-                            Followers
-                        </button>
-                        <button 
-                            type="button" 
-                            className={`tab-btn ${activeTab === 'following' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('following')}
-                        >
-                            Following
-                        </button>
-                    </div>
+                    {isOwnProfile ? (
+                        <div className="follows-tabs">
+                            <button 
+                                type="button" 
+                                className={`tab-btn ${activeTab === 'connections' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('connections')}
+                            >
+                                Connections ({connections.length})
+                            </button>
+                            <button 
+                                type="button" 
+                                className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('pending')}
+                            >
+                                Pending ({pendingRequests.length})
+                            </button>
+                        </div>
+                    ) : (
+                        <h2 className="follows-title">Connections</h2>
+                    )}
                     <button type="button" className='close-btn' onClick={onClose}>&times;</button>
                 </div>
 
@@ -197,36 +221,30 @@ export default function FollowsContainer({ onClose, initialTab = 'followers', ta
                                 </div>
 
                                 <div className="follow-action-zone">
-                                    {activeTab === 'followers' ? (
-                                        <>
-                                            {user.isFollowingBack && (
-                                                <span className="follow-status-text static-friends">Connected</span>
-                                            )}
-
-                                            {!user.isFollowingBack && !user.hasJustFollowed && (
-                                                <button 
-                                                    className="follow-btn-action primary follow-back-btn"
-                                                    onClick={() => handleFollowBackClick(user.id)}
-                                                >
-                                                    Connect back
-                                                </button>
-                                            )}
-
-                                            {!user.isFollowingBack && user.hasJustFollowed && (
-                                                <span className="connection-requested-text">
-                                                    Connected
-                                                </span>
-                                            )}
-                                        </>
+                                    {activeTab === 'pending' && isOwnProfile ? (
+                                        user.requestType === 'incoming' ? (
+                                            <button 
+                                                className="follow-btn-action primary"
+                                                onClick={() => handleAcceptConnection(user.id)}
+                                            >
+                                                Connect back
+                                            </button>
+                                        ) : (
+                                            <span className="static-pending">Pending</span>
+                                        )
                                     ) : (
-                                        <span className="follow-status-text static-following">Connected</span>
+                                        <span className="follow-status-text static-friends">Connected</span>
                                     )}
                                 </div>
 
                             </div>
                         ))
                     ) : (
-                        <p className="no-follows-text">No connections found here yet.</p>
+                        <p className="no-follows-text">
+                            {activeTab === 'pending' && isOwnProfile 
+                                ? 'No pending connection requests.' 
+                                : 'No connections found here yet.'}
+                        </p>
                     )}
                 </div>
 
