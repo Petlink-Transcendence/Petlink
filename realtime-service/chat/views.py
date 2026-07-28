@@ -1,17 +1,29 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .models import Message
 from django.db.models import Q
 
+def get_user_id(request):
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return None
+    try:
+        token = AccessToken(auth.split(' ')[1])
+        return token['user_id']
+    except (InvalidToken, TokenError):
+        return None
+
 @api_view(['GET'])
 def message_history(request, user_id):
-    logged_in_user = request.query_params.get('sender_id')
+    logged_in_user = get_user_id(request)
 
     if not logged_in_user:
         return Response(
-            {'error': 'sender_id is required'},
-            status=status.HTTP_400_BAD_REQUEST
+            {'error': 'Authentication required'},
+            status=status.HTTP_401_UNAUTHORIZED
         )
     messages = Message.objects.filter(
         Q(sender_id=logged_in_user, recipient_id=user_id) |
