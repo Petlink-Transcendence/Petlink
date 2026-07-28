@@ -51,7 +51,6 @@ function mapBackendUserToProfileData(user: BackendUser): ProfileData {
       { value: user.followers_count ?? 0, label: 'Connections' },
     ]
   }
-  
 }
 
 export default function ProfileCard() {

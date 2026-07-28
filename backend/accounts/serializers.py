@@ -79,11 +79,8 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
                 fields.pop(field, None)
         return fields
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        if not data.get('avatar'):
-            data['avatar'] = '/static/avatars/profile-pic.png'
-        return data
+    def get_followers_count(self, obj): return obj.followers.count()
+    def get_following_count(self, obj): return obj.following.count()
 
     def get_followers_count(self, obj):
         following_ids = obj.following.values_list('following_id', flat=True)
