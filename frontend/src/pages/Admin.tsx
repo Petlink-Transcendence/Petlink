@@ -8,6 +8,7 @@ type AdminUserProfile = {
     email: string;
     name: string;
     user_type: string;
+    sitter_pet_types?: string[] | null;
     role: string;
     avatar?: string | null;
     description?: string | null;
@@ -59,33 +60,21 @@ function formatProfileTagValue(value: string) {
 }
 
 function getProfileTag(user: AdminUserProfile) {
-    const isSitter = user.user_type === 'provider' || user.user_type === 'sitter';
-    const firstPetType = user.pet_types?.find(Boolean);
-    const firstLookingFor = user.looking_for?.find(Boolean);
-
-    if (isSitter && firstPetType) {
-        return `${formatProfileTagValue(firstPetType)} Sitter`;
-    }
-
-    if (user.user_type === 'owner' && firstPetType) {
-        return `${formatProfileTagValue(firstPetType)} Owner`;
-    }
-
-    if (user.user_type === 'owner' && firstLookingFor) {
-        return formatProfileTagValue(firstLookingFor);
-    }
-
-    return getDisplayRole(user);
+    return user.user_type === 'provider' ? 'Pet Sitter' : user.user_type === 'sitter' ? 'Pet Sitter' : user.user_type === 'owner' ? 'Pet Owner' : user.user_type || 'Unknown role';
 }
 
-function getProfileTags(user: AdminUserProfile) {
-    const tags = [
-        getProfileTag(user),
-        ...(user.pet_types ?? []).map(formatProfileTagValue),
-        ...(user.looking_for ?? []).map(formatProfileTagValue),
-    ];
+function getLookingFor(user: AdminUserProfile) {
+    const role = getProfileTag(user);
 
-    return Array.from(new Set(tags.filter(Boolean))).slice(0, 5);
+    const rawTags = role === 'Pet Owner' 
+        ? (user.looking_for ?? []) 
+        : role === 'Pet Sitter' 
+            ? (user.sitter_pet_types ?? []) 
+            : [];
+
+    const formattedTags = rawTags.map(formatProfileTagValue);
+    
+    return Array.from(new Set(formattedTags.filter(Boolean))).slice(0, 5);
 }
 
 function getProfileLocation(user: AdminUserProfile) {
@@ -320,17 +309,13 @@ export default function Admin() {
                                                 <strong>{formatJoinedDate(selectedUser.created_at)}</strong>
                                             </div>
                                             <div>
-                                                <span className="admin-field-label">Status</span>
-                                                <strong>{selectedUser.online_status || 'unknown'}</strong>
-                                            </div>
-                                            <div>
                                                 <span className="admin-field-label">Rating</span>
                                                 <strong>{selectedUser.rating || 'No rating'}</strong>
                                             </div>
                                         </div>
 
                                         <div className="admin-profile-tags" aria-label="Profile tags">
-                                            {getProfileTags(selectedUser).map(tag => (
+                                            {getLookingFor(selectedUser).map(tag => (
                                                 <span key={tag}>{tag}</span>
                                             ))}
                                         </div>
