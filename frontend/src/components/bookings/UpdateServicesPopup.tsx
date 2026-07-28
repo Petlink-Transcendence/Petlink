@@ -3,6 +3,7 @@ import './UpdateAvailabilityPopup.css';
 import { formatAvailabilityRate } from '../../utils/availabilityRates';
 
 export type ServiceRateFormData = {
+  id?: number;
   name: string;
   rate: string;
   detail: string;
@@ -11,7 +12,9 @@ export type ServiceRateFormData = {
 type UpdateServicesPopupProps = {
   services: ServiceRateFormData[];
   onClose: () => void;
-  onSaveServices: (services: ServiceRateFormData[]) => void;
+  onSaveServices: (services: ServiceRateFormData[]) => void | Promise<void>;
+  onAddService?: (service: ServiceRateFormData) => Promise<ServiceRateFormData>;
+  onRemoveService?: (service: ServiceRateFormData) => Promise<void>;
 };
 
 function formatServiceName(serviceName: string) {
@@ -20,6 +23,7 @@ function formatServiceName(serviceName: string) {
 
 function normalizeService(service: ServiceRateFormData) {
   return {
+    id: service.id,
     name: formatServiceName(service.name),
     rate: formatAvailabilityRate(service.rate),
     detail: service.detail.trim(),
@@ -30,6 +34,8 @@ export default function UpdateServicesPopup({
   services,
   onClose,
   onSaveServices,
+  onAddService,
+  onRemoveService,
 }: UpdateServicesPopupProps) {
   const [serviceRates, setServiceRates] = useState<ServiceRateFormData[]>(services);
   const [newService, setNewService] = useState<ServiceRateFormData>({
@@ -37,27 +43,51 @@ export default function UpdateServicesPopup({
     rate: '',
     detail: '',
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [mutatingIndex, setMutatingIndex] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState('');
 
-  const removeService = (index: number) => {
-    setServiceRates(currentServices => currentServices.filter((_, serviceIndex) => serviceIndex !== index));
+  const removeService = async (index: number) => {
+    const service = serviceRates[index];
+    setSaveError('');
+    setMutatingIndex(index);
+
+    try {
+      await onRemoveService?.(service);
+      setServiceRates(currentServices => currentServices.filter((_, serviceIndex) => serviceIndex !== index));
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to remove service.');
+    } finally {
+      setMutatingIndex(null);
+    }
   };
 
   const updateNewService = (field: keyof ServiceRateFormData, value: string) => {
     setNewService(currentService => ({ ...currentService, [field]: value }));
   };
 
-  const addService = () => {
+  const addService = async () => {
     const nextService = normalizeService(newService);
 
     if (!nextService.name || !nextService.rate) {
       return;
     }
 
-    setServiceRates(currentServices => [...currentServices, nextService]);
-    setNewService({ name: '', rate: '', detail: '' });
+    setSaveError('');
+    setMutatingIndex(-1);
+
+    try {
+      const savedService = onAddService ? await onAddService(nextService) : nextService;
+      setServiceRates(currentServices => [...currentServices, savedService]);
+      setNewService({ name: '', rate: '', detail: '' });
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to add service.');
+    } finally {
+      setMutatingIndex(null);
+    }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const nextServices = serviceRates.map(normalizeService);
@@ -66,8 +96,16 @@ export default function UpdateServicesPopup({
       return;
     }
 
-    onSaveServices(nextServices);
-    onClose();
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      await onSaveServices(nextServices);
+      onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to save services.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -101,7 +139,8 @@ export default function UpdateServicesPopup({
                   <button
                     type="button"
                     className="service-remove-button"
-                    onClick={() => removeService(index)}
+                    onClick={() => void removeService(index)}
+                    disabled={isSaving || mutatingIndex !== null}
                     aria-label={`Remove ${service.name}`}
                   >
                     Remove
@@ -147,15 +186,18 @@ export default function UpdateServicesPopup({
               <button
                 type="button"
                 className="availability-submit service-add-button"
-                onClick={addService}
+                onClick={() => void addService()}
+                disabled={isSaving || mutatingIndex !== null}
               >
-                Add Service
+                {mutatingIndex === -1 ? 'Adding Service...' : 'Add Service'}
               </button>
             </div>
           </fieldset>
 
-          <button type="submit" className="availability-submit">
-            Save Services
+          {saveError && <p role="alert">{saveError}</p>}
+
+          <button type="submit" className="availability-submit" disabled={isSaving}>
+            {isSaving ? 'Saving Services...' : 'Save Services'}
           </button>
         </form>
       </section>

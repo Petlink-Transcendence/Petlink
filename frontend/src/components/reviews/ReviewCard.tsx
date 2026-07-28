@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import './ReviewCard.css';
 
 export type Review = {
   id: number;
   reviewer: string;
+  avatarUrl?: string;
   role: string;
   service: string;
   rating: number;
@@ -32,10 +34,19 @@ function ratingStars(rating: number) {
 }
 
 export default function ReviewCard({ review }: ReviewCardProps) {
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const showAvatarImage = Boolean(review.avatarUrl) && !avatarFailed;
+
   return (
     <article className="reviews-card">
       <header className="reviews-card-header">
-        <div className="reviews-avatar">{initials(review.reviewer)}</div>
+        <div className="reviews-avatar">
+          {showAvatarImage ? (
+            <img src={review.avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
+          ) : (
+            initials(review.reviewer)
+          )}
+        </div>
         <div className="reviews-person">
           <h3>{review.reviewer}</h3>
           <p>{review.role}</p>

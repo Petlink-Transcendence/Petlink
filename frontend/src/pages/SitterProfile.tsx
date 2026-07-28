@@ -13,7 +13,6 @@ import UpdateAvailabilityPopup, {
   type AvailabilityTimeSlot,
 } from '../components/bookings/UpdateAvailabilityPopup';
 import UpdateServicesPopup, { type ServiceRateFormData } from '../components/bookings/UpdateServicesPopup';
-import { getSitterProfile, sitterProfiles } from '../data/profileData';
 import { getInitials, formatMemberSince } from './OwnerProfile';
 
 interface BackendUser {
@@ -32,7 +31,31 @@ interface BackendUser {
   created_at?: string | null;
   experience?: string | null;
   price?: string | number | null;
-  pet_types?: string[] | null;
+  sitter_pet_types?: string[] | null;
+  show_about?: boolean | null;
+  show_looking_for?: boolean | null;
+}
+
+interface BackendAvailability {
+  id: number;
+  user: number;
+  start_date: string;
+  end_date: string;
+  time_slots: string;
+  price: string | number;
+  currency?: string;
+  notes?: string | null;
+}
+
+interface BackendService {
+  id: number;
+  user: number;
+  type: string;
+  description?: string | null;
+  price: string | number;
+  currency?: string;
+  price_unit: string;
+  is_active: boolean;
 }
 
 type ProfileStat = {
@@ -64,13 +87,14 @@ type SitterAvailability = {
   location: string;
   capacity: string;
   windows: { label: string; time: string }[];
-  services: { name: string; rate: string; detail: string }[];
+  services: ServiceRateFormData[];
 };
 
 interface ProfileSitterData {
   id: string;
   username: string;
   name: string;
+  user_type?: string;
   role: string;
   bio: string;
   initials: string;
@@ -81,15 +105,17 @@ interface ProfileSitterData {
   reviews: ProfileReview[];
   experience?: string;
   price?: string | number;
-  pet_types?: string[];
+  sitter_pet_types?: string[];
   availability: SitterAvailability;
+  show_about?: boolean | null;
+  show_looking_for?: boolean | null;
 }
 
 function formatPetType(type: string): string {
   return type.replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
-function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
+export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
 
@@ -97,19 +123,21 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
     id: String(data.id),
     name,
     username,
-    role: data.user_type === 'sitter' ? 'Pet Sitter' : data.user_type === 'owner' ? 'Pet Owner' : (data.role || 'User'),
+    user_type: data.user_type === 'provider' ? 'Pet Sitter' : data.user_type === 'owner' ? 'Pet Owner' : (data.user_type || ''),
+    role: data.role || '',
     bio: data.description || 'No bio available.',
     initials: getInitials(name),
     imageUrl: data.avatar || undefined,
+    show_about: data.show_about ?? true,
+    show_looking_for: data.show_looking_for ?? true,
     stats: [
       { value: data.rating ?? 'N/A', label: 'Rating' },
-      { value: data.followers_count ?? 0, label: 'Followers' },
-      { value: data.following_count ?? 0, label: 'Following' },
+      { value: data.followers_count ?? 0, label: 'Connections' },
     ],
     sidebarCards: [
-      {
+      ...(data.show_about !== false ? [{
         title: 'About',
-        type: 'meta',
+        type: 'meta' as const,
         items: [
           data.created_at ? `📅 Member since ${formatMemberSince(data.created_at)}` : '📅 Unknown profile creation date',
           data.city ? `📍 ${data.city}` : '📍 Location not set',
@@ -117,12 +145,12 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
           data.experience ? `🐾 Experience: ${data.experience}` : '🐾 Experience not set',
           data.price ? `💰 Price: ${data.price}` : '💰 Price not set',
         ],
-      },
-      {
+      }] : []),
+      ...(data.show_looking_for !== false ? [{
         title: 'Pet Types',
-        type: 'tags',
-        items: data.pet_types && data.pet_types.length > 0 ? data.pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
-      },
+        type: 'tags' as const,
+        items: data.sitter_pet_types && data.sitter_pet_types.length > 0 ? data.sitter_pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
+      }] : []),
     ],
     /* Uncoment and integrate when backend provides posts, reviews and availability*/
     // posts: [],
@@ -158,67 +186,115 @@ function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   };
 }
 
-const rafaelFallbackProfile: ProfileSitterData = {
-  id: 'rafael',
-  username: '@rafael',
-  name: 'Rafael Castro',
-  role: 'Pet Sitter',
-  bio: 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
-  initials: 'RC',
-  imageUrl: 'avatars/rafael.jpeg',
-  stats: [
-    { value: '5', label: 'Rating' },
-    { value: 0, label: 'Followers' },
-    { value: 0, label: 'Following' },
-  ],
-  sidebarCards: [
-    {
-      title: 'About',
-      type: 'meta',
-      items: [
-        '📍 Porto',
-        '🌍 Portugal',
-        '🐾 Experience: 5+ years',
-        '💰 Price: 10-15 per hour',
-      ],
-    },
-    {
-      title: 'Pet Types',
-      type: 'tags',
-      items: ['Cats', 'Dogs', 'Small Pets'],
-    },
-  ],
-  posts: [
-    { id: 1, text: 'Available for cat sitting, dog care, and small pet visits around Porto.', time: '1h ago', likes: 12 },
-    { id: 2, text: 'I have new availability for weekday visits and weekend bookings.', time: '3 days ago', likes: 18 },
-  ],
-  reviews: [
-    { id: 1, author: 'Ana C.', rating: 5, text: 'Rafael is caring, reliable, and very attentive with pets.', time: '2 weeks ago' },
-    { id: 2, author: 'Miguel R.', rating: 5, text: 'Great communication and excellent care throughout the booking.', time: '1 month ago' },
-  ],
-  availability: {
-    status: 'Accepting',
-    location: 'Porto',
-    capacity: '2 bookings/day',
-    windows: [
-      { label: 'Mon - Fri', time: '09:00 - 12:00' },
-      { label: 'Saturday', time: '14:00 - 18:00' },
-      { label: 'Sunday', time: 'On request' },
-    ],
-    services: [
-      { name: 'Cat Sitting', rate: '15 EUR', detail: 'Daily visits, feeding, litter care' },
-      { name: 'Dog Care', rate: '15 EUR', detail: 'Feeding, playtime, and basic care' },
-      { name: 'Home Visits', rate: '10 EUR', detail: 'Short check-ins for cats, dogs, and small pets' },
-    ],
-  },
-};
-
-function getSitterFallbackProfile(profileId?: string) {
-  return profileId && sitterProfiles[profileId] ? getSitterProfile(profileId) : rafaelFallbackProfile;
-}
-
 function formatAvailabilityLocation(location: string) {
   return location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim();
+}
+
+function parseAvailabilityNotes(notes?: string | null) {
+  const values = { location: '', capacity: '' };
+
+  for (const part of (notes || '').split(';')) {
+    const [key, ...valueParts] = part.split(':');
+    const value = valueParts.join(':').trim();
+
+    if (key?.trim().toLowerCase() === 'location') values.location = value;
+    if (key?.trim().toLowerCase() === 'capacity') values.capacity = value;
+  }
+
+  return values;
+}
+
+const serviceLabels: Record<string, string> = {
+  dog_walking: 'Dog Walking',
+  cat_sitting: 'Cat Sitting',
+  home_visits: 'Home Visits',
+  overnight_stay: 'Overnight Stay',
+  grooming: 'Grooming',
+};
+
+function mapBackendServices(records: BackendService[], profileId: string): ServiceRateFormData[] {
+  return records
+    .filter(service => service.user === Number(profileId) && service.is_active)
+    .map(service => ({
+      id: service.id,
+      name: serviceLabels[service.type] || service.type,
+      rate: `${service.price} ${service.currency || 'EUR'}${service.price_unit ? ` ${service.price_unit.replace('per_', 'per ')}` : ''}`,
+      detail: service.description || '',
+    }));
+}
+
+function getServiceType(name: string) {
+  const normalizedName = name.trim().toLowerCase().replace(/\s+/g, '_');
+  const aliases: Record<string, string> = {
+    dog_walking: 'dog_walking',
+    dog_walk: 'dog_walking',
+    cat_sitting: 'cat_sitting',
+    cat_sitting_service: 'cat_sitting',
+    home_visits: 'home_visits',
+    home_visit: 'home_visits',
+    overnight_stay: 'overnight_stay',
+    overnight: 'overnight_stay',
+    grooming: 'grooming',
+  };
+
+  return aliases[normalizedName];
+}
+
+function getServicePayload(service: ServiceRateFormData) {
+  const amount = service.rate.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',', '.') || '';
+  const currency = service.rate.match(/\b(€|EUR|USD|GBP)\b/i)?.[0].toUpperCase() || 'EUR';
+  const normalizedRate = service.rate.toLowerCase();
+  const priceUnit = normalizedRate.includes('day') || normalizedRate.includes('overnight')
+    ? 'per_day'
+    : normalizedRate.includes('hour')
+      ? 'per_hour'
+      : 'per_session';
+
+  return {
+    type: getServiceType(service.name),
+    description: service.detail,
+    price: amount,
+    currency: currency === '€' ? 'EUR' : currency,
+    price_unit: priceUnit,
+  };
+}
+
+function mapBackendAvailability(
+  records: BackendAvailability[],
+  profile: ProfileSitterData,
+): Pick<SitterAvailability, 'status' | 'location' | 'capacity' | 'windows'> {
+  const today = new Date().toISOString().slice(0, 10);
+  const currentRecords = records.filter(record => (
+    record.start_date <= today && record.end_date >= today
+  ));
+
+  if (currentRecords.length === 0) {
+    return {
+      status: 'Not available',
+      location: '',
+      capacity: '',
+      windows: [],
+    };
+  }
+
+  const notes = parseAvailabilityNotes(currentRecords[0].notes);
+  const windows = currentRecords.flatMap(record => record.time_slots
+    .split(/\r?\n/)
+    .map(slot => slot.trim())
+    .filter(Boolean)
+    .map((slot, index) => {
+      const labeledSlot = slot.match(/^(.+?):\s*(.+)$/);
+      return labeledSlot
+        ? { label: labeledSlot[1].trim(), time: labeledSlot[2].trim() }
+        : { label: `Availability ${index + 1}`, time: slot };
+    }));
+
+  return {
+    status: 'Accepting',
+    location: formatAvailabilityLocation(notes.location || profile.sidebarCards[0]?.items.find(item => item.startsWith('📍'))?.replace('📍 ', '') || ''),
+    capacity: notes.capacity,
+    windows,
+  };
 }
 
 export default function SitterProfile() {
@@ -240,7 +316,7 @@ export default function SitterProfile() {
   const [availabilityLocation, setAvailabilityLocation] = useState('');
   const [availabilityCapacity, setAvailabilityCapacity] = useState('');
   const [availabilityWindows, setAvailabilityWindows] = useState<AvailabilityTimeSlot[]>([]);
-  const [currentServiceRates, setCurrentServiceRates] = useState<{ name: string; rate: string; detail: string }[]>([]);
+  const [currentServiceRates, setCurrentServiceRates] = useState<ServiceRateFormData[]>([]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -248,8 +324,8 @@ export default function SitterProfile() {
       setError('');
 
       const endpoint = profileId
-        ? `http://localhost:8080/api/users/${profileId}/`
-        : `http://localhost:8080/auth/me/`;
+        ? `/api/users/${profileId}/`
+        : `/auth/me/`;
 
       try {
         const token = localStorage.getItem('access') || localStorage.getItem('access_token');
@@ -270,10 +346,13 @@ export default function SitterProfile() {
         let mergedData: BackendUser = data;
 
         if (!profileId && data.id) {
-          const publicResponse = await fetch(`http://localhost:8080/api/users/${data.id}/`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
+        const publicResponse = await fetch(`/api/users/${data.id}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
 
           if (publicResponse.ok) {
             const publicData: BackendUser = await publicResponse.json();
@@ -281,10 +360,48 @@ export default function SitterProfile() {
           }
         }
 
-        setProfile(mapBackendToSitterProfile(mergedData));
+        let nextProfile = mapBackendToSitterProfile(mergedData);
+        const availabilityResponse = await fetch(`/api/availability/${mergedData.id}/`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
+
+        if (availabilityResponse.ok) {
+          const availabilityRecords: BackendAvailability[] = await availabilityResponse.json();
+          nextProfile = {
+            ...nextProfile,
+            availability: {
+              ...nextProfile.availability,
+              ...mapBackendAvailability(availabilityRecords, nextProfile),
+            },
+          };
+        }
+
+        const servicesResponse = await fetch('/api/services/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        });
+
+        if (servicesResponse.ok) {
+          const serviceRecords: BackendService[] = await servicesResponse.json();
+          nextProfile = {
+            ...nextProfile,
+            availability: {
+              ...nextProfile.availability,
+              services: mapBackendServices(serviceRecords, nextProfile.id),
+            },
+          };
+        }
+
+        setProfile(nextProfile);
       } catch (err: any) {
         console.error("Fetch error details:", err);
-        setProfile(getSitterFallbackProfile(profileId));
         setError('');
       } finally {
         setLoading(false);
@@ -307,7 +424,7 @@ export default function SitterProfile() {
         contact: {
           id: Number(profile.id),
           name: profile.name,
-          role: profile.role,
+          user_type: profile.user_type,
         },
       },
     });
@@ -339,8 +456,95 @@ export default function SitterProfile() {
     setAvailabilityWindows(availability.availableTimes);
   };
 
-  const handleServicesSave = (services: ServiceRateFormData[]) => {
-    setCurrentServiceRates(services);
+  const handleServicesSave = async (services: ServiceRateFormData[]) => {
+    if (!profile) return;
+
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+    const savedIds: number[] = [];
+
+    for (const service of services) {
+      const payload = getServicePayload(service);
+
+      if (!payload.type || !payload.price) {
+        throw new Error(`Unsupported service or invalid price: ${service.name}`);
+      }
+
+      const response = await fetch(
+        service.id ? `/api/services/${service.id}/` : '/api/services/',
+        {
+          method: service.id ? 'PUT' : 'POST',
+          headers,
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Unable to save ${service.name}.`);
+      }
+
+      const savedService: BackendService = await response.json();
+      savedIds.push(savedService.id);
+    }
+
+    setCurrentServiceRates(services.map((service, index) => ({
+      ...service,
+      id: service.id || savedIds[index],
+    })));
+  };
+
+  const handleServiceAdd = async (service: ServiceRateFormData) => {
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const payload = getServicePayload(service);
+
+    if (!payload.type || !payload.price) {
+      throw new Error(`Unsupported service or invalid price: ${service.name}`);
+    }
+
+    const response = await fetch('/api/services/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Unable to add ${service.name}.`);
+    }
+
+    const savedService: BackendService = await response.json();
+    const savedFormService = mapBackendServices([savedService], profile?.id || '')[0];
+
+    if (!savedFormService) {
+      throw new Error(`Unable to read the new ${service.name} service.`);
+    }
+
+    setCurrentServiceRates(currentServices => [...currentServices, savedFormService]);
+    return savedFormService;
+  };
+
+  const handleServiceRemove = async (service: ServiceRateFormData) => {
+    if (!service.id) return;
+
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const response = await fetch(`/api/services/${service.id}/`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Unable to remove ${service.name}.`);
+    }
+
+    setCurrentServiceRates(currentServices => currentServices.filter(currentService => currentService.id !== service.id));
   };
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
@@ -353,7 +557,7 @@ export default function SitterProfile() {
       <ProfileInfoBar
         name={profile.name}
         username={profile.username}
-        role={profile.role}
+        user_type={profile.user_type}
         bio={profile.bio}
         stats={profile.stats}
         actions={isOwnProfile
@@ -416,6 +620,8 @@ export default function SitterProfile() {
           services={currentServiceRates}
           onClose={() => setIsServicesOpen(false)}
           onSaveServices={handleServicesSave}
+          onAddService={handleServiceAdd}
+          onRemoveService={handleServiceRemove}
         />
       )}
     </div>

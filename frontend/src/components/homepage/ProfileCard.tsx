@@ -47,8 +47,7 @@ function mapBackendUserToProfileData(user: BackendUser): ProfileData {
     imageUrl: user.avatar || undefined,
     stats: [
       { value: user.posts_count ?? '0', label: 'Posts' },
-      { value: user.followers_count ?? 0, label: 'Followers' },
-      { value: user.following_count ?? 0, label: 'Following' },
+      { value: user.followers_count ?? 0, label: 'Connections' },
     ]
   }
   
@@ -133,12 +132,8 @@ export default function ProfileCard() {
                 <p className='stats-label'>Posts</p>
               </div>
               <div className='stats-group' onClick={() => openFollowsPopup('followers')}>
-                <p className='nbr'>{profileCard.stats.find(s => s.label === 'Followers')?.value ?? 0}</p>
-                <p className='stats-label'>Followers</p>
-              </div>              
-              <div className='stats-group' onClick={() => openFollowsPopup('following')}>
-                <p className='nbr'>{profileCard.stats.find(s => s.label === 'Following')?.value ?? 0}</p>
-                <p className='stats-label'>Following</p>
+                <p className='nbr'>{profileCard.stats.find(s => s.label === 'Connections')?.value ?? 0}</p>
+                <p className='stats-label'>Connections</p>
               </div>
             </div>
           </div>

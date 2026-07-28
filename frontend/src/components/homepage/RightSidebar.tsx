@@ -17,7 +17,7 @@ export default function RightSidebar() {
     <aside className="right-sidebar">
 
       <div className="rs-card">
-        <h3 className="rs-title">Suggested Sitters</h3>
+        <h3 className="rs-title">Suggested connections</h3>
         <ul className="rs-list">
           {suggestedSitters.map(s => (
             <li key={s.id} className="rs-item">

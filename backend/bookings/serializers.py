@@ -20,7 +20,22 @@ class BookingSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'requester', 'status', 'price_at_booking', 'created_at')
 
 class ReviewSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    comment = serializers.CharField(max_length=1000, required=False, allow_blank=True, allow_null=True)
+    reviewer_name = serializers.CharField(source='reviewer.name', read_only=True)
+    reviewer_username = serializers.CharField(source='reviewer.username', read_only=True)
+    reviewer_avatar = serializers.ImageField(source='reviewer.avatar', read_only=True)
+    reviewee_name = serializers.CharField(source='reviewee.name', read_only=True)
+    reviewee_username = serializers.CharField(source='reviewee.username', read_only=True)
+
     class Meta:
         model = Review
-        fields = ('id', 'reviewer', 'reviewee', 'booking', 'rating', 'comment', 'created_at')
-        read_only_fields = ('id', 'reviewer', 'created_at')
+        fields = (
+            'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_avatar',
+            'reviewee', 'reviewee_name', 'reviewee_username',
+            'booking', 'rating', 'comment', 'created_at'
+        )
+        read_only_fields = (
+            'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_avatar',
+            'reviewee_name', 'reviewee_username', 'created_at'
+        )

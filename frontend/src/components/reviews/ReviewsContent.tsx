@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import ReviewCard, { type Review } from './ReviewCard';
 import ReviewForm from './ReviewForm';
 import ReviewsSummary from './ReviewsSummary';
@@ -9,6 +9,7 @@ type ReviewsContentProps = {
   title: ReactNode;
   initialReviews: Review[];
   showReviewForm?: boolean;
+  statusMessage?: string;
 };
 
 const filterOptions: { label: string; value: RatingFilter }[] = [
@@ -22,9 +23,14 @@ export default function ReviewsContent({
   title,
   initialReviews,
   showReviewForm = true,
+  statusMessage,
 }: ReviewsContentProps) {
   const [reviews, setReviews] = useState(initialReviews);
   const [activeFilter, setActiveFilter] = useState<RatingFilter>('all');
+
+  useEffect(() => {
+    setReviews(initialReviews);
+  }, [initialReviews]);
 
   const filteredReviews = useMemo(() => {
     if (activeFilter === 'all') {
@@ -85,9 +91,13 @@ export default function ReviewsContent({
           </div>
 
           <div className="reviews-list">
-            {filteredReviews.map(review => (
-              <ReviewCard key={review.id} review={review} />
-            ))}
+            {statusMessage ? (
+              <p className="reviews-status">{statusMessage}</p>
+            ) : (
+              filteredReviews.map(review => (
+                <ReviewCard key={review.id} review={review} />
+              ))
+            )}
           </div>
         </section>
 

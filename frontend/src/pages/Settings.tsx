@@ -1,7 +1,14 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { getInitials, type BackendUser, type ProfileData, mapBackendToProfile } from './OwnerProfile';
 import './Settings.css';
+import ProfileSection from '../components/settings/ProfileSection';
+import PetCareSection from '../components/settings/PetCareSection';
+import PrivacySection from '../components/settings/PrivacySection';
+import DangerZoneSection from '../components/settings/DangerZoneSection';
+import NotificationsSection from '../components/settings/NotificationsSection';
+import SecuritySection from '../components/settings/SecuritySection';
 
-interface Pet {
+export interface Pet {
   id: string;
   name: string;
   type: 'dog' | 'cat' | 'rabbit' | 'other';
@@ -9,7 +16,7 @@ interface Pet {
   age: string;
 }
 
-interface SettingsForm {
+export interface SettingsForm {
   avatarUrl: string;
   displayName: string;
   username: string;
@@ -20,8 +27,7 @@ interface SettingsForm {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
-  accountMode: 'owner' | 'sitter';
-  profileVisibility: string;
+  userType: string;
   bookingAlerts: boolean;
   messageAlerts: boolean;
   reviewAlerts: boolean;
@@ -30,7 +36,6 @@ interface SettingsForm {
   showAbout: boolean;
   showPets: boolean;
   showLookingFor: boolean;
-  ownerPetTypes: string[];
   petsList: Pet[];
   lookingForServices: string[];
   yearsOfExperience: string;
@@ -40,17 +45,16 @@ interface SettingsForm {
 
 const initialSettings: SettingsForm = {
   avatarUrl: '',
-  displayName: 'Jane Doe',
-  username: 'janedoe123',
-  email: 'jane.doe@example.com',
-  city: 'Porto',
-  country: 'Portugal',
-  bio: 'Dog and cat mom. Always looking for the best care for my pets.',
+  displayName: '',
+  username: '',
+  email: '',
+  city: '',
+  country: '',
+  bio: '',
   currentPassword: '',
   newPassword: '',
   confirmPassword: '',
-  accountMode: 'owner',
-  profileVisibility: 'Everyone',
+  userType: 'owner',
   bookingAlerts: true,
   messageAlerts: true,
   reviewAlerts: true,
@@ -59,9 +63,8 @@ const initialSettings: SettingsForm = {
   showAbout: true,
   showPets: true,
   showLookingFor: true,
-  ownerPetTypes: ['dogs', 'cats'],
   petsList: [],
-  lookingForServices: ['Cat Sitter', 'Dog Walker'],
+  lookingForServices: ['cat sitter', 'dog walker'],
   yearsOfExperience: '',
   hourlyRate: '',
   sitterPetTypes: ['dogs', 'cats', 'small pets'],
@@ -69,7 +72,6 @@ const initialSettings: SettingsForm = {
 
 const resettableSettings: Pick<
   SettingsForm,
-  | 'profileVisibility'
   | 'bookingAlerts'
   | 'messageAlerts'
   | 'reviewAlerts'
@@ -79,44 +81,142 @@ const resettableSettings: Pick<
   | 'showPets'
   | 'showLookingFor'
 > = {
-  profileVisibility: initialSettings.profileVisibility,
-  bookingAlerts: initialSettings.bookingAlerts,
-  messageAlerts: initialSettings.messageAlerts,
-  reviewAlerts: initialSettings.reviewAlerts,
-  commentAlerts: initialSettings.commentAlerts,
-  connectionRequestAlerts: initialSettings.connectionRequestAlerts,
-  showAbout: initialSettings.showAbout,
-  showPets: initialSettings.showPets,
-  showLookingFor: initialSettings.showLookingFor,
+  bookingAlerts: true,
+  messageAlerts: true,
+  reviewAlerts: true,
+  commentAlerts: true,
+  connectionRequestAlerts: true,
+  showAbout: true,
+  showPets: true,
+  showLookingFor: true,
 };
-
-const ownerPetTypeOptions = ['dogs', 'cats', 'rabbits', 'other'];
-const lookingForOptions = ['Cat Sitter', 'Dog Walker', 'Home Visits', 'Overnight Stay'];
-const sitterPetTypeOptions = ['dogs', 'cats', 'rabbits', 'small pets', 'big pets'];
-
-const ageOptions = [
-  '<1 yr',
-  '1 yr',
-  ...Array.from({ length: 11 }, (_, i) => `${i + 2} yrs`),
-  '>12 yrs'
-];
 
 export default function Settings() {
   const [form, setForm] = useState<SettingsForm>(initialSettings);
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [inlineError, setInlineError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteNotice, setDeleteNotice] = useState('');
-
   const [newPetName, setNewPetName] = useState('');
   const [newPetType, setNewPetType] = useState<Pet['type']>('dog');
   const [newPetBreed, setNewPetBreed] = useState('');
-  const [newPetAge, setNewPetAge] = useState('');
+  const [newPetAge, setNewPetAge] = useState('<1 yr');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [profile, setAccountData] = useState<ProfileData | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [oauthProvider, setOauthProvider] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = 'Settings | PetLink';
   }, []);
+
+  useEffect(() => {
+  const fetchProfileData = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+
+      const response = await fetch(`/auth/me/`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json', 
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch account data.');
+      }
+      const data: BackendUser & { email?: string; user_type?: string; id?: number } = await response.json();
+    
+      setUserId(data.id ?? null);
+      const mappedProfile = mapBackendToProfile(data);
+      setAccountData(mappedProfile);
+
+      const userType = data.user_type;
+      const initialMode = userType === 'owner' ? 'owner' : 'sitter';
+
+      const backendData = data as BackendUser & { 
+        email?: string; 
+        user_type?: string; 
+        id?: number; 
+        experience?: number | null; 
+        price?: number | string | null; 
+        sitter_pet_types?: string[]; 
+        looking_for?: string[]; 
+        notify_bookings?: boolean; 
+        notify_messages?: boolean; 
+        notify_reviews?: boolean; 
+        notify_comments?: boolean; 
+        notify_connections?: boolean;
+        show_about?: boolean;
+        show_pets?: boolean;
+        show_looking_for?: boolean;
+      };
+
+      let petsData: Pet[] = [];
+      if (data.id) {
+        try {
+          const petsRes = await fetch(`/api/users/${data.id}/pets/`, {
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (petsRes.ok) {
+            const rawPets = await petsRes.json();
+            petsData = rawPets.map((p: any) => ({
+              id: String(p.id),
+              name: p.name,
+              type: p.type as Pet['type'],
+              breed: p.breed || '',
+              age: p.age || '',
+            }));
+          }
+        } catch {
+          // non-critical, continue without pets
+        }
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        displayName: data.name || mappedProfile.name,
+        username: (data.username || mappedProfile.username).replace('@', ''),
+        email: data.email || '',
+        city: data.city || '',
+        country: data.country || '',
+        avatarUrl: data.avatar || mappedProfile.imageUrl || '',
+        bio: data.description || (mappedProfile.bio !== 'No bio available.' ? mappedProfile.bio : ''),
+        userType: initialMode,
+        yearsOfExperience: backendData.experience != null ? String(backendData.experience) : '',
+        hourlyRate: backendData.price != null ? String(backendData.price) : '',
+        sitterPetTypes: (backendData.sitter_pet_types ?? prev.sitterPetTypes).map((s: string) => s.toLowerCase()),
+        lookingForServices: (backendData.looking_for ?? prev.lookingForServices).map((s: string) => s.toLowerCase()),
+        bookingAlerts: backendData.notify_bookings ?? prev.bookingAlerts,
+        messageAlerts: backendData.notify_messages ?? prev.messageAlerts,
+        reviewAlerts: backendData.notify_reviews ?? prev.reviewAlerts,
+        commentAlerts: backendData.notify_comments ?? prev.commentAlerts,
+        connectionRequestAlerts: backendData.notify_connections ?? prev.connectionRequestAlerts,
+        showAbout: backendData.show_about ?? prev.showAbout,
+        showPets: backendData.show_pets ?? prev.showPets,
+        showLookingFor: backendData.show_looking_for ?? prev.showLookingFor,
+        petsList: petsData,
+      }));
+
+    } catch (err: any) {
+      setError(err.message || 'Failed to load account data.');
+      console.error("Fetch error details:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchProfileData();
+}, []);
 
   useEffect(() => {
     return () => {
@@ -126,12 +226,33 @@ export default function Settings() {
     };
   }, [form.avatarUrl]);
 
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const token = localStorage.getItem('access');
+        const res = await fetch('/auth/me/', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setOauthProvider(data.oauth_provider || null);
+          setForm(current => ({
+            ...current,
+            username: data.username,
+            displayName: data.name || current.displayName,
+            email: data.email || current.email
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch user', err);
+      }
+    }
+    fetchUser();
+  }, []);
+
   const profileInitials = form.displayName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((name) => name[0]?.toUpperCase())
-    .join('') || form.username.slice(0, 2).toUpperCase();
+    ? getInitials(form.displayName)
+    : profile?.initials || 'U';
 
   function updateField<Key extends keyof SettingsForm>(key: Key, value: SettingsForm[Key]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -142,6 +263,7 @@ export default function Settings() {
     if (!file) return;
 
     const nextAvatarUrl = URL.createObjectURL(file);
+    setAvatarFile(file);
 
     setForm((current) => {
       if (current.avatarUrl.startsWith('blob:')) {
@@ -151,7 +273,7 @@ export default function Settings() {
     });
   }
 
-  function toggleTagField(key: 'ownerPetTypes' | 'lookingForServices' | 'sitterPetTypes', tag: string) {
+  function toggleTagField(key: 'lookingForServices' | 'sitterPetTypes', tag: string) {
     setForm((current) => {
       const currentTags = current[key] as string[];
       const updatedTags = currentTags.includes(tag)
@@ -161,54 +283,110 @@ export default function Settings() {
     });
   }
 
-  function handleAddPet() {
+  async function handleAddPet() {
     if (!newPetName.trim()) return;
-    
-    const formattedAge = newPetAge.includes('yr') ? newPetAge.replace('yrs', 'years old').replace('yr', 'year old') : newPetAge;
 
-    const newPet: Pet = {
-      id: Date.now().toString(),
-      name: newPetName.trim(),
-      type: newPetType,
-      breed: newPetBreed.trim() || 'Unknown',
-      age: formattedAge,
-    };
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch('/api/pets/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          name: newPetName.trim(),
+          type: newPetType,
+          breed: newPetBreed.trim() || null,
+          age: newPetAge,
+        }),
+      });
 
-    updateField('petsList', [...form.petsList, newPet]);
-    setNewPetName('');
-    setNewPetBreed('');
-    setNewPetType('dog');
-    setNewPetAge('<1 yr');
+      if (!response.ok) {
+        setInlineError('Failed to add pet. Please try again.');
+        return;
+      }
+
+      const created = await response.json();
+      const newPet: Pet = {
+        id: String(created.id),
+        name: created.name,
+        type: created.type as Pet['type'],
+        breed: created.breed || '',
+        age: created.age || newPetAge,
+      };
+
+      updateField('petsList', [...form.petsList, newPet]);
+      setNewPetName('');
+      setNewPetBreed('');
+      setNewPetType('dog');
+      setNewPetAge('<1 yr');
+    } catch {
+      setInlineError('Failed to add pet. Please try again.');
+    }
   }
 
-  function handleRemovePet(id: string) {
-    updateField('petsList', form.petsList.filter((pet) => pet.id !== id));
+  async function handleRemovePet(id: string) {
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch(`/api/pets/${id}/`, {
+        method: 'DELETE',
+        headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+      });
+
+      if (!response.ok && response.status !== 204) {
+        setInlineError('Failed to remove pet. Please try again.');
+        return;
+      }
+
+      updateField('petsList', form.petsList.filter((pet) => pet.id !== id));
+    } catch {
+      setInlineError('Failed to remove pet. Please try again.');
+    }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const passwordFieldsChanged = Boolean(
-      form.currentPassword || form.newPassword || form.confirmPassword
-    );
-
-    if (passwordFieldsChanged) {
-      if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
-        setPasswordError('Fill in all password fields to change your password.');
-        return;
-      }
-
-      if (form.newPassword.length < 8) {
-        setPasswordError('New password must be at least 8 characters.');
-        return;
-      }
-
-      if (form.newPassword !== form.confirmPassword) {
-        setPasswordError('New password and confirmation do not match.');
-        return;
-      }
+  async function handlePasswordSubmit() {
+    if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
+      setPasswordError('Fill in all password fields to change your password.');
+      return;
     }
 
+    if (form.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters.');
+      return;
+    }
+
+    if (form.newPassword !== form.confirmPassword) {
+      setPasswordError('New password and confirmation do not match.');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch('/auth/password/change/', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          old_password: form.currentPassword,
+          new_password: form.newPassword
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setPasswordError(data.old_password?.[0] || data.new_password?.[0] || data.detail || 'Failed to update password.');
+        return;
+      }
+    } catch (err) {
+      setPasswordError('Error connecting to server.');
+      return;
+    }
+    
+    setPasswordSuccess('Password changed successfully.');
+    window.setTimeout(() => setPasswordSuccess(''), 3000);
     setPasswordError('');
     setForm((current) => ({
       ...current,
@@ -216,22 +394,124 @@ export default function Settings() {
       newPassword: '',
       confirmPassword: '',
     }));
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!userId) {
+      setInlineError('Cannot save: user ID not loaded.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const patchBody = {
+          username: form.username,
+          name: form.displayName,
+          description: form.bio,
+          city: form.city,
+          country: form.country,
+          experience: form.yearsOfExperience || null,
+          price: form.hourlyRate || null,
+          looking_for: form.lookingForServices,
+          sitter_pet_types: form.sitterPetTypes,
+          notify_bookings: form.bookingAlerts,
+          notify_messages: form.messageAlerts,
+          notify_reviews: form.reviewAlerts,
+          notify_comments: form.commentAlerts,
+          notify_connections: form.connectionRequestAlerts,
+          show_about: form.showAbout,
+          show_pets: form.showPets,
+          show_looking_for: form.showLookingFor
+      };
+      const response = await fetch(`/auth/users/${userId}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify(patchBody),
+      });
+
+      if (!response.ok) {
+        let message = `Server error ${response.status}`;
+        try {
+          const errorData = await response.json();
+          const firstError = Object.values(errorData)[0];
+          message = Array.isArray(firstError) ? firstError[0] : String(firstError);
+        } catch {
+          message = response.statusText || message;
+        }
+        setInlineError(message);
+        return;
+      }
+
+      if (avatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        const avatarResponse = await fetch(`/auth/users/${userId}/avatar/`, {
+          method: 'POST',
+          headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
+          body: formData,
+        });
+        if (avatarResponse.ok) {
+          setAvatarFile(null);
+        }
+      }
+    } catch (err) {
+      console.error('Settings save failed:', err);
+      setInlineError('Failed to save changes. Please try again.');
+      return;
+    }
+
     setSaved(true);
+    setInlineError('');
     window.setTimeout(() => setSaved(false), 2500);
   }
 
   function handleReset() {
     setForm((current) => ({ ...current, ...resettableSettings }));
     setSaved(false);
-    setPasswordError('');
+    setInlineError('');
     setDeleteNotice('');
   }
+  
+  async function handleDeleteAccount() {
+    if (!deleteConfirmation) return;
 
-  function handleDeleteAccount() {
-    if (deleteConfirmation !== form.username) return;
+    if (oauthProvider && deleteConfirmation !== form.username) {
+      setDeleteNotice('Username does not match.');
+      return;
+    }
 
-    setDeleteNotice('Connect delete endpoint here.');
+    try {
+      const token = localStorage.getItem('access');
+      const response = await fetch('/auth/me/', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(oauthProvider ? {} : { password: deleteConfirmation })
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
+        window.location.href = '/';
+      } else {
+        const data = await response.json();
+        setDeleteNotice(data.detail || 'Failed to delete account.');
+      }
+    } catch (err) {
+      setDeleteNotice('Error connecting to server.');
+    }
   }
+
+  if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
+  if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
+  if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
 
   return (
     <div className="settings-page">
@@ -241,18 +521,23 @@ export default function Settings() {
       </div>
 
       <form className="settings-layout" onSubmit={handleSubmit}>
-        <aside className="settings-menu" aria-label="Settings sections">
+        <aside className="settings-menu" aria-label="Settings sections">          
           <div className="settings-profile-summary">
             <div className="settings-avatar">
-              {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
+              {form.avatarUrl ? (
+                <img src={form.avatarUrl} alt={form.displayName || profile.name} />
+              ) : (
+                profileInitials
+              )}
             </div>
             <div>
-              <strong>{form.displayName}</strong>
-              <span>@{form.username}</span>
+              <strong>{form.displayName || profile.name}</strong>
+              <span>@{form.username || profile.username.replace('@', '')}</span>
             </div>
           </div>
 
           <a className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} href="#profile" onClick={() => setActiveSection('profile')}>Profile</a>
+          {!oauthProvider && <a className={`settings-menu-item ${activeSection === 'security' ? 'active' : ''}`} href="#security" onClick={() => setActiveSection('security')}>Security</a>}          
           <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
           <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
           <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
@@ -260,361 +545,83 @@ export default function Settings() {
         </aside>
 
         <main className="settings-main">
-          <section className="settings-section" id="profile">
-            <div className="settings-section-header">
-              <div>
-                <h2>Profile details</h2>
-                <p>Public account information</p>
-              </div>
-            </div>
+          <ProfileSection
+            avatarUrl={form.avatarUrl}
+            displayName={form.displayName}
+            username={form.username}
+            email={form.email}
+            city={form.city}
+            country={form.country}
+            bio={form.bio}
+            profileInitials={profileInitials}
+            updateField={updateField}
+            handleAvatarChange={handleAvatarChange}
+          />
 
-            <div className="settings-avatar-panel">
-              <div className="settings-avatar-preview">
-                {form.avatarUrl ? <img src={form.avatarUrl} alt="" /> : profileInitials}
-              </div>
-              <div className="settings-avatar-copy">
-                <h3>Profile avatar</h3>
-                <p>Add or change the photo shown on your PetLink profile.</p>
-                <label className="settings-avatar-button">
-                  Choose photo
-                  <input type="file" accept="image/*" onChange={handleAvatarChange} />
-                </label>
-              </div>
-            </div>
+          <SecuritySection
+            oauthProvider={oauthProvider}
+            passwordSuccess={passwordSuccess}
+            passwordError={passwordError}
+            currentPassword={form.currentPassword}
+            newPassword={form.newPassword}
+            confirmPassword={form.confirmPassword}
+            updateField={updateField}
+            handlePasswordSubmit={handlePasswordSubmit}
+          />
 
-            <div className="settings-grid">
-              <label className="settings-field">
-                <span>Display name</span>
-                <input type="text" value={form.displayName} onChange={(e) => updateField('displayName', e.target.value)} />
-              </label>
-              <label className="settings-field">
-                <span>Username</span>
-                <input type="text" value={form.username} onChange={(e) => updateField('username', e.target.value)} />
-              </label>
-            </div>
+          <PetCareSection
+            userType={form.userType}
+            petsList={form.petsList}
+            lookingForServices={form.lookingForServices}
+            yearsOfExperience={form.yearsOfExperience}
+            hourlyRate={form.hourlyRate}
+            sitterPetTypes={form.sitterPetTypes}
+            newPetName={newPetName}
+            newPetType={newPetType}
+            newPetBreed={newPetBreed}
+            newPetAge={newPetAge}
+            setNewPetName={setNewPetName}
+            setNewPetType={setNewPetType}
+            setNewPetBreed={setNewPetBreed}
+            setNewPetAge={setNewPetAge}
+            toggleTagField={toggleTagField}
+            handleAddPet={handleAddPet}
+            handleRemovePet={handleRemovePet}
+            updateField={updateField}
+          />
+          
+          <NotificationsSection
+            bookingAlerts={form.bookingAlerts}
+            messageAlerts={form.messageAlerts}
+            reviewAlerts={form.reviewAlerts}
+            commentAlerts={form.commentAlerts}
+            connectionRequestAlerts={form.connectionRequestAlerts}
+            updateField={updateField}
+          />
 
-            <div className="settings-contact-row">
-              <label className="settings-field">
-                <span>Email</span>
-                <input type="email" value={form.email} onChange={(e) => updateField('email', e.target.value)} />
-              </label>
+          <PrivacySection
+            userType={form.userType}
+            showAbout={form.showAbout}
+            showPets={form.showPets}
+            showLookingFor={form.showLookingFor}
+            updateField={updateField}
+          />
 
-              <div className="settings-location-row">
-                <label className="settings-field settings-compact-field">
-                  <span>City</span>
-                  <input type="text" value={form.city} onChange={(e) => updateField('city', e.target.value)} />
-                </label>
-                <label className="settings-field settings-compact-field">
-                  <span>Country</span>
-                  <input type="text" value={form.country} onChange={(e) => updateField('country', e.target.value)} />
-                </label>
-              </div>
-            </div>
-
-            <label className="settings-field">
-              <span>Bio</span>
-              <textarea value={form.bio} rows={4} onChange={(e) => updateField('bio', e.target.value)} />
-            </label>
-
-            <div className="settings-password-panel">
-              <div className="settings-password-header">
-                <h3>Change password</h3>
-                <p>Update the password you use to sign in.</p>
-              </div>
-
-              <div className="settings-grid">
-                <label className="settings-field">
-                  <span>Current password</span>
-                  <input
-                    type="password"
-                    value={form.currentPassword}
-                    onChange={(e) => updateField('currentPassword', e.target.value)}
-                    autoComplete="current-password"
-                  />
-                </label>
-                <label className="settings-field">
-                  <span>New password</span>
-                  <input
-                    type="password"
-                    value={form.newPassword}
-                    onChange={(e) => updateField('newPassword', e.target.value)}
-                    autoComplete="new-password"
-                  />
-                </label>
-              </div>
-
-              <label className="settings-field settings-confirm-password">
-                <span>Confirm new password</span>
-                <input
-                  type="password"
-                  value={form.confirmPassword}
-                  onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  autoComplete="new-password"
-                />
-              </label>
-
-              {passwordError && <p className="settings-password-error">{passwordError}</p>}
-            </div>
-          </section>
-
-          <section className="settings-section" id="care">
-            <div className="settings-section-header">
-              <div>
-                <h2>Pet care</h2>
-                <p>Profile mode, pets and service preferences</p>
-              </div>
-            </div>
-
-            <div className="settings-segmented" aria-label="Account mode">
-              {(['owner', 'sitter'] as const).map((mode) => (
-                <button
-                  className={form.accountMode === mode ? 'active' : ''}
-                  key={mode}
-                  type="button"
-                  onClick={() => updateField('accountMode', mode)}
-                >
-                  {mode === 'owner' ? 'Owner' : 'Sitter'}
-                </button>
-              ))}
-            </div>
-
-            {form.accountMode === 'owner' && (
-              <div className="mode-specific-fields owner-mode animate-fade-in">
-                
-                <div className="settings-input-group">
-                  <span className="settings-group-label">My Pets are:</span>
-                  <div className="settings-service-list">
-                    {ownerPetTypeOptions.map((type) => (
-                      <label className="settings-check-row" key={type}>
-                        <input
-                          type="checkbox"
-                          checked={form.ownerPetTypes.includes(type)}
-                          onChange={() => toggleTagField('ownerPetTypes', type)}
-                        />
-                        <span className="capitalize-text">{type}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="settings-input-group">
-                  <span className="settings-group-label">Manage My Pets:</span>
-                  
-                  <div className="add-pet-inline-form">
-                    <input 
-                      type="text" 
-                      placeholder="Pet name" 
-                      value={newPetName}
-                      onChange={(e) => setNewPetName(e.target.value)}
-                      className="pet-input-field pet-name-input"
-                    />
-                    <select 
-                      value={newPetType} 
-                      onChange={(e) => setNewPetType(e.target.value as Pet['type'])}
-                      className="pet-input-field pet-type-select"
-                    >
-                      <option value="dog">Dog</option>
-                      <option value="cat">Cat</option>
-                      <option value="rabbit">Rabbit</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <input 
-                      type="text"
-                      placeholder="Breed"
-                      value={newPetBreed}
-                      onChange={(e) => setNewPetBreed(e.target.value)}
-                      className="pet-input-field pet-breed-input"
-                    />
-                    <select
-                      value={newPetAge}
-                      onChange={(e) => setNewPetAge(e.target.value)}
-                      className="pet-input-field pet-age-select"
-                    >
-                      {ageOptions.map((age) => (
-                        <option key={age} value={age}>{age}</option>
-                      ))}
-                    </select>
-                    <button type="button" className="add-pet-btn" onClick={handleAddPet}>+ Add</button>
-                  </div>
-
-                  <div className="added-pets-badge-list">
-                    {form.petsList.map((pet) => (
-                      <div key={pet.id} className="pet-badge-item">
-                        <span>
-                          {pet.name} | <span className="capitalize-text">{pet.type}</span> | {pet.breed} | {pet.age}
-                        </span>
-                        <button type="button" className="remove-pet-badge" onClick={() => handleRemovePet(pet.id)}>×</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="settings-input-group">
-                  <span className="settings-group-label">I am looking for:</span>
-                  <div className="settings-service-list">
-                    {lookingForOptions.map((service) => (
-                      <label className="settings-check-row" key={service}>
-                        <input
-                          type="checkbox"
-                          checked={form.lookingForServices.includes(service)}
-                          onChange={() => toggleTagField('lookingForServices', service)}
-                        />
-                        <span>{service}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {form.accountMode === 'sitter' && (
-              <div className="mode-specific-fields sitter-mode animate-fade-in">
-                
-                <div className="settings-grid">
-                  <label className="settings-field sitter-open-field">
-                    <span>Years of Experience</span>
-                    <input 
-                      type="text" 
-                      placeholder=" +3 years" 
-                      value={form.yearsOfExperience}
-                      onChange={(e) => updateField('yearsOfExperience', e.target.value)}
-                      className="pet-input-field"
-                    />
-                  </label>
-                  <label className="settings-field sitter-open-field">
-                    <span>Price per Hour (€)</span>
-                    <input 
-                      type="text" 
-                      placeholder="10-15" 
-                      value={form.hourlyRate}
-                      onChange={(e) => updateField('hourlyRate', e.target.value)}
-                      className="pet-input-field"
-                    />
-                  </label>
-                </div>
-
-                <div className="settings-input-group">
-                  <span className="settings-group-label">I can pet-sit:</span>
-                  <div className="settings-service-list">
-                    {sitterPetTypeOptions.map((type) => (
-                      <label className="settings-check-row" key={type}>
-                        <input
-                          type="checkbox"
-                          checked={form.sitterPetTypes.includes(type)}
-                          onChange={() => toggleTagField('sitterPetTypes', type)}
-                        />
-                        <span className="capitalize-text">{type}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-          </section>
-
-          <section className="settings-section" id="notifications">
-            <div className="settings-section-header">
-              <div>
-                <h2>Notifications</h2>
-                <p>Messages, bookings, reviews, comments, likes and new connections</p>
-              </div>
-            </div>
-
-            <div className="settings-preference-list">
-              <label className="settings-toggle-row">
-                <span><strong>Booking requests</strong><small>New bookings or applications</small></span>
-                <input type="checkbox" checked={form.bookingAlerts} onChange={(e) => updateField('bookingAlerts', e.target.checked)} />
-              </label>
-              <label className="settings-toggle-row">
-                <span><strong>Messages</strong><small>New messages and direct replies</small></span>
-                <input type="checkbox" checked={form.messageAlerts} onChange={(e) => updateField('messageAlerts', e.target.checked)} />
-              </label>
-              <label className="settings-toggle-row">
-                <span><strong>Reviews</strong><small>New reviews and service ratings</small></span>
-                <input type="checkbox" checked={form.reviewAlerts} onChange={(e) => updateField('reviewAlerts', e.target.checked)} />
-              </label>
-              <label className="settings-toggle-row">
-                <span><strong>Comments and likes</strong><small>New comments and likes on your posts</small></span>
-                <input type="checkbox" checked={form.commentAlerts} onChange={(e) => updateField('commentAlerts', e.target.checked)} />
-              </label>
-              <label className="settings-toggle-row">
-                <span><strong>Connection requests</strong><small>New connection requests from other users</small></span>
-                <input type="checkbox" checked={form.connectionRequestAlerts} onChange={(e) => updateField('connectionRequestAlerts', e.target.checked)} />
-              </label>
-            </div>
-          </section>
-
-          <section className="settings-section" id="privacy">
-            <div className="settings-section-header">
-              <div>
-                <h2>Privacy</h2>
-                <p>Profile sections visibility</p>
-              </div>
-            </div>
-
-            <div className="settings-preference-list">
-              <label className="settings-toggle-row">
-                <span><strong>Show About</strong><small>About you</small></span>
-                <input type="checkbox" checked={form.showAbout} onChange={(e) => updateField('showAbout', e.target.checked)} />
-              </label>
-              <label className="settings-toggle-row">
-                <span><strong>Show Pets</strong><small>Your pets or pets you petsit</small></span>
-                <input type="checkbox" checked={form.showPets} onChange={(e) => updateField('showPets', e.target.checked)} />
-              </label>
-              <label className="settings-toggle-row">
-                <span><strong>Show Looking For</strong><small>What you're looking for at PetLink</small></span>
-                <input type="checkbox" checked={form.showLookingFor} onChange={(e) => updateField('showLookingFor', e.target.checked)} />
-              </label>
-            </div>
-          </section>
-
-          <section className="settings-section settings-danger-zone" id="danger">
-            <div className="settings-section-header">
-              <div>
-                <h2>Danger zone</h2>
-                <p>Permanent account actions</p>
-              </div>
-            </div>
-
-            <div className="settings-danger-content">
-              <div>
-                <h3>Delete account</h3>
-                <p>
-                  This will remove your profile, pets, bookings, messages and account access.
-                  Type your username to confirm.
-                </p>
-              </div>
-
-              <label className="settings-field settings-delete-confirm">
-                <span>Confirm username</span>
-                <input
-                  type="text"
-                  value={deleteConfirmation}
-                  onChange={(e) => {
-                    setDeleteConfirmation(e.target.value);
-                    setDeleteNotice('');
-                  }}
-                  placeholder={form.username}
-                  autoComplete="off"
-                />
-              </label>
-
-              {deleteNotice && <p className="settings-delete-notice">{deleteNotice}</p>}
-
-              <button
-                className="settings-danger-btn"
-                type="button"
-                disabled={deleteConfirmation !== form.username}
-                onClick={handleDeleteAccount}
-              >
-                Delete my account
-              </button>
-            </div>
-          </section>
+          <DangerZoneSection
+            username={form.username}
+            deleteConfirmation={deleteConfirmation}
+            deleteNotice={deleteNotice}
+            oauthProvider={oauthProvider}
+            setDeleteConfirmation={(v) => {
+              setDeleteConfirmation(v);
+              setDeleteNotice('');
+            }}
+            setDeleteNotice={setDeleteNotice}
+            handleDeleteAccount={handleDeleteAccount}
+          />
 
           <div className="settings-actions">
+            {inlineError && <span className="settings-password-error">{inlineError}</span>}
             {saved && <span className="settings-saved">Changes saved</span>}
             <button className="settings-secondary-btn" type="button" onClick={handleReset}>Reset</button>
             <button className="settings-primary-btn" type="submit">Save changes</button>

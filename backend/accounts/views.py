@@ -1,6 +1,7 @@
 import os
 import requests
 from django.shortcuts import redirect, get_object_or_404
+from django.core.files.base import ContentFile
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, status
@@ -13,7 +14,7 @@ from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
     UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer,
-    UserOnlineStatusSerializer
+    UserOnlineStatusSerializer, ChangePasswordSerializer
 )
 from .permissions import IsOwnerAdminModeratorOrReadOnly, IsAdmin
 from .models import Follower
@@ -46,6 +47,33 @@ class UserMeView(APIView):
         """Returns the serialized data of the user making the request"""
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
+
+    def delete(self, request):
+        """Hard delete the logged-in user"""
+        user = request.user
+        
+        if not user.oauth_provider:
+            password = request.data.get('password')
+            if not password or not user.check_password(password):
+                return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class SetRoleView(APIView):
+    """API view to set user_type for newly created users via 42 OAuth"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        new_role = request.data.get('user_type')
+        
+        if new_role not in ['owner', 'provider']:
+            return Response({"error": "Invalid role."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user.user_type = new_role
+        user.save()
+        return Response({"message": f"Role successfully updated to {new_role}."})
 
 class OAuth42LoginView(APIView):
     """
@@ -93,7 +121,7 @@ class OAuth42CallbackView(APIView):
         ft_login = user_data.get('login')
         email = user_data.get('email')
 
-        user, created = User.objects.get_or_create(
+        user, created = User.all_objects.get_or_create(
             username=ft_login,
             defaults={
                 'email': email,
@@ -104,13 +132,28 @@ class OAuth42CallbackView(APIView):
             }
         )
 
+        if not created and user.deleted_at:
+            return redirect("https://localhost:5173/login?error=account_deleted")
+
         if created:
             user.set_unusable_password()
+            
+            # Extract and save profile picture
+            image_url = user_data.get('image', {}).get('link') or user_data.get('image_url')
+            if image_url:
+                try:
+                    img_res = requests.get(image_url, timeout=5)
+                    if img_res.ok:
+                        user.avatar.save(f"{ft_login}_42_avatar.jpg", ContentFile(img_res.content), save=False)
+                except requests.RequestException:
+                    pass
+            
             user.save()
 
         refresh = RefreshToken.for_user(user)
 
-        frontend_url = f"https://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}"
+        is_new = str(created).lower()
+        frontend_url = f"https://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}&is_new={is_new}"
         return redirect(frontend_url)
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
@@ -296,3 +339,36 @@ class AdminStatsView(APIView):
             "pending_bookings": pending_bookings,
             "total_reviews": total_reviews
         }, status=status.HTTP_200_OK)
+
+class DeleteMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.name = 'Deleted User'
+        user.email = f'deleted_{user.id}@deleted.com'
+        user.username = f'deleted_{user.id}'
+        user.avatar = None
+        user.banner = None
+        user.description = None
+        user.soft_delete()
+        return Response(status=204)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            
+            if user.oauth_provider:
+                return Response({"detail": "Password change is not available for OAuth users."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

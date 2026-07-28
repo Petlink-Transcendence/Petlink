@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './ProfileContent.css';
-import '../Comments.css'
-import CreatePost from '../homepage/CreatePostContainer.tsx'
+import '../Comments.css';
+import CreatePost from '../homepage/CreatePostContainer.tsx';
 
 type Post = {
   id: number;
@@ -53,7 +53,7 @@ function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorIni
 
     const newComment: CommentItem = {
       id: Date.now(),
-      author: "Jane Doe", // Proxy tracking session user name
+      author: "Jane Doe",
       text: newCommentText.trim(),
       time: "Just now"
     };
@@ -92,6 +92,7 @@ function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorIni
           >
             📢 Comment
           </button>
+          <button className="admin admin-btn-remove" title="Remove post">🗑️</button>
         </div>
       </div>
 

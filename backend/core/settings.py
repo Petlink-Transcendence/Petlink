@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -130,6 +131,8 @@ CSRF_TRUSTED_ORIGINS = [
 
 # SimpleJWT configuration
 SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 

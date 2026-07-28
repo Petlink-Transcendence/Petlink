@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from pets.models import Pet, UserPet
-from bookings.models import Service, Availability, Booking
+from bookings.models import Service, Availability, Booking, Review
 
 User = get_user_model()
 
@@ -10,6 +10,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         users_data = [
+            {
+                'username': 'Admin', 'email': 'admin@petlink.local', 'name': 'Admin',
+                'user_type': 'owner', 'role': 'admin', 'description': 'PetLink administrator account',
+                'country': 'Portugal', 'city': 'Porto', 'rating': None,
+                'looking_for': []
+            },
             {
                 'username': 'joao', 'email': 'joao@test.com', 'name': 'Joao Vieira',
                 'user_type': 'owner', 'role': 'user', 'description': 'Dog lover from Vila Nova de Gaia',
@@ -35,7 +41,7 @@ class Command(BaseCommand):
                 'looking_for': ['dog walker', 'home visits', 'overnight stay']
             },
             {
-                'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel LaRoque', 'user_type': 'owner',
+                'username': 'gabriel', 'email': 'gabriel@test.com', 'name': 'Gabriel La Rocque', 'user_type': 'owner',
                 'role': 'user', 'description': 'Cat & Dog lover from Porto',
                 'country': 'Portugal', 'city': 'Porto', 'rating': '4.5', 'avatar': 'avatars/gabriel.jpeg',
                 'looking_for': ['cat sitter']
@@ -43,8 +49,8 @@ class Command(BaseCommand):
             {
                 'username': 'rafael', 'email': 'rafael@test.com', 'name': 'Rafael Castro', 'user_type': 'provider',
                 'role': 'user', 'description': 'Passionate animal lover with 5+ years of experience caring for cats and small pets.',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '5', 'experience': '5+ years', 'price': '10-15 per hour', 'pet_types': ['cats', 'dogs', 'small pets'],
-                'avatar': 'avatars/rafael.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '5', 'experience': '5+ years', 'price': '10-15 per hour',
+                'sitter_pet_types': ['cats', 'dogs', 'small pets'], 'avatar': 'avatars/rafael.jpeg'
             },
             {
                 'username': 'maria', 'email': 'maria@test.com', 'name': 'Maria Santos', 'user_type': 'provider',
@@ -64,7 +70,7 @@ class Command(BaseCommand):
                 'role': data['role'], 'description': data['description'], 'country': data['country'],
                 'city': data['city'], 'rating': data['rating'], 'avatar': data.get('avatar'),
                 'experience': data.get('experience'), 'price': data.get('price'),
-                'pet_types': data.get('pet_types', []), 'looking_for': data.get('looking_for', [])
+                'looking_for': data.get('looking_for', []), 'sitter_pet_types': data.get('sitter_pet_types', [])
             })
             if created:
                 user.set_password('Test1234!')
@@ -90,16 +96,79 @@ class Command(BaseCommand):
         carlos = User.objects.get(username='carlos')
         joao = User.objects.get(username='joao')
         isabel = User.objects.get(username='isabel')
+        daniela = User.objects.get(username='daniela')
         zeus = Pet.objects.get(name='Zeus')
         sushi = Pet.objects.get(name='Sushi')
 
         service_maria, _ = Service.objects.get_or_create(user=maria, type='dog_walking', defaults={'description': 'Daily walks', 'price': '15.00', 'currency': 'EUR', 'price_unit': 'per_hour'})
         service_carlos, _ = Service.objects.get_or_create(user=carlos, type='cat_sitting', defaults={'description': 'Cat sitting', 'price': '12.00', 'currency': 'EUR', 'price_unit': 'per_day'})
 
+        rafael = User.objects.get(username='rafael')
+
+        Service.objects.get_or_create(user=rafael, type='cat_sitting', defaults={
+            'description': 'Daily visits, feeding, and litter care',
+            'price': '20.00', 'currency': 'EUR', 'price_unit': 'per_session',
+        })
+        Service.objects.get_or_create(user=rafael, type='home_visits', defaults={
+            'description': 'Short check-ins for cats and small pets',
+            'price': '15.00', 'currency': 'EUR', 'price_unit': 'per_session',
+        })
+        Service.objects.get_or_create(user=rafael, type='grooming', defaults={
+            'description': 'Coat brushing and basic care',
+            'price': '18.00', 'currency': 'EUR', 'price_unit': 'per_session',
+        })
+        Service.objects.get_or_create(user=rafael, type='overnight_stay', defaults={
+            'description': 'In-home care for longer bookings',
+            'price': '45.00', 'currency': 'EUR', 'price_unit': 'per_day',
+        })
+
+        Availability.objects.get_or_create(
+            user=rafael,
+            start_date='2026-07-01',
+            end_date='2026-12-31',
+            defaults={
+                'time_slots': 'Mon - Fri: 09:00 - 12:00\nSaturday: 14:00 - 19:00\nSunday: On request',
+                'price': '15.00',
+                'currency': 'EUR',
+                'notes': 'Location: Porto; Capacity: 2 bookings/day',
+            },
+        )
+
         Availability.objects.get_or_create(user=maria, start_date='2026-07-14', end_date='2026-07-31', defaults={'time_slots': 'Weekdays 09:00-12:00', 'price': '15.00', 'currency': 'EUR'})
         Availability.objects.get_or_create(user=carlos, start_date='2026-07-14', end_date='2026-07-31', defaults={'time_slots': 'Weekends 10:00-18:00', 'price': '12.00', 'currency': 'EUR'})
 
         Booking.objects.get_or_create(requester=joao, provider=maria, service=service_maria, pet=zeus, date='2026-07-15', defaults={'start_time': '09:00', 'end_time': '10:00', 'location': 'Porto', 'message': 'Walk', 'currency': 'EUR'})
         Booking.objects.get_or_create(requester=isabel, provider=carlos, service=service_carlos, pet=sushi, date='2026-07-16', defaults={'start_time': '10:00', 'end_time': '18:00', 'location': 'Porto', 'message': 'Feed', 'currency': 'EUR'})
+
+        reviews_data = [
+            {
+                'reviewer': joao,
+                'reviewee': daniela,
+                'rating': 5,
+                'comment': 'Daniela gave clear care instructions, responded quickly, and made the booking easy from start to finish.'
+            },
+            {
+                'reviewer': isabel,
+                'reviewee': daniela,
+                'rating': 4,
+                'comment': 'Daniela was organized and thoughtful as a pet owner, with everything ready for a smooth visit.'
+            },
+            {
+                'reviewer': daniela,
+                'reviewee': isabel,
+                'rating': 5,
+                'comment': 'Isabel is a thoughtful pet owner. And Kiwi and Sushi are the best cats ever, well behaved and cute.'
+            }
+        ]
+
+        for data in reviews_data:
+            Review.objects.update_or_create(
+                reviewer=data['reviewer'],
+                reviewee=data['reviewee'],
+                defaults={
+                    'rating': data['rating'],
+                    'comment': data['comment']
+                }
+            )
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
