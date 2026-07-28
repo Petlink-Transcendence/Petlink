@@ -1,13 +1,21 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate} from 'react-router-dom'
 import './Post.css'
 import '../Comments.css'
+import { getLoggedInUserId } from '../../utils/auth'
 
 type CommentItem = {
   id: number;
+  authorId: string;
   author: string;
   text: string;
   time: string;
+};
+
+type CurrentUser = {
+  id: string | number;
+  name?: string;
+  role?: string;
 };
 
 type PostProps = {
@@ -27,13 +35,28 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(likeCount);
   const [imgError, setImgError] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const [showComments, setShowComments] = useState(false);
   const [newCommentText, setNewCommentText] = useState("");
   const [comments, setComments] = useState<CommentItem[]>([
-    { id: 1, author: "Daniela Padilha", text: "I have extensive cat experience, feel free to send a DM!", time: "1h ago" },
-    { id: 2, author: "Filipe Tootill", text: "Luna is beautiful! Hope you find an amazing sitter.", time: "45m ago" }
+    { id: 1, authorId: "5", author: "Daniela Padilha", text: "I have extensive cat experience, feel free to send a DM!", time: "1h ago" },
+    { id: 2, authorId: "6", author: "Filipe Tootill", text: "Luna is beautiful! Hope you find an amazing sitter.", time: "45m ago" }
   ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    if (!token) return;
+
+    fetch('/auth/me/', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((response) => response.ok ? response.json() as Promise<CurrentUser> : null)
+      .then((user) => {
+        if (user) setCurrentUser(user);
+      })
+      .catch(() => undefined);
+  }, []);
   
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const profilePath = authorType === 'sitter' ? `/sitterprofile/${authorId}` : `/profile/${authorId}`;
@@ -49,13 +72,23 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
 
     const newComment: CommentItem = {
       id: Date.now(),
-      author: "Jane Doe",
+      authorId: currentUser?.id ? String(currentUser.id) : (getLoggedInUserId() ?? ''),
+      author: currentUser?.name ?? "Jane Doe",
       text: newCommentText.trim(),
       time: "Just now"
     };
 
     setComments([newComment, ...comments]);
     setNewCommentText("");
+  };
+
+  const canDeleteComment = (comment: CommentItem) =>
+    currentUser?.role === 'admin' ||
+    (currentUser?.id !== undefined && String(currentUser.id) === comment.authorId) ||
+    (currentUser === null && getLoggedInUserId() === comment.authorId);
+
+  const handleDeleteComment = (commentId: number) => {
+    setComments((currentComments) => currentComments.filter((comment) => comment.id !== commentId));
   };
 
   const getCommentInitials = (authorName: string) => {
@@ -164,6 +197,17 @@ export default function Post({ authorId, authorType, name, tag, text, location, 
                     </div>
                     <p className="comment-row-text">{c.text}</p>
                   </div>
+                  {canDeleteComment(c) && (
+                    <button
+                      type="button"
+                      className="admin-btn-remove comment-delete-btn"
+                      title="Remove comment"
+                      aria-label={`Remove comment by ${c.author}`}
+                      onClick={() => handleDeleteComment(c.id)}
+                    >
+                      🗑️
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
