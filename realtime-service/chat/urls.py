@@ -3,4 +3,5 @@ from . import views
 
 urlpatterns = [
     path('chat/messages/<int:user_id>/', views.message_history, name='message-history'),
+    path('chat/contacts/', views.chat_contacts, name='chat-contacts'),
 ]
