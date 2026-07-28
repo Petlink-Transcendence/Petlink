@@ -1,3 +1,4 @@
+import json
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
@@ -37,11 +38,17 @@ def create_post(request):
             return Response({'error': 'Invalid file type'}, status=400)
         if image.size > 5 * 1024 * 1024:
             return Response({'error': 'File too large'}, status=400)
+    tags_raw = request.data.get('tags')
+    try:
+        tags = json.loads(tags_raw) if tags_raw else None
+    except (ValueError, TypeError):
+        tags = None
+
     post = Post.objects.create(
         user_id=user_id,
         purpose=purpose,
         text=request.data.get('text'),
-        tags=request.data.get('tags'),
+        tags=tags,
         pet_type=request.data.get('pet_type'),
         pet_size=request.data.get('pet_size'),
         image=image,
@@ -198,21 +205,26 @@ def like_post(request, pk):
         return Response({'error': 'not liked'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
-def comment_post(request, pk):
+@api_view(['GET', 'POST'])
+def post_comments(request, pk):
+    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
+
+    if request.method == 'GET':
+        comments = Comment.objects.filter(post=post, deleted_at__isnull=True)
+        data = [
+            {'id': c.id, 'user_id': c.user_id, 'text': c.text, 'created_at': c.created_at}
+            for c in comments
+        ]
+        return Response(data)
+
     user_id = get_user_id(request)
     if not user_id:
         return Response({'error': 'Authentication required'}, status=401)
-
-    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
-
     text = request.data.get('text', '').strip()
     if not text:
-        return Response({'error': 'text is required'}, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response({'error': 'text is required'}, status=400)
     comment = Comment.objects.create(user_id=user_id, post=post, text=text)
 
-    # Notify the post owner — skip if the commenter IS the owner
     if post.user_id != user_id:
         try:
             notif = Notification.objects.create(
@@ -225,37 +237,26 @@ def comment_post(request, pk):
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
                 f'notifications_{post.user_id}',
-                {
-                    'type': 'send_notification',
-                    'notification_type': 'new_comment',
-                    'content': notif.content,
-                    'reference_id': post.id,
-                    'reference_type': 'post',
-                },
+                {'type': 'send_notification', 'notification_type': 'new_comment',
+                 'content': notif.content, 'reference_id': post.id, 'reference_type': 'post'},
             )
         except Exception:
-            pass  # never block the comment action
+            pass
 
-    return Response({
-        'id': comment.id,
-        'user_id': comment.user_id,
-        'post_id': post.id,
-        'text': comment.text,
-        'created_at': comment.created_at,
-    }, status=status.HTTP_201_CREATED)
+    return Response(
+        {'id': comment.id, 'user_id': comment.user_id, 'text': comment.text, 'created_at': comment.created_at},
+        status=201
+    )
 
 
-@api_view(['GET'])
-def list_comments(request, pk):
-    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
-    comments = post.comments.all()
-    data = [
-        {
-            'id': c.id,
-            'user_id': c.user_id,
-            'text': c.text,
-            'created_at': c.created_at,
-        }
-        for c in comments
-    ]
-    return Response(data, status=status.HTTP_200_OK)
+@api_view(['DELETE'])
+def delete_comment(request, pk, comment_pk):
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=401)
+    comment = get_object_or_404(Comment, pk=comment_pk, post_id=pk, deleted_at__isnull=True)
+    if comment.user_id != user_id:
+        return Response({'error': 'Not allowed'}, status=403)
+    comment.deleted_at = timezone.now()
+    comment.save()
+    return Response(status=204)

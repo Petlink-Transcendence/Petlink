@@ -2,11 +2,15 @@ from django.db import models
 
 class Post(models.Model):
     PURPOSE_CHOICES = [
-        ('showcase', 'Showcase'),
+        ('sitting', 'Looking for Sitter'),
+        ('playdate', 'Looking for Playdate'),
+        ('advice', 'Pet Advice'),
+        ('social', 'Just Sharing'),
         ('adoption', 'Adoption'),
-        ('lost', 'Lost'),
-        ('found', 'Found'),
+        ('lost', 'Lost Pet'),
+        ('found', 'Found Pet'),
         ('service_promo', 'Service Promo'),
+        ('showcase', 'Showcase'),
     ]
 
     PET_SIZE_CHOICES = [
@@ -41,8 +45,9 @@ class Like(models.Model):
 class Comment(models.Model):
     user_id = models.IntegerField()
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    text = models.TextField()
+    text = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']

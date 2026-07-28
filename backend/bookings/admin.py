@@ -5,7 +5,7 @@ from .models import Service, Availability, Booking, Review
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ('user', 'type', 'price', 'currency', 'price_unit', 'is_active')
-    list_filter = ('type', 'is_active', 'currency')
+    list_filter = ('type', 'is_active')
     search_fields = ('user__username',)
 
 

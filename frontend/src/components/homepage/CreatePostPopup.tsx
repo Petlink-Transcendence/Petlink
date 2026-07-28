@@ -2,9 +2,10 @@ import React, { useState, useRef } from 'react';
 
 interface CreatePostContainerProps {
     onClose: () => void;
+    onPostCreated?: () => void;
 }
 
-export default function CreatePostContainer({ onClose }: CreatePostContainerProps) {
+export default function CreatePostContainer({ onClose, onPostCreated }: CreatePostContainerProps) {
     const [text, setText] = useState('');
     const [goal, setGoal] = useState('');
 
@@ -41,7 +42,7 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
         setCustomTagsList(customTagsList.filter(tag => tag !== tagToRemove));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
 
         if (!text.trim()) {
@@ -54,21 +55,31 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
             return;
         }
 
-        const postData = {
-            text: text.trim(),
-            goal,
-            photo: selectedPhoto,
-            filters: {
-                petType,
-                petSize,
-                customTags: customTagsList
-            }
-        };
+        const token = localStorage.getItem('access');
+        const formData = new FormData();
+        formData.append('purpose', goal);
+        formData.append('text', text.trim());
+        if (petType) formData.append('pet_type', petType);
+        if (petSize) formData.append('pet_size', petSize);
+        if (customTagsList.length > 0) formData.append('tags', JSON.stringify(customTagsList));
+        const imageFile = fileInputRef.current?.files?.[0];
+        if (imageFile) formData.append('image', imageFile);
 
-        console.log("Submitting Petlink Post: ", postData);
-        // Call backend API here...
-        
-        onClose();
+        try {
+            const res = await fetch('/posts/create/', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            if (res.ok) {
+                onPostCreated?.();
+                onClose();
+            } else {
+                alert('Failed to create post. Please try again.');
+            }
+        } catch {
+            alert('Network error. Please try again.');
+        }
     };
 
     return (
