@@ -19,6 +19,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import AdminOnlyRoute from './components/AdminOnlyRoute';
 import MyProfileRedirect from './components/MyProfileRedirect';
+import UserProfileRedirect from './components/UserProfileRedirect';
 import './App.css';
 
 function App() {
@@ -65,6 +66,11 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <MyProfileRedirect />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile/:id" element={
+            <ProtectedRoute>
+              <UserProfileRedirect />
             </ProtectedRoute>
           } />
           <Route path="/ownerprofile" element={

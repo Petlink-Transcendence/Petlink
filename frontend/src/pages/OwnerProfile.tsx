@@ -80,9 +80,10 @@ export interface ProfileData {
 }
 
 export function getInitials(name: string): string {
-	const parts = name.split(' ').filter(Boolean);
+	const parts = name.trim().split(/\s+/).filter(Boolean);
+	if (parts.length === 0) return 'U';
 	if (parts.length === 1) return parts[0][0].toUpperCase();
-	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+	return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 export function formatMemberSince(isoDate: string): string {
@@ -250,6 +251,9 @@ export default function Profile() {
   };
 
     fetchProfileData();
+    const handleConnectionUpdate = () => fetchProfileData();
+    window.addEventListener('connectionUpdated', handleConnectionUpdate);
+    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, [id]);
 
   useEffect(() => {
@@ -271,6 +275,34 @@ export default function Profile() {
     });
   };
 
+  const handleConnectionToggle = async () => {
+    if (!profile) return;
+    const targetId = profile.id;
+    const currentlyConnected = Boolean(connections[targetId]);
+    const method = currentlyConnected ? 'DELETE' : 'POST';
+
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch(`/api/users/${targetId}/follow/`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      });
+
+      if (response.ok) {
+        window.dispatchEvent(new Event('connectionUpdated'));
+        setConnections(prev => ({
+          ...prev,
+          [targetId]: !currentlyConnected,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to toggle connection:', err);
+    }
+  };
+
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
   if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
   if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
@@ -290,6 +322,7 @@ export default function Profile() {
             {
               label: isConnected ? 'Disconnect' : 'Connect',
               variant: 'primary',
+              onClick: handleConnectionToggle,
             },
             { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
           ]

@@ -409,6 +409,9 @@ export default function SitterProfile() {
     };
 
     fetchProfileData();
+    const handleConnectionUpdate = () => fetchProfileData();
+    window.addEventListener('connectionUpdated', handleConnectionUpdate);
+    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, [profileId]);
   
   useEffect(() => {
@@ -430,13 +433,32 @@ export default function SitterProfile() {
     });
   };
 
-  const handleConnectionToggle = () => {
+  const handleConnectionToggle = async () => {
     if (!profile) return;
+    const targetId = profile.id;
+    const currentlyConnected = Boolean(connections[targetId]);
+    const method = currentlyConnected ? 'DELETE' : 'POST';
 
-    setConnections(currentConnections => ({
-      ...currentConnections,
-      [profile.id]: !currentConnections[profile.id],
-    }));
+    try {
+      const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+      const response = await fetch(`/api/users/${targetId}/follow/`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      });
+
+      if (response.ok) {
+        window.dispatchEvent(new Event('connectionUpdated'));
+        setConnections(prev => ({
+          ...prev,
+          [targetId]: !currentlyConnected,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to toggle connection:', err);
+    }
   };
 
   useEffect(() => {

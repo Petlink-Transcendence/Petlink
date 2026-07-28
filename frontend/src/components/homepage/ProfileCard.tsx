@@ -30,9 +30,10 @@ interface ProfileData {
 }
 
 function getInitials(name: string): string {
-	const parts = name.split(' ').filter(Boolean);
+	const parts = name.trim().split(/\s+/).filter(Boolean);
+	if (parts.length === 0) return 'U';
 	if (parts.length === 1) return parts[0][0].toUpperCase();
-	return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+	return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 function mapBackendUserToProfileData(user: BackendUser): ProfileData {
@@ -95,12 +96,15 @@ export default function ProfileCard() {
       } catch (err: any) {
         setError(err.message || 'Failed to load profile card.');
         console.error("Fetch error details:", err);
-        } finally {
+      } finally {
         setLoading(false);
       }
-  };
+    };
   
-  fetchProfileCardData();
+    fetchProfileCardData();
+    const handleConnectionUpdate = () => fetchProfileCardData();
+    window.addEventListener('connectionUpdated', handleConnectionUpdate);
+    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
   }, [id]);
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;

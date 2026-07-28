@@ -291,9 +291,31 @@ class UserSearchView(generics.ListAPIView):
 
     def get_queryset(self):
         query = self.request.query_params.get('q', '')
-        return User.objects.filter(
+        return User.objects.exclude(role=User.Role.ADMIN).exclude(is_superuser=True).filter(
             models.Q(name__icontains=query) | models.Q(username__icontains=query)
         )
+
+class SuggestedConnectionsView(generics.ListAPIView):
+    """
+    Returns random user profiles from the DB which aren't yet connections of the signed-in account.
+    """
+    serializer_class = UserPublicProfileSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = User.objects.exclude(role=User.Role.ADMIN).exclude(is_superuser=True)
+        if self.request.user.is_authenticated:
+            queryset = queryset.exclude(id=self.request.user.id)
+            following_ids = Follower.objects.filter(follower=self.request.user).values_list('following_id', flat=True)
+            queryset = queryset.exclude(id__in=following_ids)
+
+        limit_param = self.request.query_params.get('limit', '5')
+        try:
+            limit = int(limit_param)
+        except ValueError:
+            limit = 5
+
+        return queryset.order_by('?')[:limit]
 
 class UserOnlineStatusView(generics.RetrieveAPIView):
     queryset = User.objects.all()

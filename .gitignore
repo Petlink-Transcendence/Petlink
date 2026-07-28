@@ -226,3 +226,6 @@ en.subject.pdf
 # Postman
 .postman/
 postman/
+
+# Node
+node_modules/

@@ -31,6 +31,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    followers_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -38,9 +40,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 
             'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
             'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for',
-            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times',
+            'followers_count'
         )
         read_only_fields = fields
+
+    def get_followers_count(self, obj):
+        following_ids = obj.following.values_list('following_id', flat=True)
+        return obj.followers.filter(follower_id__in=following_ids).count()
 
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
@@ -49,7 +56,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'name', 'role', 'avatar', 'banner', 'description',
+            'id', 'name', 'username', 'role', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count',
             'following_count', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
@@ -61,7 +68,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
-            public_fields = {'id', 'name', 'role', 'avatar', 'banner'}
+            public_fields = {'id', 'name', 'username', 'role', 'avatar', 'banner', 'followers_count', 'following_count'}
         else:
             public_fields = set(fields.keys())
         for field in list(fields.keys()):
@@ -75,8 +82,13 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             data['avatar'] = '/static/avatars/profile-pic.png'
         return data
 
-    def get_followers_count(self, obj): return obj.followers.count()
-    def get_following_count(self, obj): return obj.following.count()
+    def get_followers_count(self, obj):
+        following_ids = obj.following.values_list('following_id', flat=True)
+        return obj.followers.filter(follower_id__in=following_ids).count()
+
+    def get_following_count(self, obj):
+        follower_ids = obj.followers.values_list('follower_id', flat=True)
+        return obj.following.filter(following_id__in=follower_ids).count()
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150, min_length=1, required=False)
