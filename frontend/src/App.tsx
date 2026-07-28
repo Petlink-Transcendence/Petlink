@@ -103,7 +103,7 @@ function App() {
               </ProtectedRoute>
           } />
 
-          <Route path="/admin" element={
+          <Route path="/adminpage" element={
             <AdminOnlyRoute>
               <Admin />
             </AdminOnlyRoute>
