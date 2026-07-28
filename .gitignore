@@ -228,4 +228,4 @@ en.subject.pdf
 postman/
 
 # Node
-node_modules/
+node_modules
