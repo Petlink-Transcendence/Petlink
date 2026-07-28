@@ -91,3 +91,28 @@ def chat_contacts(request):
 
     results.sort(key=lambda c: c['last_message_at'] or '', reverse=True)
     return Response(results, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+def delete_message(request, message_id):
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        message = Message.objects.get(id=message_id, sender_id=user_id)
+    except Message.DoesNotExist:
+        return Response({'error': 'Not found or not yours'}, status=status.HTTP_404_NOT_FOUND)
+
+    last_sent_in_conversation = Message.objects.filter(
+        sender_id=user_id,
+        recipient_id=message.recipient_id
+    ).order_by('-created_at').first()
+
+    if not last_sent_in_conversation or last_sent_in_conversation.id != message.id:
+        return Response(
+            {'error': 'Only your most recent sent message in this conversation can be deleted'},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    message.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
