@@ -8,6 +8,8 @@ User = get_user_model()
 class AuthIntegrationTests(APITestCase):
 
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.register_url = reverse('register')
         self.login_url = reverse('token_obtain_pair')
         self.refresh_url = reverse('token_refresh')
@@ -61,6 +63,8 @@ class AuthIntegrationTests(APITestCase):
 class AdminStatsIntegrationTests(APITestCase):
 
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.stats_url = reverse('admin-stats')
         # Create an admin user
         self.admin_user = User.objects.create_user(
@@ -191,3 +195,50 @@ class AdminStatsIntegrationTests(APITestCase):
         self.assertEqual(response.data['active_bookings'], 1)
         self.assertEqual(response.data['pending_bookings'], 1)
         self.assertEqual(response.data['total_reviews'], 1)
+
+class SuggestedConnectionsIntegrationTests(APITestCase):
+
+    def setUp(self):
+        self.suggested_url = reverse('user-suggested')
+        self.user1 = User.objects.create_user(username='u1', password='Password123!', email='u1@test.com', user_type='owner')
+        self.user2 = User.objects.create_user(username='u2', password='Password123!', email='u2@test.com', user_type='provider')
+        self.user3 = User.objects.create_user(username='u3', password='Password123!', email='u3@test.com', user_type='provider')
+
+    def test_suggested_connections_excludes_self_and_following(self):
+        from accounts.models import Follower
+        # user1 follows user2
+        Follower.objects.create(follower=self.user1, following=self.user2)
+
+        # Authenticate user1
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.get(self.suggested_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        user_ids = [u['id'] for u in response.data]
+        self.assertNotIn(self.user1.id, user_ids)
+        self.assertNotIn(self.user2.id, user_ids)
+        self.assertIn(self.user3.id, user_ids)
+
+    def test_connections_count_only_increases_on_mutual_follow(self):
+        from accounts.models import Follower
+        from accounts.serializers import UserPublicProfileSerializer
+
+        # Initially, 0 connections
+        s1 = UserPublicProfileSerializer(self.user1).data
+        s2 = UserPublicProfileSerializer(self.user2).data
+        self.assertEqual(s1['followers_count'], 0)
+        self.assertEqual(s2['followers_count'], 0)
+
+        # user1 follows user2 (one-way follow)
+        Follower.objects.create(follower=self.user1, following=self.user2)
+        s1 = UserPublicProfileSerializer(self.user1).data
+        s2 = UserPublicProfileSerializer(self.user2).data
+        self.assertEqual(s1['followers_count'], 0)
+        self.assertEqual(s2['followers_count'], 0)
+
+        # user2 follows user1 (mutual follow)
+        Follower.objects.create(follower=self.user2, following=self.user1)
+        s1 = UserPublicProfileSerializer(self.user1).data
+        s2 = UserPublicProfileSerializer(self.user2).data
+        self.assertEqual(s1['followers_count'], 1)
+        self.assertEqual(s2['followers_count'], 1)

@@ -30,6 +30,12 @@ INSTALLED_APPS = [
     'bookings'
 ]
 
+try:
+    import channels  # noqa: F401
+    INSTALLED_APPS.append('channels')
+except ImportError:
+    pass
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # Must be before CommonMiddleware
     'django.middleware.security.SecurityMiddleware',
@@ -145,4 +151,13 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": "redis://redis:6379/1",
     }
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(os.environ.get('REDIS_HOST', 'redis'), 6379)],
+        },
+    },
 }
