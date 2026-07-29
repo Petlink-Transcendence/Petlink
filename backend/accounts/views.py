@@ -305,16 +305,27 @@ class UserSearchView(generics.ListAPIView):
         elif 'owner' in normalized_query:
             role_alias = 'owner'
 
-        search_filter = (
-            models.Q(name__icontains=query) |
-            models.Q(username__icontains=query) |
-            models.Q(city__icontains=query) |
-            models.Q(country__icontains=query) |
-            models.Q(user_type__icontains=query) |
-            models.Q(role__icontains=query)
-        )
+        search_terms = [term for term in query.replace(',', ' ').split() if term]
         if role_alias:
-            search_filter |= models.Q(user_type=role_alias)
+            search_terms = [
+                term for term in search_terms
+                if term.lower() not in {'pet', 'sitter', 'walker', 'provider', 'owner'}
+            ]
+
+        search_filter = models.Q()
+        for term in search_terms:
+            term_filter = (
+                models.Q(name__icontains=term) |
+                models.Q(username__icontains=term) |
+                models.Q(city__icontains=term) |
+                models.Q(country__icontains=term) |
+                models.Q(user_type__icontains=term) |
+                models.Q(role__icontains=term)
+            )
+            search_filter &= term_filter
+
+        if role_alias:
+            search_filter &= models.Q(user_type=role_alias)
 
         return users.filter(search_filter).order_by('name')
 
