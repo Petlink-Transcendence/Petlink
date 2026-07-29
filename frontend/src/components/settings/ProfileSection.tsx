@@ -11,6 +11,7 @@ export interface ProfileSectionProps {
   country: string;
   bio: string;
   profileInitials: string;
+  avatarError?: string;
   updateField: <K extends keyof SettingsForm>(key: K, value: SettingsForm[K]) => void;
   handleAvatarChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
@@ -24,6 +25,7 @@ export default function ProfileSection({
   country,
   bio,
   profileInitials,
+  avatarError,
   updateField,
   handleAvatarChange,
 }: ProfileSectionProps) {
@@ -48,6 +50,11 @@ export default function ProfileSection({
               Choose photo
               <input type="file" accept="image/*" onChange={handleAvatarChange} />
             </label>
+            {avatarError && (
+              <p className="settings-avatar-error">
+                {avatarError}
+              </p>
+            )}
           </div>
         </div>
 

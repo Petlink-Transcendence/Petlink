@@ -142,6 +142,12 @@ class AvatarUploadSerializer(serializers.ModelSerializer):
         model = User
         fields = ('avatar',)
 
+    def validate_avatar(self, value):
+        max_size = 5 * 1024 * 1024  # 5MB
+        if value.size > max_size:
+            raise serializers.ValidationError("Image file size cannot exceed 5MB.")
+        return value
+
 class BannerUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

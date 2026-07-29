@@ -91,12 +91,63 @@ const resettableSettings: Pick<
   showLookingFor: true,
 };
 
+function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.85): Promise<File> {
+  return new Promise((resolve, reject) => {
+    if (file.size <= 1 * 1024 * 1024) {
+      return resolve(file);
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxHeight) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxWidth) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return resolve(file);
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => reject(new Error('Failed to load image file.'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Failed to read image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Settings() {
   const [form, setForm] = useState<SettingsForm>(initialSettings);
   const [activeSection, setActiveSection] = useState<string>('profile');
   const [saved, setSaved] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [inlineError, setInlineError] = useState('');
+  const [avatarError, setAvatarError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteNotice, setDeleteNotice] = useState('');
@@ -258,19 +309,46 @@ export default function Settings() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const nextAvatarUrl = URL.createObjectURL(file);
-    setAvatarFile(file);
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please select a valid image file (JPEG, PNG, WEBP).');
+      event.target.value = '';
+      return;
+    }
 
-    setForm((current) => {
-      if (current.avatarUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(current.avatarUrl);
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarError('Selected image is too large. Maximum file size is 10MB.');
+      event.target.value = '';
+      return;
+    }
+
+    setAvatarError('');
+
+    try {
+      const processedFile = await compressImage(file);
+      if (processedFile.size > 5 * 1024 * 1024) {
+        setAvatarError('Image file is too large (max 5MB). Please select a smaller photo.');
+        event.target.value = '';
+        return;
       }
-      return { ...current, avatarUrl: nextAvatarUrl };
-    });
+
+      const nextAvatarUrl = URL.createObjectURL(processedFile);
+      setAvatarFile(processedFile);
+
+      setForm((current) => {
+        if (current.avatarUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(current.avatarUrl);
+        }
+        return { ...current, avatarUrl: nextAvatarUrl };
+      });
+    } catch (err) {
+      console.error('Error processing avatar image:', err);
+      setAvatarError('Failed to process image file. Please try another photo.');
+      event.target.value = '';
+    }
   }
 
   function toggleTagField(key: 'lookingForServices' | 'sitterPetTypes', tag: string) {
@@ -398,6 +476,12 @@ export default function Settings() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSaved(false);
+
+    if (avatarError) {
+      setInlineError(avatarError);
+      return;
+    }
 
     if (!userId) {
       setInlineError('Cannot save: user ID not loaded.');
@@ -455,9 +539,26 @@ export default function Settings() {
           headers: { ...(token && { 'Authorization': `Bearer ${token}` }) },
           body: formData,
         });
-        if (avatarResponse.ok) {
-          setAvatarFile(null);
+        if (!avatarResponse.ok) {
+          let avatarErrMsg = 'Failed to upload avatar image.';
+          try {
+            const errJson = await avatarResponse.json();
+            if (errJson.avatar) {
+              avatarErrMsg = Array.isArray(errJson.avatar) ? errJson.avatar[0] : String(errJson.avatar);
+            } else if (errJson.detail) {
+              avatarErrMsg = errJson.detail;
+            }
+          } catch {
+            if (avatarResponse.status === 413) {
+              avatarErrMsg = 'Image file size is too large (max 5MB).';
+            }
+          }
+          setInlineError(avatarErrMsg);
+          setAvatarError(avatarErrMsg);
+          return;
         }
+        setAvatarFile(null);
+        setAvatarError('');
       }
     } catch (err) {
       console.error('Settings save failed:', err);
@@ -554,6 +655,7 @@ export default function Settings() {
             country={form.country}
             bio={form.bio}
             profileInitials={profileInitials}
+            avatarError={avatarError}
             updateField={updateField}
             handleAvatarChange={handleAvatarChange}
           />
