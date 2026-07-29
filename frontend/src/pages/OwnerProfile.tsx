@@ -271,6 +271,15 @@ export default function Profile() {
     });
   };
 
+  const handleConnectionToggle = () => {
+    if (!profile) return;
+
+    setConnections(currentConnections => ({
+      ...currentConnections,
+      [profile.id]: !currentConnections[profile.id],
+    }));
+  };
+
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
   if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
   if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
@@ -290,6 +299,7 @@ export default function Profile() {
             {
               label: isConnected ? 'Disconnect' : 'Connect',
               variant: 'primary',
+              onClick: handleConnectionToggle,
             },
             { label: 'Message', variant: 'secondary', onClick: handleMessageClick },
           ]
