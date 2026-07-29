@@ -302,7 +302,7 @@ export default function Admin() {
                                             </div>
                                             <div>
                                                 <span className="admin-field-label">Role</span>
-                                                <strong>{getDisplayRole(selectedUser)}</strong>
+                                                <strong>{selectedUser.role}</strong>
                                             </div>
                                             <div>
                                                 <span className="admin-field-label">Joined</span>
