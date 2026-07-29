@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import './SearchResults.css';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 type Profile = {
   id: number | string;
@@ -7,6 +8,7 @@ type Profile = {
   role: string;
   location: string;
   rating?: string;
+  avatar?: string;
   profileType: 'owner' | 'sitter';
 };
 
@@ -26,12 +28,15 @@ function initials(name: string) {
 }
 
 function ProfileCard({ profile }: { profile: Profile }) {
-  const profilePath = profile.profileType === 'sitter' ? `/sitterprofile/${profile.id}` : `/profile/${profile.id}`;
+  const profilePath = profile.profileType === 'sitter' ? `/sitterprofile/${profile.id}` : `/ownerprofile/${profile.id}`;
+  const avatarUrl = resolveMediaUrl(profile.avatar);
 
   return (
     <Link to={profilePath} className="result-card" aria-label={`Open ${profile.name}'s profile`}>
       <div className="result-card-banner" />
-      <div className="result-avatar">{initials(profile.name)}</div>
+      <div className="result-avatar">
+        {avatarUrl ? <img src={avatarUrl} alt="" /> : initials(profile.name)}
+      </div>
       <div className="result-info">
         <span className="result-name">{profile.name}</span>
         <span className="result-role">{profile.role}</span>
@@ -43,8 +48,21 @@ function ProfileCard({ profile }: { profile: Profile }) {
   );
 }
 
-export default function SearchResults({ results, committedQuery, hasSearched, featuredProfiles }: SearchResultsProps) {
+type SearchResultsStateProps = SearchResultsProps & {
+  isLoading: boolean;
+  error: string | null;
+};
+
+export default function SearchResults({ results, committedQuery, hasSearched, featuredProfiles, isLoading, error }: SearchResultsStateProps) {
   const resultCount = results.length;
+
+  if (isLoading) {
+    return <div className="search-results"><DiscoverCard /><div className="empty-results-card"><p className="empty-results-text">Loading profiles...</p></div></div>;
+  }
+
+  if (error) {
+    return <div className="search-results"><DiscoverCard /><div className="empty-results-card"><span className="empty-results-icon">⚠️</span><h3 className="empty-results-title">Could not load profiles</h3><p className="empty-results-text">{error}</p></div></div>;
+  }
 
   if (!hasSearched) {
     return (

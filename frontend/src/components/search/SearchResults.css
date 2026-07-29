@@ -153,6 +153,13 @@
   flex-shrink: 0;
 }
 
+.result-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 /* Info column */
 .result-info {
   display: flex;
