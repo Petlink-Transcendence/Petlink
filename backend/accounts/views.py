@@ -290,10 +290,33 @@ class UserSearchView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        query = self.request.query_params.get('q', '')
-        return User.objects.filter(
-            models.Q(name__icontains=query) | models.Q(username__icontains=query)
+        query = self.request.query_params.get('q', '').strip()
+        users = User.objects.exclude(role=User.Role.ADMIN)
+        if self.request.user.is_authenticated:
+            users = users.exclude(pk=self.request.user.pk)
+
+        if not query:
+            return users.order_by('name')
+
+        normalized_query = query.lower()
+        role_alias = None
+        if any(term in normalized_query for term in ('sitter', 'walker', 'provider')):
+            role_alias = 'provider'
+        elif 'owner' in normalized_query:
+            role_alias = 'owner'
+
+        search_filter = (
+            models.Q(name__icontains=query) |
+            models.Q(username__icontains=query) |
+            models.Q(city__icontains=query) |
+            models.Q(country__icontains=query) |
+            models.Q(user_type__icontains=query) |
+            models.Q(role__icontains=query)
         )
+        if role_alias:
+            search_filter |= models.Q(user_type=role_alias)
+
+        return users.filter(search_filter).order_by('name')
 
 class UserOnlineStatusView(generics.RetrieveAPIView):
     queryset = User.objects.all()
