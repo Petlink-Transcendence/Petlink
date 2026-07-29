@@ -336,7 +336,7 @@ export default function Profile() {
           ? [{ label: 'Edit Profile', variant: 'secondary', onClick: () => navigate('/settings') }]
           : [
             {
-              label: isConnected ? 'Disconnect' : 'Connect',
+              label: isConnected ? 'Waiting approval' : 'Connect',
               variant: 'primary',
               onClick: handleConnectionToggle,
             },
