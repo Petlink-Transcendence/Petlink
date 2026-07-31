@@ -15,6 +15,7 @@ type Profile = {
 type SearchResultsProps = {
   results: Profile[];
   committedQuery: string;
+  activeFilter: string;
   hasSearched: boolean;
   featuredProfiles: Profile[];
 };
@@ -53,8 +54,9 @@ type SearchResultsStateProps = SearchResultsProps & {
   error: string | null;
 };
 
-export default function SearchResults({ results, committedQuery, hasSearched, featuredProfiles, isLoading, error }: SearchResultsStateProps) {
+export default function SearchResults({ results, committedQuery, activeFilter, hasSearched, featuredProfiles, isLoading, error }: SearchResultsStateProps) {
   const resultCount = results.length;
+  const searchLabel = committedQuery || activeFilter;
 
   if (isLoading) {
     return <div className="search-results"><DiscoverCard /><div className="empty-results-card"><p className="empty-results-text">Loading profiles...</p></div></div>;
@@ -85,7 +87,7 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
         <DiscoverCard />
         <div className="empty-results-card">
           <span className="empty-results-icon">🔍</span>
-          <h3 className="empty-results-title">No results for "{committedQuery}"</h3>
+          <h3 className="empty-results-title">No results for "{searchLabel}"</h3>
           <p className="empty-results-text">Try a different name, role, or location.</p>
         </div>
       </div>
@@ -97,7 +99,7 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
       <DiscoverCard />
       <div className="results-section">
         <h3 className="section-title">
-          {resultCount} result{resultCount !== 1 ? 's' : ''} for "{committedQuery}"
+          {resultCount} result{resultCount !== 1 ? 's' : ''} for "{searchLabel}"
         </h3>
         <div className="results-grid">
           {results.map(p => <ProfileCard key={p.id} profile={p} />)}

@@ -54,13 +54,15 @@ export default function Search() {
     document.title = 'Search | PetLink';
   }, []);
 
-  const loadProfiles = useCallback(async (term: string) => {
+  const loadProfiles = useCallback(async (term: string, filter = 'All') => {
     const currentRequest = ++requestId.current;
     setIsLoading(true);
     setError(null);
     const token = localStorage.getItem('access') || localStorage.getItem('access_token');
     const params = new URLSearchParams();
     if (term.trim()) params.set('q', term.trim());
+    if (filter === 'Sitters') params.set('user_type', 'provider');
+    if (filter === 'Owners') params.set('user_type', 'owner');
 
     try {
       const response = await fetch(`/api/users/?${params.toString()}`, {
@@ -107,15 +109,24 @@ export default function Search() {
     setCommittedQuery(trimmed);
     setHasSearched(true);
     setRecentSearches(prev => [trimmed, ...prev.filter(s => s !== trimmed)].slice(0, 5));
-    void loadProfiles(trimmed);
+    void loadProfiles(trimmed, activeFilter);
   };
 
-  const filteredResults = useMemo(() => {
-    if (activeFilter === 'All') return profiles;
-    return profiles.filter(profile => activeFilter === 'Sitters' ? profile.profileType === 'sitter' : profile.profileType === 'owner');
-  }, [activeFilter, profiles]);
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    const hasQuery = committedQuery.trim() !== '';
+    setHasSearched(hasQuery || filter !== 'All');
+    void loadProfiles(committedQuery, filter);
+  };
 
-  const suggestions = useMemo(() => Array.from(new Set(profiles.flatMap(profile => [profile.role, profile.location]))).slice(0, 7), [profiles]);
+  const suggestions = useMemo(
+    () => Array.from(new Set([
+      'Pet Sitter',
+      'Pet Owner',
+      ...profiles.map(profile => profile.location).filter(location => location !== 'Location not provided'),
+    ])).slice(0, 7),
+    [profiles],
+  );
 
   return (
     <div className="search-page">
@@ -125,7 +136,7 @@ export default function Search() {
           onQueryChange={handleQueryChange}
           onCommit={commitSearch}
           activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
+          onFilterChange={handleFilterChange}
           recentSearches={recentSearches}
           onSelectRecent={commitSearch}
           onRemoveRecent={s => setRecentSearches(prev => prev.filter(recent => recent !== s))}
@@ -133,8 +144,9 @@ export default function Search() {
           onSelectSuggestion={commitSearch}
         />
         <SearchResults
-          results={filteredResults}
+          results={profiles}
           committedQuery={committedQuery}
+          activeFilter={activeFilter}
           hasSearched={hasSearched}
           featuredProfiles={profiles.slice(0, 4)}
           isLoading={isLoading}

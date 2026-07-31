@@ -352,9 +352,13 @@ class UserSearchView(generics.ListAPIView):
 
     def get_queryset(self):
         query = self.request.query_params.get('q', '').strip()
+        user_type = self.request.query_params.get('user_type', '').strip().lower()
         users = User.objects.exclude(role=User.Role.ADMIN).exclude(is_superuser=True)
         if self.request.user.is_authenticated:
             users = users.exclude(pk=self.request.user.pk)
+
+        if user_type in {User.UserType.OWNER, User.UserType.PROVIDER}:
+            users = users.filter(user_type=user_type)
 
         if not query:
             return users.order_by('name')
