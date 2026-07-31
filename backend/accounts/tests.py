@@ -242,3 +242,51 @@ class SuggestedConnectionsIntegrationTests(APITestCase):
         s2 = UserPublicProfileSerializer(self.user2).data
         self.assertEqual(s1['followers_count'], 1)
         self.assertEqual(s2['followers_count'], 1)
+
+class AvatarUploadIntegrationTests(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='avataruser',
+            password='Password123!',
+            email='avatar@test.com',
+            user_type='owner'
+        )
+        self.client.force_authenticate(user=self.user)
+        self.avatar_url = reverse('user-avatar-upload', kwargs={'pk': self.user.id})
+
+    def test_upload_small_avatar_and_delete(self):
+        """Creates a small image, uploads user avatar, verifies it, and erases it."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        small_img_bytes = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff'
+            b'\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00'
+            b'\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+        )
+        small_file = SimpleUploadedFile("small_avatar.gif", small_img_bytes, content_type="image/gif")
+
+        response = self.client.post(self.avatar_url, {'avatar': small_file}, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertTrue(bool(self.user.avatar))
+
+        # Erase the avatar picture
+        if self.user.avatar:
+            self.user.avatar.delete(save=True)
+
+        self.user.refresh_from_db()
+        self.assertFalse(bool(self.user.avatar))
+
+    def test_upload_big_avatar_rejected(self):
+        """Tries to upload a large image (> 5MB) and verifies it is rejected."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        big_img_bytes = b'0' * (6 * 1024 * 1024)
+        big_file = SimpleUploadedFile("big_avatar.jpg", big_img_bytes, content_type="image/jpeg")
+
+        response = self.client.post(self.avatar_url, {'avatar': big_file}, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('avatar', response.data)
+
