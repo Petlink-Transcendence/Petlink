@@ -6,7 +6,10 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import Post, Like
+from notifications.models import Notification
 
 def get_user_id(request):
     auth = request.headers.get('Authorization', '')
@@ -160,6 +163,31 @@ def like_post(request, pk):
         like, created = Like.objects.get_or_create(user_id=user_id, post=post)
         if not created:
             return Response({'error': 'already liked'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Notify the post owner — skip if the liker IS the owner
+        if post.user_id != user_id:
+            try:
+                notif = Notification.objects.create(
+                    user_id=post.user_id,
+                    type='new_like',
+                    content='Someone liked your post.',
+                    reference_id=post.id,
+                    reference_type='post',
+                )
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'notifications_{post.user_id}',
+                    {
+                        'type': 'send_notification',
+                        'notification_type': 'new_like',
+                        'content': notif.content,
+                        'reference_id': post.id,
+                        'reference_type': 'post',
+                    },
+                )
+            except Exception:
+                pass  # never block the like action
+
         return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
     
     try:

@@ -26,7 +26,7 @@ interface ConnectionUser {
     requestType?: 'incoming' | 'outgoing';
 }
 
-export default function FollowsContainer({ onClose, initialTab = 'connections', targetUserId }: FollowsProps) {
+export default function ConnectionsContainer({ onClose, initialTab = 'connections', targetUserId }: FollowsProps) {
     const [activeTab, setActiveTab] = useState<'connections' | 'pending'>(initialTab);
     const [connections, setConnections] = useState<ConnectionUser[]>([]);
     const [pendingRequests, setPendingRequests] = useState<ConnectionUser[]>([]);
@@ -163,12 +163,12 @@ export default function FollowsContainer({ onClose, initialTab = 'connections', 
     const currentList = activeTab === 'connections' || !isOwnProfile ? connections : pendingRequests;
 
     return (
-        <div className='follows-overlay' onClick={onClose}>
-            <div className='follows-container' onClick={(e) => e.stopPropagation()}>
+        <div className='connections-overlay' onClick={onClose}>
+            <div className='connections-container' onClick={(e) => e.stopPropagation()}>
                 
-                <div className='follows-header'>
+                <div className='connections-header'>
                     {isOwnProfile ? (
-                        <div className="follows-tabs">
+                        <div className="connections-tabs">
                             <button 
                                 type="button" 
                                 className={`tab-btn ${activeTab === 'connections' ? 'active' : ''}`}
@@ -185,20 +185,20 @@ export default function FollowsContainer({ onClose, initialTab = 'connections', 
                             </button>
                         </div>
                     ) : (
-                        <h2 className="follows-title">Connections</h2>
+                        <h2 className="connections-title">Connections</h2>
                     )}
                     <button type="button" className='close-btn' onClick={onClose}>&times;</button>
                 </div>
 
-                <div className="follows-body-list">
+                <div className="connections-body-list">
                     {loading ? (
-                        <p className="no-follows-text">Loading connections...</p>
+                        <p className="no-connections-text">Loading connections...</p>
                     ) : currentList.length > 0 ? (
                         currentList.map((user) => (
-                            <div key={user.id} className="follow-item-row">
+                            <div key={user.id} className="connection-item-row">
                                 
                                 <div 
-                                    className="follow-user-profile-target" 
+                                    className="connection-user-profile-target" 
                                     onClick={() => handleProfileNavigation(user)}
                                     title={`View ${user.name}'s profile`}
                                 >
@@ -206,25 +206,25 @@ export default function FollowsContainer({ onClose, initialTab = 'connections', 
                                         <img
                                             src={user.avatar}
                                             alt={user.name}
-                                            className="follow-avatar-circle"
+                                            className="connection-avatar-circle"
                                             style={{ objectFit: 'cover' }}
                                         />
                                     ) : (
-                                        <div className="follow-avatar-circle">
+                                        <div className="connection-avatar-circle">
                                             {getInitials(user.name)}
                                         </div>
                                     )}
-                                    <div className="follow-user-meta">
-                                        <span className="follow-name">{user.name}</span>
-                                        <span className="follow-username">{user.username}</span>
+                                    <div className="connection-user-meta">
+                                        <span className="connection-name">{user.name}</span>
+                                        <span className="connection-username">{user.username}</span>
                                     </div>
                                 </div>
 
-                                <div className="follow-action-zone">
+                                <div className="connection-action-zone">
                                     {activeTab === 'pending' && isOwnProfile ? (
                                         user.requestType === 'incoming' ? (
                                             <button 
-                                                className="follow-btn-action primary"
+                                                className="connection-btn-action primary"
                                                 onClick={() => handleAcceptConnection(user.id)}
                                             >
                                                 Connect back
@@ -233,14 +233,14 @@ export default function FollowsContainer({ onClose, initialTab = 'connections', 
                                             <span className="static-pending">Pending</span>
                                         )
                                     ) : (
-                                        <span className="follow-status-text static-friends">Connected</span>
+                                        <span className="connection-status-text static-friends">Connected</span>
                                     )}
                                 </div>
 
                             </div>
                         ))
                     ) : (
-                        <p className="no-follows-text">
+                        <p className="no-connections-text">
                             {activeTab === 'pending' && isOwnProfile 
                                 ? 'No pending connection requests.' 
                                 : 'No connections found here yet.'}
