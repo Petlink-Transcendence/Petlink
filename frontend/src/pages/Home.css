@@ -2,6 +2,12 @@
 html:has(.home-container),
 body:has(.home-container) {
   overflow-x: auto;
+  background-color: var(--social-bg);
+}
+
+body:has(.home-container) .footer {
+  min-width: 60rem;
+  box-sizing: border-box;
 }
 
 .home-container {
@@ -10,7 +16,7 @@ body:has(.home-container) {
   justify-content: center;
   gap: 2.5rem;
   width: 100%;
-  min-width: 80rem;
+  min-width: 60rem;
   box-sizing: border-box;
   margin-top: 6.25rem;
   padding: 1.25rem;
@@ -41,7 +47,6 @@ body:has(.home-container) {
 @media (max-width: 64rem) {
   .home-container {
     justify-content: flex-start;
-    min-width: 60rem;
   }
 
   .left-sidebar,

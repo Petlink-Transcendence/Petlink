@@ -10,14 +10,14 @@ body:has(.chat-container) {
 }
 
 body:has(.chat-container) .footer {
-  min-width: 64rem;
+  min-width: 60rem;
 }
 
 /*--- main layout --- */
 .chat-container {
     height: 100vh;
     width: 100%;
-    min-width: 64rem;
+    min-width: 60rem;
     display: flex;
     background-color: var(--social-bg);
     box-sizing: border-box;
@@ -457,11 +457,6 @@ body:has(.chat-container) .footer {
 }
 
 @media (max-width: 64rem) {
-  body:has(.chat-container) .footer,
-  .chat-container {
-    min-width: 56rem;
-  }
-
   .chat-sidebar {
     flex-basis: 20rem;
     width: 20rem;
@@ -506,11 +501,6 @@ body:has(.chat-container) .footer {
 }
 
 @media (max-width: 48rem) {
-  body:has(.chat-container) .footer,
-  .chat-container {
-    min-width: 52rem;
-  }
-
   .chat-sidebar {
     flex-basis: 18rem;
     width: 18rem;
