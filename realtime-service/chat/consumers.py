@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.utils import timezone
 from .models import Message
+from notifications.models import Notification
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -30,6 +31,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         content = data['content']
 
         await self.save_message(recipient_id, content)
+
+        await database_sync_to_async(Notification.objects.create)(
+            user_id=recipient_id,
+            type='new_message',
+            content='You have a new message.',
+            reference_id=int(self.user_id),
+            reference_type='message',
+        )
 
         await self.channel_layer.group_send(
             f'chat_{recipient_id}',
