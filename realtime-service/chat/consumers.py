@@ -81,12 +81,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             with connection.cursor() as cursor:
                 if status:
                     cursor.execute(
-                        'UPDATE "user" SET online_status = %s WHERE user_id = %s',
+                        'UPDATE accounts_user SET online_status = %s WHERE id = %s',
                         [True, self.user_id]
                     )
                 else:
                     cursor.execute(
-                        'UPDATE "user" SET online_status = %s, last_seen = %s WHERE user_id = %s',
+                        'UPDATE accounts_user SET online_status = %s, last_seen = %s WHERE id = %s',
                         [False, timezone.now(), self.user_id]
                     )
         except Exception as e:

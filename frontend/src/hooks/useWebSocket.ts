@@ -9,11 +9,36 @@ export function useWebSocket() {
     let isMounted = true;
     let currentUserId: string | null = null;
 
+    const closeSocket = (socket: WebSocket | null) => {
+      if (!socket) return;
+      socket.onmessage = null;
+      socket.onerror = null;
+
+      if (socket.readyState === WebSocket.CONNECTING) {
+        socket.onopen = () => {
+          socket.onclose = null;
+          try {
+            socket.close();
+          } catch {
+            /* ignore */
+          }
+        };
+      } else if (socket.readyState === WebSocket.OPEN) {
+        socket.onopen = null;
+        socket.onclose = null;
+        try {
+          socket.close();
+        } catch {
+          /* ignore */
+        }
+      }
+    };
+
     const connect = () => {
       const userId = getLoggedInUserId();
       if (!userId) {
         if (ws) {
-          ws.close();
+          closeSocket(ws);
           ws = null;
         }
         currentUserId = null;
@@ -25,7 +50,7 @@ export function useWebSocket() {
       }
 
       if (ws) {
-        ws.close();
+        closeSocket(ws);
       }
 
       currentUserId = userId;
@@ -33,13 +58,16 @@ export function useWebSocket() {
       const wsUrl = `${protocol}//${window.location.host}/ws/notifications/${userId}/`;
 
       try {
-        ws = new WebSocket(wsUrl);
+        const socket = new WebSocket(wsUrl);
+        ws = socket;
 
-        ws.onopen = () => {
+        socket.onopen = () => {
+          if (!isMounted) return;
           console.log('[WebSocket] Connected to notification stream for user:', userId);
         };
 
-        ws.onmessage = (event) => {
+        socket.onmessage = (event) => {
+          if (!isMounted) return;
           try {
             const data = JSON.parse(event.data);
             console.log('[WebSocket] Received message:', data);
@@ -55,15 +83,17 @@ export function useWebSocket() {
           }
         };
 
-        ws.onerror = (err) => {
+        socket.onerror = (err) => {
+          if (!isMounted) return;
           console.warn('[WebSocket] Error encountered:', err);
         };
 
-        ws.onclose = (event) => {
+        socket.onclose = (event) => {
+          if (!isMounted) return;
           console.log('[WebSocket] Connection closed:', event.code, event.reason);
-          if (isMounted && currentUserId) {
+          if (currentUserId) {
             reconnectTimeout = setTimeout(() => {
-              connect();
+              if (isMounted) connect();
             }, 3000);
           }
         };
@@ -86,7 +116,10 @@ export function useWebSocket() {
       isMounted = false;
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (checkAuthInterval) clearInterval(checkAuthInterval);
-      if (ws) ws.close();
+      if (ws) {
+        closeSocket(ws);
+        ws = null;
+      }
     };
   }, []);
 }
