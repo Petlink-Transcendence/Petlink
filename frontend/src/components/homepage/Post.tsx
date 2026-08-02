@@ -147,11 +147,11 @@ export default function Post({ postId, userId, purpose, text, tags, petType, pet
   const handleDeleteComment = async (commentId: number) => {
     const token = localStorage.getItem('access');
     try {
-      await fetch(`/posts/${postId}/comments/${commentId}/delete/`, {
+      const res = await fetch(`/posts/${postId}/comments/${commentId}/delete/`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      setComments(prev => prev.filter(c => c.id !== commentId));
+      if (res.ok) setComments(prev => prev.filter(c => c.id !== commentId));
     } catch {}
   };
 

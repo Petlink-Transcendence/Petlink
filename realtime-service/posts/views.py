@@ -18,8 +18,8 @@ def get_user_id(request):
         return None
     try:
         token = AccessToken(auth.split(' ')[1])
-        return token['user_id']
-    except (InvalidToken, TokenError):
+        return int(token['user_id'])
+    except (InvalidToken, TokenError, ValueError, TypeError):
         return None
 
 @api_view(['POST'])
