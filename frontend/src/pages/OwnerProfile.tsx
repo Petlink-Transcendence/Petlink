@@ -288,6 +288,12 @@ export default function Profile() {
     const currentlyConnected = Boolean(connections[targetId]);
     const method = currentlyConnected ? 'DELETE' : 'POST';
 
+    // Update the UI immediately while persisting the change remotely.
+    setConnections(prev => ({
+      ...prev,
+      [targetId]: !currentlyConnected,
+    }));
+
     try {
       const token = localStorage.getItem('access') || localStorage.getItem('access_token');
       const response = await fetch(`/api/users/${targetId}/follow/`, {
@@ -300,13 +306,16 @@ export default function Profile() {
 
       if (response.ok) {
         window.dispatchEvent(new Event('connectionUpdated'));
-        setConnections(prev => ({
-          ...prev,
-          [targetId]: !currentlyConnected,
-        }));
+      } else {
+        throw new Error(`Connection update failed with status ${response.status}`);
       }
     } catch (err) {
       console.error('Failed to toggle connection:', err);
+      // Roll back the optimistic update when persistence fails.
+      setConnections(prev => ({
+        ...prev,
+        [targetId]: currentlyConnected,
+      }));
     }
   };
 
@@ -327,7 +336,7 @@ export default function Profile() {
           ? [{ label: 'Edit Profile', variant: 'secondary', onClick: () => navigate('/settings') }]
           : [
             {
-              label: isConnected ? 'Disconnect' : 'Connect',
+              label: isConnected ? 'Waiting approval' : 'Connect',
               variant: 'primary',
               onClick: handleConnectionToggle,
             },
