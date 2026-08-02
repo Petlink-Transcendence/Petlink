@@ -268,7 +268,7 @@ class FollowView(APIView):
 
     def post(self, request, pk):
         target = get_object_or_404(User, pk=pk)
-        Follower.objects.get_or_create(follower=request.user, following=target)
+        _, created = Follower.objects.get_or_create(follower=request.user, following=target)
 
         # Broadcast real-time WebSocket event
         try:
@@ -280,12 +280,30 @@ class FollowView(APIView):
                         'action': 'follow',
                         'follower_id': request.user.id,
                         'following_id': target.id,
-                        'content': f"{request.user.name or request.user.username} started following you."
+                        'content': f"{request.user.name or request.user.username} connected with you."
                     }
                     async_to_sync(channel_layer.group_send)(f'notifications_{target.id}', event_data)
                     async_to_sync(channel_layer.group_send)(f'notifications_{request.user.id}', event_data)
         except Exception:
             pass
+
+        # Persist a notification for the target user (only on a new follow, not repeat)
+        if created:
+            try:
+                sender_name = request.user.name or request.user.username
+                requests.post(
+                    'http://realtime-service:8001/internal/notify/',
+                    json={
+                        'user_id': target.id,
+                        'type': 'new_connection',
+                        'content': f'{sender_name} connected with you.',
+                        'reference_id': request.user.id,
+                        'reference_type': 'user',
+                    },
+                    timeout=2,
+                )
+            except Exception:
+                pass
 
         return Response(status=204)
 

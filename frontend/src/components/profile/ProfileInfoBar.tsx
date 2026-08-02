@@ -1,7 +1,7 @@
 import './ProfileInfoBar.css';
 import React from 'react'; 
 import { useState } from 'react'
-import FollowsContainer from '../Follows.tsx'
+import ConnectionContainer from '../Connections.tsx'
 
 type Stat = { value: string | number; label: string };
 type Action = { label: string; variant: 'primary' | 'secondary'; onClick?: () => void };
@@ -83,7 +83,7 @@ export default function ProfileInfoBar({ name, username, user_type, bio, stats, 
       </div>
 
       {isFollowsOpen && (
-        <FollowsContainer 
+        <ConnectionContainer 
           onClose={() => setisFollowsOpen(false)} 
         />
       )}

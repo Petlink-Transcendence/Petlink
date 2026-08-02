@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('user_id', models.IntegerField()),
-                ('type', models.CharField(choices=[('new_follower', 'New Follower'), ('new_message', 'New Message'), ('booking_request', 'Booking Request'), ('booking_confirmed', 'Booking Confirmed'), ('booking_cancelled', 'Booking Cancelled'), ('new_review', 'New Review')], max_length=50)),
+                ('type', models.CharField(choices=[('new_connection', 'New Connection'), ('new_message', 'New Message'), ('booking_request', 'Booking Request'), ('booking_confirmed', 'Booking Confirmed'), ('booking_cancelled', 'Booking Cancelled'), ('new_review', 'New Review'), ('new_comment', 'New Comment'), ('new_like', 'New Like')], max_length=50)),
                 ('content', models.CharField(max_length=500)),
                 ('reference_id', models.IntegerField(blank=True, null=True)),
                 ('reference_type', models.CharField(blank=True, max_length=50, null=True)),

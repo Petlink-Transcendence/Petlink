@@ -1,7 +1,7 @@
 import './ProfileCard.css'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate} from 'react-router-dom';
-import FollowsContainer from '../Follows.tsx'
+import ConnectionContainer from '../Connections.tsx'
 
 interface BackendUser {
   id: number;
@@ -137,7 +137,7 @@ export default function ProfileCard() {
         </div>
 
       {isFollowsOpen && (
-        <FollowsContainer 
+        <ConnectionContainer 
           onClose={() => setIsFollowsOpen(false)} 
         />
       )}

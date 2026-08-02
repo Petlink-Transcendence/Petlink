@@ -6,7 +6,10 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from .models import Post, Like
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from .models import Post, Like, Comment
+from notifications.models import Notification
 
 def get_user_id(request):
     auth = request.headers.get('Authorization', '')
@@ -160,6 +163,31 @@ def like_post(request, pk):
         like, created = Like.objects.get_or_create(user_id=user_id, post=post)
         if not created:
             return Response({'error': 'already liked'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Notify the post owner — skip if the liker IS the owner
+        if post.user_id != user_id:
+            try:
+                notif = Notification.objects.create(
+                    user_id=post.user_id,
+                    type='new_like',
+                    content='Someone liked your post.',
+                    reference_id=post.id,
+                    reference_type='post',
+                )
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'notifications_{post.user_id}',
+                    {
+                        'type': 'send_notification',
+                        'notification_type': 'new_like',
+                        'content': notif.content,
+                        'reference_id': post.id,
+                        'reference_type': 'post',
+                    },
+                )
+            except Exception:
+                pass  # never block the like action
+
         return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
     
     try:
@@ -168,3 +196,66 @@ def like_post(request, pk):
         return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
     except Like.DoesNotExist:
         return Response({'error': 'not liked'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def comment_post(request, pk):
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=401)
+
+    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
+
+    text = request.data.get('text', '').strip()
+    if not text:
+        return Response({'error': 'text is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    comment = Comment.objects.create(user_id=user_id, post=post, text=text)
+
+    # Notify the post owner — skip if the commenter IS the owner
+    if post.user_id != user_id:
+        try:
+            notif = Notification.objects.create(
+                user_id=post.user_id,
+                type='new_comment',
+                content='Someone commented on your post.',
+                reference_id=post.id,
+                reference_type='post',
+            )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{post.user_id}',
+                {
+                    'type': 'send_notification',
+                    'notification_type': 'new_comment',
+                    'content': notif.content,
+                    'reference_id': post.id,
+                    'reference_type': 'post',
+                },
+            )
+        except Exception:
+            pass  # never block the comment action
+
+    return Response({
+        'id': comment.id,
+        'user_id': comment.user_id,
+        'post_id': post.id,
+        'text': comment.text,
+        'created_at': comment.created_at,
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+def list_comments(request, pk):
+    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
+    comments = post.comments.all()
+    data = [
+        {
+            'id': c.id,
+            'user_id': c.user_id,
+            'text': c.text,
+            'created_at': c.created_at,
+        }
+        for c in comments
+    ]
+    return Response(data, status=status.HTTP_200_OK)

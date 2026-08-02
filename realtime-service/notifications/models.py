@@ -2,12 +2,14 @@ from django.db import models
 
 class Notification(models.Model):
     TYPE_CHOICES = [
-            ('new_follower', 'New Follower'),
+            ('new_connection', 'New Connection'),
             ('new_message', 'New Message'),
             ('booking_request', 'Booking Request'),
             ('booking_confirmed', 'Booking Confirmed'),
             ('booking_cancelled', 'Booking Cancelled'),
             ('new_review', 'New Review'),
+            ('new_comment', 'New Comment'),
+            ('new_like', 'New Like'),
     ]
 
     user_id = models.IntegerField()

@@ -4,8 +4,23 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+import requests as http_requests
 from .models import Service, Availability, Booking, Review
 from .serializers import ServiceSerializer, AvailabilitySerializer, BookingSerializer, ReviewSerializer
+
+REALTIME_NOTIFY_URL = 'http://realtime-service:8001/internal/notify/'
+
+def _notify(user_id, notif_type, content, reference_id=None, reference_type=None):
+    try:
+        http_requests.post(REALTIME_NOTIFY_URL, json={
+            'user_id': user_id,
+            'type': notif_type,
+            'content': content,
+            'reference_id': reference_id,
+            'reference_type': reference_type,
+        }, timeout=2)
+    except Exception:
+        pass
 
 class ServiceListCreateView(generics.ListCreateAPIView):
     serializer_class = ServiceSerializer
@@ -69,7 +84,15 @@ class BookingListCreateView(generics.ListCreateAPIView):
         )
 
     def perform_create(self, serializer):
-        serializer.save(requester=self.request.user)
+        booking = serializer.save(requester=self.request.user)
+        # Notify the provider about the new booking request
+        _notify(
+            user_id=booking.provider.id,
+            notif_type='booking_request',
+            content=f'{self.request.user.name or self.request.user.username} sent you a booking request.',
+            reference_id=booking.id,
+            reference_type='booking',
+        )
 
 class BookingActionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -78,8 +101,24 @@ class BookingActionView(APIView):
         booking = get_object_or_404(Booking, pk=pk)
         if action == 'confirm' and booking.provider == request.user:
             booking.status = 'confirmed'
+            _notify(
+                user_id=booking.requester.id,
+                notif_type='booking_confirmed',
+                content=f'{request.user.name or request.user.username} confirmed your booking.',
+                reference_id=booking.id,
+                reference_type='booking',
+            )
         elif action == 'cancel' and request.user in [booking.requester, booking.provider]:
             booking.status = 'cancelled'
+            # Notify whichever party didn't cancel
+            recipient = booking.requester if request.user == booking.provider else booking.provider
+            _notify(
+                user_id=recipient.id,
+                notif_type='booking_cancelled',
+                content=f'{request.user.name or request.user.username} cancelled the booking.',
+                reference_id=booking.id,
+                reference_type='booking',
+            )
         elif action == 'complete' and booking.provider == request.user:
             booking.status = 'completed'
         else:
@@ -95,4 +134,12 @@ class ReviewListCreateView(generics.ListCreateAPIView):
         return Review.objects.filter(reviewee_id=self.kwargs['pk'], deleted_at__isnull=True)
 
     def perform_create(self, serializer):
-        serializer.save(reviewer=self.request.user)
+        review = serializer.save(reviewer=self.request.user)
+        # Notify the person being reviewed
+        _notify(
+            user_id=review.reviewee.id,
+            notif_type='new_review',
+            content=f'{self.request.user.name or self.request.user.username} left you a {review.rating}-star review.',
+            reference_id=review.id,
+            reference_type='review',
+        )
