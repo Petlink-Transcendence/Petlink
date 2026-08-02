@@ -15,6 +15,7 @@ type BackendPost = {
   pet_size?: string | null;
   image?: string | null;
   like_count: number;
+  user_liked: boolean;
   created_at: string;
 };
 
@@ -56,6 +57,7 @@ export default function Home() {
             image={p.image}
             createdAt={p.created_at}
             likeCount={p.like_count}
+            userLiked={p.user_liked}
             onDeleted={fetchPosts}
           />
         ))}

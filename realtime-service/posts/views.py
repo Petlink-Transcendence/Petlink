@@ -121,6 +121,7 @@ def list_posts(request):
         deleted_at__isnull=True
     )[offset:offset + page_size]
 
+    user_id = get_user_id(request)
     data = [
         {
             'id': p.id,
@@ -132,6 +133,7 @@ def list_posts(request):
             'pet_size': p.pet_size,
             'image': request.build_absolute_uri(p.image.url) if p.image else None,
             'like_count': p.likes.count(),
+            'user_liked': p.likes.filter(user_id=user_id).exists() if user_id else False,
             'created_at': p.created_at,
         }
         for p in all_posts

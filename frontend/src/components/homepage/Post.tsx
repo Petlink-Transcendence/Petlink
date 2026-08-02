@@ -27,6 +27,7 @@ type PostProps = {
   image?: string | null;
   createdAt: string;
   likeCount: number;
+  userLiked?: boolean;
   onDeleted?: () => void;
 };
 
@@ -56,9 +57,9 @@ function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function Post({ postId, userId, purpose, text, tags, petType, petSize, image, createdAt, likeCount, onDeleted }: PostProps) {
+export default function Post({ postId, userId, purpose, text, tags, petType, petSize, image, createdAt, likeCount, userLiked = false, onDeleted }: PostProps) {
   const navigate = useNavigate();
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(userLiked);
   const [likes, setLikes] = useState(likeCount);
   const [author, setAuthor] = useState<AuthorInfo | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: number; role: string } | null>(null);
