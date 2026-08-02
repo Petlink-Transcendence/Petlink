@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLoggedInUserId } from '../utils/auth';
-import './Follows.css'
+import './Connections.css'
 
 interface FollowsProps {
     onClose: () => void;
@@ -77,7 +77,7 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
 
                 const followingIds = new Set(followingData.map(u => u.id));
                 const followerIds = new Set(followersData.map(u => u.id));
-                
+
                 // 1. Mutual connections (users present in both followers and following)
                 const mutualUsers = followersData.filter(u => followingIds.has(u.id));
 
@@ -165,19 +165,19 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
     return (
         <div className='connections-overlay' onClick={onClose}>
             <div className='connections-container' onClick={(e) => e.stopPropagation()}>
-                
+
                 <div className='connections-header'>
                     {isOwnProfile ? (
                         <div className="connections-tabs">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className={`tab-btn ${activeTab === 'connections' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('connections')}
                             >
                                 Connections ({connections.length})
                             </button>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('pending')}
                             >
@@ -196,9 +196,9 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
                     ) : currentList.length > 0 ? (
                         currentList.map((user) => (
                             <div key={user.id} className="connection-item-row">
-                                
-                                <div 
-                                    className="connection-user-profile-target" 
+
+                                <div
+                                    className="connection-user-profile-target"
                                     onClick={() => handleProfileNavigation(user)}
                                     title={`View ${user.name}'s profile`}
                                 >
@@ -223,7 +223,7 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
                                 <div className="connection-action-zone">
                                     {activeTab === 'pending' && isOwnProfile ? (
                                         user.requestType === 'incoming' ? (
-                                            <button 
+                                            <button
                                                 className="connection-btn-action primary"
                                                 onClick={() => handleAcceptConnection(user.id)}
                                             >
@@ -241,8 +241,8 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
                         ))
                     ) : (
                         <p className="no-connections-text">
-                            {activeTab === 'pending' && isOwnProfile 
-                                ? 'No pending connection requests.' 
+                            {activeTab === 'pending' && isOwnProfile
+                                ? 'No pending connection requests.'
                                 : 'No connections found here yet.'}
                         </p>
                     )}
