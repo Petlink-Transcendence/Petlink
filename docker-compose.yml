@@ -60,6 +60,7 @@ services:
     depends_on:
       - core-service
       - frontend
+      - realtime-service
 
   realtime-service:
     build: ./realtime-service
