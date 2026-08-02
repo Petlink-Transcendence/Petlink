@@ -10,7 +10,6 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
     const [goal, setGoal] = useState('');
 
     const [petType, setPetType] = useState('');
-    const [petSize, setPetSize] = useState('');
     const [selectedPhoto, setPhoto] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +42,6 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
         formData.append('purpose', goal);
         formData.append('text', text.trim());
         if (petType) formData.append('pet_type', petType);
-        if (petSize) formData.append('pet_size', petSize);
         const imageFile = fileInputRef.current?.files?.[0];
         if (imageFile) formData.append('image', imageFile);
 
@@ -134,31 +132,15 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                         </select>
                     </div>
 
-                    <div className='optional-tags-section'>
-                        <h3>Add Filters</h3>
-                        <div className='tags-grid'>
-                            <div className='form-group'>
-                                <label>Pet Type</label>
-                                <select value={petType} onChange={(e) => setPetType(e.target.value)}>
-                                    <option value="">-- Select--</option>
-                                    <option value="dog">Dog 🐕</option>
-                                    <option value="cat">Cat 🐈</option>
-                                    <option value="bird">Bird 🦜</option>
-                                    <option value="other">Other 🐹</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Pet Size</label>
-                                <select value={petSize} onChange={(e) => setPetSize(e.target.value)}>
-                                    <option value="">-- Select--</option>
-                                    <option value="small">Small</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="large">Large</option>
-                                </select>
-                            </div>
-                        </div>
-
+                    <div className='form-group'>
+                        <label>Pet Type</label>
+                        <select value={petType} onChange={(e) => setPetType(e.target.value)}>
+                            <option value="">-- Select--</option>
+                            <option value="dog">Dog 🐕</option>
+                            <option value="cat">Cat 🐈</option>
+                            <option value="bird">Bird 🦜</option>
+                            <option value="other">Other 🐹</option>
+                        </select>
                     </div>
 
                     <button type='submit' className='submit-post-btn'>

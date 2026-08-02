@@ -22,7 +22,6 @@ type PostProps = {
   purpose: string;
   text?: string | null;
   petType?: string | null;
-  petSize?: string | null;
   image?: string | null;
   createdAt: string;
   likeCount: number;
@@ -31,15 +30,15 @@ type PostProps = {
 };
 
 const PURPOSE_LABELS: Record<string, string> = {
-  sitting: 'NEED SITTER',
-  playdate: 'PLAYDATE',
-  advice: 'ADVICE',
-  social: 'SOCIAL',
-  showcase: 'SOCIAL',
-  adoption: 'ADOPTION',
-  lost: 'LOST PET',
-  found: 'FOUND PET',
-  service_promo: 'SITTER',
+  sitting: 'Need Sitter',
+  playdate: 'Playdate',
+  advice: 'Advice',
+  social: 'Social',
+  showcase: 'Social',
+  adoption: 'Adoption',
+  lost: 'Lost Pet',
+  found: 'Found Pet',
+  service_promo: 'Sitter',
 };
 
 function timeAgo(dateStr: string): string {
@@ -56,7 +55,7 @@ function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function Post({ postId, userId, purpose, text, petType, petSize, image, createdAt, likeCount, userLiked = false, onDeleted }: PostProps) {
+export default function Post({ postId, userId, purpose, text, petType, image, createdAt, likeCount, userLiked = false, onDeleted }: PostProps) {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(userLiked);
   const [likes, setLikes] = useState(likeCount);
@@ -184,7 +183,7 @@ export default function Post({ postId, userId, purpose, text, petType, petSize, 
           <p className="post-name">{authorName}</p>
           <div className="author-tags-container">
             <p className="post-tags">{tag}</p>
-            {petType && <p className="post-location">{petType}</p>}
+            {petType && <p className="post-tags">{petType.charAt(0).toUpperCase() + petType.slice(1)}</p>}
             <p className="post-time">{timeAgo(createdAt)}</p>
           </div>
         </div>
@@ -193,11 +192,6 @@ export default function Post({ postId, userId, purpose, text, petType, petSize, 
       <div className="post-content">
         {text && <p className="post-text">{text}</p>}
         {image && <img src={image} alt="Post" className="post-image" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }} />}
-        {petSize && (
-          <div className="post-tags-container">
-            <p className="post-tags">{petSize}</p>
-          </div>
-        )}
       </div>
 
       <div className="post-separator" />

@@ -11,7 +11,6 @@ type BackendPost = {
   purpose: string;
   text?: string | null;
   pet_type?: string | null;
-  pet_size?: string | null;
   image?: string | null;
   like_count: number;
   user_liked: boolean;
@@ -51,7 +50,6 @@ export default function Home() {
             purpose={p.purpose}
             text={p.text}
             petType={p.pet_type}
-            petSize={p.pet_size}
             image={p.image}
             createdAt={p.created_at}
             likeCount={p.like_count}
