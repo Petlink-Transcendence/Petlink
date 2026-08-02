@@ -129,9 +129,12 @@ def list_posts(request):
     page_size = int(request.query_params.get('page_size', 10))
     offset = (page - 1) * page_size
 
-    all_posts = Post.objects.filter(
-        deleted_at__isnull=True
-    )[offset:offset + page_size]
+    filters = {'deleted_at__isnull': True}
+    user_id_param = request.query_params.get('user_id')
+    if user_id_param:
+        filters['user_id'] = int(user_id_param)
+
+    all_posts = Post.objects.filter(**filters)[offset:offset + page_size]
 
     user_id = get_user_id(request)
     data = [

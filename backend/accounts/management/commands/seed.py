@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.db import connection
 from pets.models import Pet, UserPet
 from bookings.models import Service, Availability, Booking, Review
 
@@ -140,6 +141,10 @@ class Command(BaseCommand):
         Booking.objects.get_or_create(requester=joao, provider=maria, service=service_maria, pet=zeus, date='2026-07-15', defaults={'start_time': '09:00', 'end_time': '10:00', 'location': 'Porto', 'message': 'Walk', 'currency': 'EUR'})
         Booking.objects.get_or_create(requester=isabel, provider=carlos, service=service_carlos, pet=sushi, date='2026-07-16', defaults={'start_time': '10:00', 'end_time': '18:00', 'location': 'Porto', 'message': 'Feed', 'currency': 'EUR'})
 
+        gabriel = User.objects.get(username='gabriel')
+        ricardo = User.objects.get(username='ricardo')
+        rafael = User.objects.get(username='rafael')
+
         reviews_data = [
             {
                 'reviewer': joao,
@@ -158,7 +163,31 @@ class Command(BaseCommand):
                 'reviewee': isabel,
                 'rating': 5,
                 'comment': 'Isabel is a thoughtful pet owner. And Kiwi and Sushi are the best cats ever, well behaved and cute.'
-            }
+            },
+            {
+                'reviewer': joao,
+                'reviewee': rafael,
+                'rating': 5,
+                'comment': 'Rafael took incredible care of Zeus. Super professional, always updated me and Zeus loved him!'
+            },
+            {
+                'reviewer': isabel,
+                'reviewee': rafael,
+                'rating': 5,
+                'comment': 'Best cat sitter in Porto. Sushi and Quiwi were happy and relaxed when I came back.'
+            },
+            {
+                'reviewer': ricardo,
+                'reviewee': rafael,
+                'rating': 4,
+                'comment': 'Very attentive and reliable. Rei warmed up to him quickly which says a lot!'
+            },
+            {
+                'reviewer': gabriel,
+                'reviewee': joao,
+                'rating': 5,
+                'comment': 'Joao is super communicative and responsible. Would trust him with my pets anytime.'
+            },
         ]
 
         for data in reviews_data:
@@ -170,5 +199,70 @@ class Command(BaseCommand):
                     'comment': data['comment']
                 }
             )
+
+        # ── Posts, comments, likes (realtime-service shares this DB) ──────────
+        def get_or_create_post(cur, user_id, purpose, text, pet_type=None):
+            cur.execute(
+                "SELECT id FROM posts_post WHERE user_id=%s AND purpose=%s AND text=%s AND deleted_at IS NULL",
+                [user_id, purpose, text],
+            )
+            row = cur.fetchone()
+            if row:
+                return row[0]
+            cur.execute(
+                "INSERT INTO posts_post (user_id, purpose, text, pet_type, created_at) VALUES (%s, %s, %s, %s, NOW()) RETURNING id",
+                [user_id, purpose, text, pet_type],
+            )
+            return cur.fetchone()[0]
+
+        def ensure_comment(cur, post_id, user_id, text):
+            cur.execute(
+                "SELECT id FROM posts_comment WHERE post_id=%s AND user_id=%s AND text=%s AND deleted_at IS NULL",
+                [post_id, user_id, text],
+            )
+            if not cur.fetchone():
+                cur.execute(
+                    "INSERT INTO posts_comment (post_id, user_id, text, created_at) VALUES (%s, %s, %s, NOW())",
+                    [post_id, user_id, text],
+                )
+
+        def ensure_like(cur, post_id, user_id):
+            cur.execute(
+                "SELECT id FROM posts_like WHERE post_id=%s AND user_id=%s",
+                [post_id, user_id],
+            )
+            if not cur.fetchone():
+                cur.execute(
+                    "INSERT INTO posts_like (post_id, user_id) VALUES (%s, %s)",
+                    [post_id, user_id],
+                )
+
+        with connection.cursor() as cur:
+            p1 = get_or_create_post(cur, joao.id,    'social',        'Zeus and Kyara enjoying a sunny afternoon in the park! 🌞', 'dog')
+            p2 = get_or_create_post(cur, joao.id,    'sitting',       'Looking for a sitter for Zeus next weekend. He loves walks and cuddles!', 'dog')
+            p3 = get_or_create_post(cur, isabel.id,  'social',        'Sushi discovered the bathroom sink. Send help. 🐱', 'cat')
+            p4 = get_or_create_post(cur, isabel.id,  'advice',        'Any tips for introducing a second cat at home? Quiwi is a bit territorial...', 'cat')
+            p5 = get_or_create_post(cur, ricardo.id, 'playdate',      'Rei and Ritinha are looking for playdate partners in Porto! 🐾', 'cat')
+            p6 = get_or_create_post(cur, daniela.id, 'social',        'Bob and Benny after their morning run. Best boys ever. 🐕🐕', 'dog')
+            p7 = get_or_create_post(cur, rafael.id,  'service_promo', 'Available this weekend for cat sitting and home visits in Porto! DM me for rates 🐱', 'cat')
+
+            ensure_comment(cur, p1, isabel.id,  'They look so happy together! 😍')
+            ensure_comment(cur, p1, daniela.id, 'Zeus is adorable, reminds me of Bob!')
+            ensure_comment(cur, p2, rafael.id,  'I can help! Send me a message 🐾')
+            ensure_comment(cur, p3, ricardo.id, 'Cats are so curious 😂 Rei does the same!')
+            ensure_comment(cur, p4, daniela.id, 'Slow introduction with a room divider worked great for us!')
+            ensure_comment(cur, p5, joao.id,    'Zeus would love a cat friend, let me know!')
+            ensure_comment(cur, p7, isabel.id,  'Messaged you about next Saturday!')
+
+            for post_id, liker_id in [
+                (p1, isabel.id), (p1, daniela.id), (p1, gabriel.id),
+                (p2, rafael.id),
+                (p3, joao.id), (p3, ricardo.id),
+                (p4, isabel.id),
+                (p5, joao.id),
+                (p6, joao.id), (p6, isabel.id),
+                (p7, isabel.id), (p7, daniela.id),
+            ]:
+                ensure_like(cur, post_id, liker_id)
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
