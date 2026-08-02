@@ -119,6 +119,13 @@ export default function Search() {
     void loadProfiles(committedQuery, filter);
   };
 
+  const filteredResults = useMemo(() => {
+    if (activeFilter === 'All') return profiles;
+    return profiles.filter(profile => activeFilter === 'Sitters'
+      ? profile.profileType === 'sitter'
+      : profile.profileType === 'owner');
+  }, [activeFilter, profiles]);
+
   const suggestions = useMemo(
     () => Array.from(new Set([
       'Pet Sitter',
@@ -127,7 +134,6 @@ export default function Search() {
     ])).slice(0, 7),
     [profiles],
   );
-
   return (
     <div className="search-page">
       <div className="search-body">
@@ -144,7 +150,7 @@ export default function Search() {
           onSelectSuggestion={commitSearch}
         />
         <SearchResults
-          results={profiles}
+          results={filteredResults}
           committedQuery={committedQuery}
           activeFilter={activeFilter}
           hasSearched={hasSearched}
