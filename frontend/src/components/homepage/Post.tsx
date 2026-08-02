@@ -21,7 +21,6 @@ type PostProps = {
   userId: number;
   purpose: string;
   text?: string | null;
-  tags?: string[] | null;
   petType?: string | null;
   petSize?: string | null;
   image?: string | null;
@@ -57,7 +56,7 @@ function getInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function Post({ postId, userId, purpose, text, tags, petType, petSize, image, createdAt, likeCount, userLiked = false, onDeleted }: PostProps) {
+export default function Post({ postId, userId, purpose, text, petType, petSize, image, createdAt, likeCount, userLiked = false, onDeleted }: PostProps) {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(userLiked);
   const [likes, setLikes] = useState(likeCount);
@@ -113,7 +112,6 @@ export default function Post({ postId, userId, purpose, text, tags, petType, pet
   const authorName = author?.name || `User ${userId}`;
   const profilePath = author?.user_type === 'provider' ? `/sitterprofile/${userId}` : `/ownerprofile/${userId}`;
   const tag = PURPOSE_LABELS[purpose] || purpose.toUpperCase();
-  const displayTags = Array.isArray(tags) ? tags : [];
 
   const handleLike = async () => {
     const token = localStorage.getItem('access');
@@ -195,12 +193,11 @@ export default function Post({ postId, userId, purpose, text, tags, petType, pet
       <div className="post-content">
         {text && <p className="post-text">{text}</p>}
         {image && <img src={image} alt="Post" className="post-image" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }} />}
-        <div className="post-tags-container">
-          {displayTags.map((t, i) => (
-            <p key={i} className="post-tags">{t}</p>
-          ))}
-          {petSize && <p className="post-tags">{petSize}</p>}
-        </div>
+        {petSize && (
+          <div className="post-tags-container">
+            <p className="post-tags">{petSize}</p>
+          </div>
+        )}
       </div>
 
       <div className="post-separator" />

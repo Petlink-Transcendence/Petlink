@@ -11,9 +11,6 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
 
     const [petType, setPetType] = useState('');
     const [petSize, setPetSize] = useState('');
-    const [customTag, setCustomTag] = useState('');
-    const [customTagsList, setCustomTagsList] = useState<string[]>([]);
-
     const [selectedPhoto, setPhoto] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -26,20 +23,6 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
             };
             reader.readAsDataURL(file);
         }
-    };
-
-    const handleAddCustomTag = (e: React.KeyboardEvent<HTMLInputElement>) => {        
-        if (e.key === 'Enter' && customTag.trim()) {
-            e.preventDefault();
-            if (!customTagsList.includes(customTag.trim())) {
-                setCustomTagsList([...customTagsList, customTag.trim()]);
-            }
-            setCustomTag('');
-        }   
-    };
-
-    const handleRemoveCustomTag = (tagToRemove: string) => {
-        setCustomTagsList(customTagsList.filter(tag => tag !== tagToRemove));
     };
 
     const handleSubmit = async (e: { preventDefault: () => void }) => {
@@ -61,7 +44,6 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
         formData.append('text', text.trim());
         if (petType) formData.append('pet_type', petType);
         if (petSize) formData.append('pet_size', petSize);
-        if (customTagsList.length > 0) formData.append('tags', JSON.stringify(customTagsList));
         const imageFile = fileInputRef.current?.files?.[0];
         if (imageFile) formData.append('image', imageFile);
 
@@ -177,24 +159,6 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                             </div>
                         </div>
 
-                        <div className='form-group' style={{ marginTop: '0.75rem' }}>
-                            <label>Custom tags (Press Enter to add)</label>
-                            <input 
-                                type="text" 
-                                placeholder="e.g., puppy, urgent, weekend" 
-                                value={customTag}
-                                onChange={(e) => setCustomTag(e.target.value)}
-                                onKeyDown={handleAddCustomTag}
-                            />
-                            <div className='tags-pill-container'>
-                                {customTagsList.map(tag => (
-                                    <span key={tag} className='tag-pill'>
-                                        #{tag}
-                                        <button type='button' onClick={() => handleRemoveCustomTag(tag)}>&times;</button>
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
                     </div>
 
                     <button type='submit' className='submit-post-btn'>

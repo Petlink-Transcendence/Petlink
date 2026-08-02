@@ -10,7 +10,6 @@ type BackendPost = {
   user_id: number;
   purpose: string;
   text?: string | null;
-  tags?: string[] | null;
   pet_type?: string | null;
   pet_size?: string | null;
   image?: string | null;
@@ -51,7 +50,6 @@ export default function Home() {
             userId={p.user_id}
             purpose={p.purpose}
             text={p.text}
-            tags={p.tags}
             petType={p.pet_type}
             petSize={p.pet_size}
             image={p.image}
