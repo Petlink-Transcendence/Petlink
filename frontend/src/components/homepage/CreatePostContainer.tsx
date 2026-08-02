@@ -2,7 +2,11 @@ import { useState } from 'react'
 import CreatePostContainer from './CreatePostPopup'
 import './CreatePost.css'
 
-export default function CreatePost() {
+interface CreatePostProps {
+	onPostCreated?: () => void;
+}
+
+export default function CreatePost({ onPostCreated }: CreatePostProps) {
 	const [isPostOpen, setIsPostOpen] = useState(false);
 
 	return (
@@ -14,7 +18,7 @@ export default function CreatePost() {
 			/>
 		</div>
 		{isPostOpen && (
-			<CreatePostContainer onClose={() => setIsPostOpen(false)} />
+			<CreatePostContainer onClose={() => setIsPostOpen(false)} onPostCreated={onPostCreated} />
 		)}
 		</div>
 	);
