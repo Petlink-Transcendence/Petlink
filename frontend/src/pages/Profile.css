@@ -1,9 +1,21 @@
 /* Page wrapper */
+html:has(.profile-page),
+body:has(.profile-page) {
+  overflow-x: auto;
+}
+
+body:has(.profile-page) .footer {
+  min-width: 60rem;
+  box-sizing: border-box;
+}
+
 .profile-page {
   min-height: 100vh;
+  width: 100%;
+  min-width: 60rem;
+  box-sizing: border-box;
   background-color: var(--social-bg);
   padding-top: 6.25rem;
-  overflow-y: auto;
 }
 
 /* Main content layout: left sidebar + right column */
@@ -12,12 +24,28 @@
   gap: 1.5rem;
   padding: 1.5rem 5%;
   align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.profile-body > .profile-left {
+  flex: 0 0 17.5rem;
+}
+
+.profile-body > .profile-right {
+  min-width: 0;
 }
 
 /* ── Responsiveness ── */
 @media (max-width: 48rem) {
+  .profile-page {
+    min-width: 60rem;
+  }
+
   .profile-body {
-    flex-direction: column;
     padding: 1rem;
+  }
+
+  .profile-body > .profile-left {
+    width: 17.5rem;
   }
 }

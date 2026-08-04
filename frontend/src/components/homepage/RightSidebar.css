@@ -102,10 +102,3 @@
   border: 0.0625rem solid var(--bg); 
   color: white;
 }
-
-/* Hide on tablet and below */
-@media (max-width: 64rem) {
-  .right-sidebar {
-    display: none;
-  }
-}

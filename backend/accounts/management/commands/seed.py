@@ -55,12 +55,12 @@ class Command(BaseCommand):
             {
                 'username': 'maria', 'email': 'maria@test.com', 'name': 'Maria Santos', 'user_type': 'provider',
                 'role': 'user', 'description': 'Professional dog walker from Porto',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.8', 'avatar': 'avatars/maria.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.8', 'avatar': None
             },
             {
                 'username': 'carlos', 'email': 'carlos@test.com', 'name': 'Carlos Ferreira', 'user_type': 'provider',
                 'role': 'user', 'description': 'Cat sitter and groomer from Porto',
-                'country': 'Portugal', 'city': 'Porto', 'rating': '4.6', 'avatar': 'avatars/carlos.jpeg'
+                'country': 'Portugal', 'city': 'Porto', 'rating': '4.6', 'avatar': None
             }
         ]
 

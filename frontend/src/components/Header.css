@@ -58,3 +58,26 @@
 .home-dropdown-wrapper {
   position: relative;
 }
+
+.notif-nav-item {
+  position: relative;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -0.55rem;
+  right: -0.85rem;
+  background-color: #e05a5a;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
+  line-height: 1;
+  pointer-events: none;
+}

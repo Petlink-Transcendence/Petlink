@@ -1,3 +1,1 @@
-from django.contrib import admin
-
-# Register your models here.
+# django.contrib.admin is not installed in this service

@@ -76,11 +76,12 @@
   }
 
   .comment-row-item {
+    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 0.625rem;
     background: #fdfbf7;
-    padding: 0.625rem 0.875rem;
+    padding: 0.625rem 2.75rem 0.75rem 0.875rem;
     border-radius: 0.5rem;
     border: 0.0625rem solid rgba(219, 182, 121, 0.12);
   }
@@ -129,6 +130,21 @@
     color: #333;
     margin: 0;
     line-height: 1.35;
+  }
+
+  .comment-delete-btn {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.65rem;
+    border: none;
+    opacity: 0.8;
+  }
+
+  .comment-delete-btn:hover {
+    opacity: 1;
   }
 
   .no-comments-placeholder {

@@ -1,9 +1,23 @@
 /* Container wrapper */
+html:has(.home-container),
+body:has(.home-container) {
+  overflow-x: auto;
+  background-color: var(--social-bg);
+}
+
+body:has(.home-container) .footer {
+  min-width: 60rem;
+  box-sizing: border-box;
+}
+
 .home-container {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   gap: 2.5rem;
+  width: 100%;
+  min-width: 60rem;
+  box-sizing: border-box;
   margin-top: 6.25rem;
   padding: 1.25rem;
   background-color: var(--social-bg);
@@ -28,4 +42,15 @@
 
 .home-post-container > :last-child {
   margin-bottom: 2.5rem;
+}
+
+@media (max-width: 64rem) {
+  .home-container {
+    justify-content: flex-start;
+  }
+
+  .left-sidebar,
+  .home-post-container {
+    flex-shrink: 0;
+  }
 }

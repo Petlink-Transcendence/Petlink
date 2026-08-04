@@ -1,3 +1,4 @@
+import json
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
@@ -6,7 +7,10 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from .models import Post, Like
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from .models import Post, Like, Comment
+from notifications.models import Notification
 
 def get_user_id(request):
     auth = request.headers.get('Authorization', '')
@@ -14,8 +18,8 @@ def get_user_id(request):
         return None
     try:
         token = AccessToken(auth.split(' ')[1])
-        return token['user_id']
-    except (InvalidToken, TokenError):
+        return int(token['user_id'])
+    except (InvalidToken, TokenError, ValueError, TypeError):
         return None
 
 @api_view(['POST'])
@@ -34,11 +38,17 @@ def create_post(request):
             return Response({'error': 'Invalid file type'}, status=400)
         if image.size > 5 * 1024 * 1024:
             return Response({'error': 'File too large'}, status=400)
+    tags_raw = request.data.get('tags')
+    try:
+        tags = json.loads(tags_raw) if tags_raw else None
+    except (ValueError, TypeError):
+        tags = None
+
     post = Post.objects.create(
         user_id=user_id,
         purpose=purpose,
         text=request.data.get('text'),
-        tags=request.data.get('tags'),
+        tags=tags,
         pet_type=request.data.get('pet_type'),
         pet_size=request.data.get('pet_size'),
         image=image,
@@ -111,6 +121,7 @@ def list_posts(request):
         deleted_at__isnull=True
     )[offset:offset + page_size]
 
+    user_id = get_user_id(request)
     data = [
         {
             'id': p.id,
@@ -122,6 +133,7 @@ def list_posts(request):
             'pet_size': p.pet_size,
             'image': request.build_absolute_uri(p.image.url) if p.image else None,
             'like_count': p.likes.count(),
+            'user_liked': p.likes.filter(user_id=user_id).exists() if user_id else False,
             'created_at': p.created_at,
         }
         for p in all_posts
@@ -160,6 +172,31 @@ def like_post(request, pk):
         like, created = Like.objects.get_or_create(user_id=user_id, post=post)
         if not created:
             return Response({'error': 'already liked'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Notify the post owner — skip if the liker IS the owner
+        if post.user_id != user_id:
+            try:
+                notif = Notification.objects.create(
+                    user_id=post.user_id,
+                    type='new_like',
+                    content='Someone liked your post.',
+                    reference_id=post.id,
+                    reference_type='post',
+                )
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'notifications_{post.user_id}',
+                    {
+                        'type': 'send_notification',
+                        'notification_type': 'new_like',
+                        'content': notif.content,
+                        'reference_id': post.id,
+                        'reference_type': 'post',
+                    },
+                )
+            except Exception:
+                pass  # never block the like action
+
         return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
     
     try:
@@ -168,3 +205,60 @@ def like_post(request, pk):
         return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
     except Like.DoesNotExist:
         return Response({'error': 'not liked'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET', 'POST'])
+def post_comments(request, pk):
+    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
+
+    if request.method == 'GET':
+        comments = Comment.objects.filter(post=post, deleted_at__isnull=True)
+        data = [
+            {'id': c.id, 'user_id': c.user_id, 'text': c.text, 'created_at': c.created_at}
+            for c in comments
+        ]
+        return Response(data)
+
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=401)
+    text = request.data.get('text', '').strip()
+    if not text:
+        return Response({'error': 'text is required'}, status=400)
+    comment = Comment.objects.create(user_id=user_id, post=post, text=text)
+
+    if post.user_id != user_id:
+        try:
+            notif = Notification.objects.create(
+                user_id=post.user_id,
+                type='new_comment',
+                content='Someone commented on your post.',
+                reference_id=post.id,
+                reference_type='post',
+            )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'notifications_{post.user_id}',
+                {'type': 'send_notification', 'notification_type': 'new_comment',
+                 'content': notif.content, 'reference_id': post.id, 'reference_type': 'post'},
+            )
+        except Exception:
+            pass
+
+    return Response(
+        {'id': comment.id, 'user_id': comment.user_id, 'text': comment.text, 'created_at': comment.created_at},
+        status=201
+    )
+
+
+@api_view(['DELETE'])
+def delete_comment(request, pk, comment_pk):
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=401)
+    comment = get_object_or_404(Comment, pk=comment_pk, post_id=pk, deleted_at__isnull=True)
+    if comment.user_id != user_id:
+        return Response({'error': 'Not allowed'}, status=403)
+    comment.deleted_at = timezone.now()
+    comment.save()
+    return Response(status=204)

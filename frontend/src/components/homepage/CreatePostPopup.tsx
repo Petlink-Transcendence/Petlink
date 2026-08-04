@@ -2,17 +2,14 @@ import React, { useState, useRef } from 'react';
 
 interface CreatePostContainerProps {
     onClose: () => void;
+    onPostCreated?: () => void;
 }
 
-export default function CreatePostContainer({ onClose }: CreatePostContainerProps) {
+export default function CreatePostContainer({ onClose, onPostCreated }: CreatePostContainerProps) {
     const [text, setText] = useState('');
     const [goal, setGoal] = useState('');
 
     const [petType, setPetType] = useState('');
-    const [petSize, setPetSize] = useState('');
-    const [customTag, setCustomTag] = useState('');
-    const [customTagsList, setCustomTagsList] = useState<string[]>([]);
-
     const [selectedPhoto, setPhoto] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,21 +24,7 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
         }
     };
 
-    const handleAddCustomTag = (e: React.KeyboardEvent<HTMLInputElement>) => {        
-        if (e.key === 'Enter' && customTag.trim()) {
-            e.preventDefault();
-            if (!customTagsList.includes(customTag.trim())) {
-                setCustomTagsList([...customTagsList, customTag.trim()]);
-            }
-            setCustomTag('');
-        }   
-    };
-
-    const handleRemoveCustomTag = (tagToRemove: string) => {
-        setCustomTagsList(customTagsList.filter(tag => tag !== tagToRemove));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
 
         if (!text.trim()) {
@@ -54,21 +37,29 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
             return;
         }
 
-        const postData = {
-            text: text.trim(),
-            goal,
-            photo: selectedPhoto,
-            filters: {
-                petType,
-                petSize,
-                customTags: customTagsList
-            }
-        };
+        const token = localStorage.getItem('access');
+        const formData = new FormData();
+        formData.append('purpose', goal);
+        formData.append('text', text.trim());
+        if (petType) formData.append('pet_type', petType);
+        const imageFile = fileInputRef.current?.files?.[0];
+        if (imageFile) formData.append('image', imageFile);
 
-        console.log("Submitting Petlink Post: ", postData);
-        // Call backend API here...
-        
-        onClose();
+        try {
+            const res = await fetch('/posts/create/', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            if (res.ok) {
+                onPostCreated?.();
+                onClose();
+            } else {
+                alert('Failed to create post. Please try again.');
+            }
+        } catch {
+            alert('Network error. Please try again.');
+        }
     };
 
     return (
@@ -141,49 +132,15 @@ export default function CreatePostContainer({ onClose }: CreatePostContainerProp
                         </select>
                     </div>
 
-                    <div className='optional-tags-section'>
-                        <h3>Add Filters</h3>
-                        <div className='tags-grid'>
-                            <div className='form-group'>
-                                <label>Pet Type</label>
-                                <select value={petType} onChange={(e) => setPetType(e.target.value)}>
-                                    <option value="">-- Select--</option>
-                                    <option value="dog">Dog 🐕</option>
-                                    <option value="cat">Cat 🐈</option>
-                                    <option value="bird">Bird 🦜</option>
-                                    <option value="other">Other 🐹</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>Pet Size</label>
-                                <select value={petSize} onChange={(e) => setPetSize(e.target.value)}>
-                                    <option value="">-- Select--</option>
-                                    <option value="small">Small</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="large">Large</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className='form-group' style={{ marginTop: '0.75rem' }}>
-                            <label>Custom tags (Press Enter to add)</label>
-                            <input 
-                                type="text" 
-                                placeholder="e.g., puppy, urgent, weekend" 
-                                value={customTag}
-                                onChange={(e) => setCustomTag(e.target.value)}
-                                onKeyDown={handleAddCustomTag}
-                            />
-                            <div className='tags-pill-container'>
-                                {customTagsList.map(tag => (
-                                    <span key={tag} className='tag-pill'>
-                                        #{tag}
-                                        <button type='button' onClick={() => handleRemoveCustomTag(tag)}>&times;</button>
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
+                    <div className='form-group'>
+                        <label>Pet Type</label>
+                        <select value={petType} onChange={(e) => setPetType(e.target.value)}>
+                            <option value="">-- Select--</option>
+                            <option value="dog">Dog 🐕</option>
+                            <option value="cat">Cat 🐈</option>
+                            <option value="bird">Bird 🦜</option>
+                            <option value="other">Other 🐹</option>
+                        </select>
                     </div>
 
                     <button type='submit' className='submit-post-btn'>

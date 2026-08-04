@@ -19,9 +19,15 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PublicOnlyRoute from './components/PublicOnlyRoute';
 import AdminOnlyRoute from './components/AdminOnlyRoute';
 import MyProfileRedirect from './components/MyProfileRedirect';
+import UserProfileRedirect from './components/UserProfileRedirect';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import { useWebSocket } from './hooks/useWebSocket';
 import './App.css';
 
 function App() {
+  useWebSocket();
+
   return (
     <div className="app-container">
     <Router>
@@ -67,6 +73,11 @@ function App() {
               <MyProfileRedirect />
             </ProtectedRoute>
           } />
+          <Route path="/profile/:id" element={
+            <ProtectedRoute>
+              <UserProfileRedirect />
+            </ProtectedRoute>
+          } />
           <Route path="/ownerprofile" element={
             <ProtectedRoute>
               <Profile />
@@ -94,7 +105,7 @@ function App() {
               </ProtectedRoute>
           } />
 
-          <Route path="/admin" element={
+          <Route path="/adminpage" element={
             <AdminOnlyRoute>
               <Admin />
             </AdminOnlyRoute>
@@ -123,10 +134,22 @@ function App() {
               <Settings />
             </ProtectedRoute>
           } />
+
+          <Route path="/terms-of-service" element={
+            <ProtectedRoute>
+              <TermsOfService />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/privacy-policy" element={
+            <ProtectedRoute>
+              <PrivacyPolicy />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
+      <Footer />
     </Router>
-    <Footer />
     </div>
   );
 }

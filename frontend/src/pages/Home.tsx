@@ -1,15 +1,39 @@
+import { useEffect, useState } from 'react'
 import './Home.css'
 import ProfileCard from '../components/homepage/ProfileCard'
 import Post from '../components/homepage/Post'
 import CreatePost from '../components/homepage/CreatePostContainer'
 import RightSidebar from '../components/homepage/RightSidebar'
-import { useEffect } from 'react'
+
+type BackendPost = {
+  id: number;
+  user_id: number;
+  purpose: string;
+  text?: string | null;
+  pet_type?: string | null;
+  image?: string | null;
+  like_count: number;
+  user_liked: boolean;
+  created_at: string;
+};
 
 export default function Home() {
+  const [posts, setPosts] = useState<BackendPost[]>([]);
+
+  const fetchPosts = async () => {
+    const token = localStorage.getItem('access');
+    try {
+      const res = await fetch('/posts/', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) setPosts(await res.json());
+    } catch {}
+  };
 
   useEffect(() => {
-        document.title = "Home | PetLink";
-    }, []);
+    document.title = 'Home | PetLink';
+    fetchPosts();
+  }, []);
 
   return (
     <div className="home-container">
@@ -17,56 +41,24 @@ export default function Home() {
         <ProfileCard />
       </div>
       <div className="home-post-container">
-        <CreatePost />
-
-        <Post
-        authorId="4"
-        authorType="owner"
-        name="Jane Doe"
-        tag="NEED SITTER"
-        text="Looking for a sitter for my cat Luna next week!"
-        location="Porto, PT"
-        time="2h ago"
-        likeCount={14}
-        tags={[
-         "May 1-5",
-          "15€-20€/day",
-          "Luna | Bengal Cat | 2yr",
-          "Cat experience required",
-          ]}
-        />
-        <Post
-        authorId="8"
-        authorType="owner"
-        name="John Smith"
-        tag="NEED WALKER"
-        text="My dog needs walking every morning."
-        location="Lisbon, PT"
-        time="5h ago"
-        likeCount={7}
-        tags={[
-         "May 1-5",
-          "15€-20€/day",
-          "Energy required",
-          "Dog experience required",
-          ]}
-        />
-        <Post
-        authorId="9"
-        authorType="sitter"
-        name="Junior Silva"
-        tag="SITTER"
-        text="I'm a sitter with a lot of experience with dogs!"
-        location="Rio de Janeiro, BR"
-        time="11min ago"
-        likeCount={3}
-        tags={[
-          "20€-25€/day",
-          "Dog experience",
-          ]}
-        />
+        <CreatePost onPostCreated={fetchPosts} />
+        {posts.map(p => (
+          <Post
+            key={p.id}
+            postId={p.id}
+            userId={p.user_id}
+            purpose={p.purpose}
+            text={p.text}
+            petType={p.pet_type}
+            image={p.image}
+            createdAt={p.created_at}
+            likeCount={p.like_count}
+            userLiked={p.user_liked}
+            onDeleted={fetchPosts}
+          />
+        ))}
       </div>
       <RightSidebar />
     </div>
-  )
+  );
 }

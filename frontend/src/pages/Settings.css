@@ -323,6 +323,14 @@ html {
   margin: 0.2rem 0 0.75rem;
 }
 
+.settings-avatar-copy p.settings-avatar-error,
+.settings-avatar-error {
+  color: #c62828;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
 .settings-avatar-button {
   background: var(--petlink-tan);
   border: 0.125rem solid var(--petlink-tan);

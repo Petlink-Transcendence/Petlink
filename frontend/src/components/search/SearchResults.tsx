@@ -1,33 +1,43 @@
 import { Link } from 'react-router-dom';
 import './SearchResults.css';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 type Profile = {
-  id: number;
+  id: number | string;
   name: string;
   role: string;
   location: string;
   rating?: string;
+  avatar?: string;
   profileType: 'owner' | 'sitter';
 };
 
 type SearchResultsProps = {
   results: Profile[];
   committedQuery: string;
+  activeFilter: string;
   hasSearched: boolean;
   featuredProfiles: Profile[];
 };
 
 function initials(name: string) {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'U';
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
 function ProfileCard({ profile }: { profile: Profile }) {
-  const profilePath = profile.profileType === 'sitter' ? `/sitterprofile/${profile.id}` : `/profile/${profile.id}`;
+  const profilePath = profile.profileType === 'sitter' ? `/sitterprofile/${profile.id}` : `/ownerprofile/${profile.id}`;
+  const avatarUrl = resolveMediaUrl(profile.avatar);
 
   return (
     <Link to={profilePath} className="result-card" aria-label={`Open ${profile.name}'s profile`}>
       <div className="result-card-banner" />
-      <div className="result-avatar">{initials(profile.name)}</div>
+      <div className="result-avatar">
+        {avatarUrl ? <img src={avatarUrl} alt="" /> : initials(profile.name)}
+      </div>
       <div className="result-info">
         <span className="result-name">{profile.name}</span>
         <span className="result-role">{profile.role}</span>
@@ -39,8 +49,22 @@ function ProfileCard({ profile }: { profile: Profile }) {
   );
 }
 
-export default function SearchResults({ results, committedQuery, hasSearched, featuredProfiles }: SearchResultsProps) {
+type SearchResultsStateProps = SearchResultsProps & {
+  isLoading: boolean;
+  error: string | null;
+};
+
+export default function SearchResults({ results, committedQuery, activeFilter, hasSearched, featuredProfiles, isLoading, error }: SearchResultsStateProps) {
   const resultCount = results.length;
+  const searchLabel = committedQuery || activeFilter;
+
+  if (isLoading) {
+    return <div className="search-results"><DiscoverCard /><div className="empty-results-card"><p className="empty-results-text">Loading profiles...</p></div></div>;
+  }
+
+  if (error) {
+    return <div className="search-results"><DiscoverCard /><div className="empty-results-card"><span className="empty-results-icon">⚠️</span><h3 className="empty-results-title">Could not load profiles</h3><p className="empty-results-text">{error}</p></div></div>;
+  }
 
   if (!hasSearched) {
     return (
@@ -63,7 +87,7 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
         <DiscoverCard />
         <div className="empty-results-card">
           <span className="empty-results-icon">🔍</span>
-          <h3 className="empty-results-title">No results for "{committedQuery}"</h3>
+          <h3 className="empty-results-title">No results for "{searchLabel}"</h3>
           <p className="empty-results-text">Try a different name, role, or location.</p>
         </div>
       </div>
@@ -75,7 +99,7 @@ export default function SearchResults({ results, committedQuery, hasSearched, fe
       <DiscoverCard />
       <div className="results-section">
         <h3 className="section-title">
-          {resultCount} result{resultCount !== 1 ? 's' : ''} for "{committedQuery}"
+          {resultCount} result{resultCount !== 1 ? 's' : ''} for "{searchLabel}"
         </h3>
         <div className="results-grid">
           {results.map(p => <ProfileCard key={p.id} profile={p} />)}
