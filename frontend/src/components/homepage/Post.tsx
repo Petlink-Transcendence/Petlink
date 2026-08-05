@@ -156,11 +156,11 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   const handleDeletePost = async () => {
     const token = localStorage.getItem('access');
     try {
-      await fetch(`/posts/${postId}/delete/`, {
+      const res = await fetch(`/posts/${postId}/delete/`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      onDeleted?.();
+      if (res.ok) onDeleted?.();
     } catch {}
   };
 
