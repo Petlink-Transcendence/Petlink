@@ -3,7 +3,7 @@ import requests
 from django.shortcuts import redirect, get_object_or_404
 from django.core.files.base import ContentFile
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,7 +14,8 @@ from django.contrib.auth import get_user_model
 from .serializers import (
     UserRegistrationSerializer, UserProfileSerializer, UserPublicProfileSerializer,
     UserProfileUpdateSerializer, AvatarUploadSerializer, BannerUploadSerializer,
-    UserOnlineStatusSerializer, ChangePasswordSerializer
+    UserOnlineStatusSerializer, ChangePasswordSerializer,
+    RoleTokenObtainPairSerializer, RoleTokenRefreshSerializer
 )
 from .permissions import IsOwnerAdminModeratorOrReadOnly, IsAdmin
 from .models import Follower
@@ -44,7 +45,12 @@ class RegisterView(generics.CreateAPIView):
 
 class ThrottledTokenObtainPairView(TokenObtainPairView):
     """API view to handle user login with rate limiting"""
+    serializer_class = RoleTokenObtainPairSerializer
     throttle_classes = [LoginRateThrottle]
+
+
+class RoleTokenRefreshView(TokenRefreshView):
+    serializer_class = RoleTokenRefreshSerializer
 
 class UserMeView(APIView):
     """API view to retrieve the logged-in user's data"""
@@ -158,6 +164,7 @@ class OAuth42CallbackView(APIView):
             user.save()
 
         refresh = RefreshToken.for_user(user)
+        refresh['role'] = user.role
 
         is_new = str(created).lower()
         frontend_url = f"https://localhost:5173/oauth/callback?access={refresh.access_token}&refresh={refresh}&is_new={is_new}"

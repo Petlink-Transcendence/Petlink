@@ -1,9 +1,36 @@
 import re
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from .models import Follower
 
 User = get_user_model()
+
+
+class RoleTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Include the application role in tokens consumed by the posts service."""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['role'] = self.user.role
+        refresh = RefreshToken(data['refresh'])
+        refresh['role'] = self.user.role
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        return data
+
+
+class RoleTokenRefreshSerializer(TokenRefreshSerializer):
+    """Keep the role claim up to date when an access token is refreshed."""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = User.all_objects.get(pk=self.token['user_id'])
+        access = AccessToken(data['access'])
+        access['role'] = user.role
+        data['access'] = str(access)
+        return data
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
