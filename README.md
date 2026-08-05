@@ -76,7 +76,7 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
    - **Implementation:** Developed using Django Channels, Daphne ASGI server, and Redis channel layer pub/sub queues.
 
 4. **User Interaction System (Major - 2 pts)**
-   - **Justification:** Core requirement enabling pet owners and sitters to connect, message, and form social relationships.
+   - **Justification:** Core requirement enabling pet owners and sitters to connect, message, exchange services and form social relationships.
    - **Implementation:** Combines 1-on-1 WebSocket chat, public sitter/owner profile views, and follower connection models.
 
 5. **Complete Notification System (Minor - 1 pt)**
