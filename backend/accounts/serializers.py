@@ -87,6 +87,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    posts_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -96,7 +97,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
             'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times',
-            'followers_count'
+            'followers_count', 'posts_count'
         )
         read_only_fields = fields
 
@@ -108,18 +109,26 @@ class UserProfileSerializer(serializers.ModelSerializer):
         following_ids = obj.following.values_list('following_id', flat=True)
         return obj.followers.filter(follower_id__in=following_ids).count()
 
+    def get_posts_count(self, obj):
+        for manager_name in ('posts', 'post_set'):
+            manager = getattr(obj, manager_name, None)
+            if manager is not None:
+                return manager.count()
+        return 0
+
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
     is_connected = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    posts_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'username', 'role', 'avatar', 'banner', 'description',
-            'city', 'country', 'user_type', 'rating', 'followers_count',
+            'city', 'country', 'user_type', 'rating', 'followers_count', 'posts_count',
             'following_count', 'is_following', 'is_connected', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times'
@@ -141,9 +150,6 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             if field not in public_fields:
                 fields.pop(field, None)
         return fields
-
-    def get_followers_count(self, obj): return obj.followers.count()
-    def get_following_count(self, obj): return obj.following.count()
 
     def get_followers_count(self, obj):
         following_ids = obj.following.values_list('following_id', flat=True)
