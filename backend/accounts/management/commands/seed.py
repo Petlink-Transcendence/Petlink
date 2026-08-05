@@ -233,7 +233,7 @@ class Command(BaseCommand):
             )
             if not cur.fetchone():
                 cur.execute(
-                    "INSERT INTO posts_like (post_id, user_id) VALUES (%s, %s)",
+                    "INSERT INTO posts_like (post_id, user_id, created_at) VALUES (%s, %s, NOW())",
                     [post_id, user_id],
                 )
 
