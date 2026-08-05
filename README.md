@@ -101,7 +101,7 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
 
 10. **Advanced Permissions System & Roles (Major - 2 pts)**
     - **Justification:** Protects administrative routes and enforces strict authorization boundaries based on user authority tiers.
-    - **Implementation:** Role-Based Access Control (`Admin`, `Moderator`, `User`, `Guest`), DRF permission classes (`IsAdmin`, `IsModerator`, `IsOwnerOrAdmin`), and soft deletion manager (`ActiveUserManager` & `deleted_at`).
+    - **Implementation:** Role-Based Access Control (`Admin` and `User`), DRF permission classes (`IsAdmin`, `isUser`), and soft deletion manager (`ActiveUserManager` & `deleted_at`).
 
 11. **Backend as Microservices (Major - 2 pts)**
     - **Justification:** Decouples REST API HTTP workload from persistent WebSocket connections, ensuring independent scaling and fault tolerance.
