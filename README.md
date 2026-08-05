@@ -29,7 +29,6 @@ PetLink is a full-stack, real-time social platform engineered as part of the 42 
 
 ## Description
 
-### Overview
 **PetLink** addresses the real-world challenge of connecting pet owners with trusted pet sitters and caregivers. The application features pet profile registration, caregiver availability scheduling, interactive user discovery, 1-on-1 WebSocket chat, booking management, and real-time push notifications.
 
 ### Key Highlights
@@ -67,20 +66,20 @@ The backend development was split into distinct microservices, while the fronten
 
 Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory 14-point threshold):
 
-| Category | Module Name | Type | Points | Status |
-| :--- | :--- | :---: | :---: | :---: |
-| **Web** | Use a framework for both frontend & backend (React + Django) | Major | **2** | Implemented |
-| **Web** | Use an ORM for the database (Django ORM) | Minor | **1** | Implemented |
-| **Web** | Implement real-time features using WebSockets | Major | **2** | In Progress |
-| **Web** | Allow users to interact with other users (Chat, Profiles, Followers) | Major | **2** | In Progress |
-| **Web** | Complete notification system for all CRUD actions | Minor | **1** | Implemented |
-| **Web** | File upload and management system | Minor | **1** | Implemented |
-| **Accessibility** | Support for additional browsers (Chrome, Firefox, Edge/Safari) | Minor | **1** | In Progress |
-| **User Mgmt** | Standard user management & authentication | Major | **2** | Implemented |
-| **User Mgmt** | Remote authentication with OAuth 2.0 (42 Intranet) | Minor | **1** | Implemented |
-| **User Mgmt** | Advanced permissions system & roles (RBAC) | Major | **2** | Implemented |
-| **DevOps** | Backend as microservices | Major | **2** | Implemented |
-| **TOTAL** | **11 Modules Selected** | | **19 Points** | **In Progress** |
+| Category | Module Name | Type | Points | Assigned Team Member(s) | Status |
+| :--- | :--- | :---: | :---: | :--- | :---: |
+| **Web** | Use a framework for both frontend & backend (React + Django) | Major | **2** | All Members (`gde-la-r`, `icunha-t`, `jpedro-f`, `rjesus-d`, `ddo-carm`) | Implemented |
+| **Web** | Use an ORM for the database (Django ORM) | Minor | **1** | Gabriel (`gde-la-r`), João (`jpedro-f`), Ricardo (`rjesus-d`) | Implemented |
+| **Web** | Implement real-time features using WebSockets | Major | **2** | Ricardo (`rjesus-d`) | In Progress |
+| **Web** | Allow users to interact with other users (Chat, Profiles, Followers) | Major | **2** | João (`jpedro-f`), Ricardo (`rjesus-d`), Isabel (`icunha-t`), Daniela (`ddo-carm`) | In Progress |
+| **Web** | Complete notification system for all CRUD actions | Minor | **1** | Ricardo (`rjesus-d`) | Implemented |
+| **Web** | File upload and management system | Minor | **1** | João (`jpedro-f`), Daniela (`ddo-carm`) | Implemented |
+| **Accessibility** | Support for additional browsers (Chrome, Firefox, Edge/Safari) | Minor | **1** | Ricardo (`rjesus-d`), Isabel (`icunha-t`), Daniela (`ddo-carm`) | In Progress |
+| **User Mgmt** | Standard user management & authentication | Major | **2** | João (`jpedro-f`), Gabriel (`gde-la-r`) | Implemented |
+| **User Mgmt** | Remote authentication with OAuth 2.0 (42 Intranet) | Minor | **1** | Gabriel (`gde-la-r`) | Implemented |
+| **User Mgmt** | Advanced permissions system & roles (RBAC) | Major | **2** | Gabriel (`gde-la-r`) | Implemented |
+| **DevOps** | Backend as microservices | Major | **2** | Gabriel (`gde-la-r`) | Implemented |
+| **TOTAL** | **11 Modules Selected** | | **19 Points** | | **In Progress** |
 
 ### Module Justifications & Implementation Details
 
@@ -129,6 +128,14 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
     - **Implementation:** Loosely-coupled containers orchestrated with Docker Compose (`core-service`, `realtime-service`, `postgres`, `redis`, `nginx`).
 
 ---
+
+## Project Management & Sprint Strategy
+
+### Team Organization & Methodology
+- **Task Distribution:** Work was split between backend service owners (`gde-la-r`, `jpedro-f`, `rjesus-d`) and frontend leads (`icunha-t`, `ddo-carm`) across 5 execution phases.
+- **Sprint Management:** 1-week sprint cycles with daily standup syncs and peer pull request reviews.
+- **Project Management Tools:** GitHub Issues for task tracking, Notion project dashboard, Git version control (`main <-> fullstack <-> issue/<name>`), and Makefile automation.
+- **Communication Channels:** Discord (voice & text channels), Slack, and face-to-face 42 campus collaboration.
 
 ### Sprint Architecture and Execution Plan
 
