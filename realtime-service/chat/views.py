@@ -7,6 +7,8 @@ from django.conf import settings
 import os
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from .models import Message
 
 def get_user_id(request):
@@ -113,7 +115,7 @@ def delete_message(request, message_id):
         return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
     user_id = int(user_id)
-    
+
     try:
         message = Message.objects.get(id=message_id, sender_id=user_id)
     except Message.DoesNotExist:
@@ -130,5 +132,14 @@ def delete_message(request, message_id):
             status=status.HTTP_403_FORBIDDEN
         )
 
+    recipient_id = message.recipient_id
     message.delete()
+
+    # notify the recipient's open chat socket, if they have one connected
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'chat_{recipient_id}',
+        {'type': 'message_deleted', 'message_id': message_id}
+    )
+
     return Response(status=status.HTTP_204_NO_CONTENT)
