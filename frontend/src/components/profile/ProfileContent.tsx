@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import './ProfileContent.css';
-import CreatePost from '../homepage/CreatePostContainer.tsx';
-import Post from '../homepage/Post.tsx';
+import '../Comments.css';
+import CreatePost from '../homepage/CreatePostContainer';
+import Post from '../homepage/Post';
 
 type BackendPost = {
   id: number;
@@ -29,6 +30,8 @@ type ProfileContentProps = {
   authorName: string;
   authorInitials: string;
   showCreatePost?: boolean;
+  onPostCreated?: () => void;
+  onPostDeleted?: () => void;
 };
 
 function timeAgo(dateStr: string): string {
@@ -45,7 +48,10 @@ function reviewerInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-export default function ProfileContent({ profileUserId, authorName, authorInitials, showCreatePost = true }: ProfileContentProps) {
+export default function ProfileContent({
+  profileUserId,
+  showCreatePost = true,
+}: ProfileContentProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
   const [posts, setPosts] = useState<BackendPost[]>([]);
   const [reviews, setReviews] = useState<BackendReview[]>([]);
@@ -97,21 +103,23 @@ export default function ProfileContent({ profileUserId, authorName, authorInitia
         <div className="tab-content">
           {posts.length === 0 ? (
             <p className="no-comments-placeholder">No posts yet.</p>
-          ) : posts.map(p => (
-            <Post
-              key={p.id}
-              postId={p.id}
-              userId={p.user_id}
-              purpose={p.purpose}
-              text={p.text}
-              petType={p.pet_type}
-              image={p.image}
-              createdAt={p.created_at}
-              likeCount={p.like_count}
-              userLiked={p.user_liked}
-              onDeleted={fetchPosts}
-            />
-          ))}
+          ) : (
+            posts.map(p => (
+              <Post
+                key={p.id}
+                postId={p.id}
+                userId={p.user_id}
+                purpose={p.purpose}
+                text={p.text}
+                petType={p.pet_type}
+                image={p.image}
+                createdAt={p.created_at}
+                likeCount={p.like_count}
+                userLiked={p.user_liked}
+                onDeleted={fetchPosts}
+              />
+            ))
+          )}
         </div>
       )}
 
@@ -119,21 +127,23 @@ export default function ProfileContent({ profileUserId, authorName, authorInitia
         <div className="tab-content">
           {reviews.length === 0 ? (
             <p className="no-comments-placeholder">No reviews yet.</p>
-          ) : reviews.map(r => (
-            <div key={r.id} className="profile-review-card">
-              <div className="profile-review-header">
-                <div className="profile-review-avatar">
-                  {reviewerInitials(r.reviewer_name || `User ${r.reviewer}`)}
+          ) : (
+            reviews.map(r => (
+              <div key={r.id} className="profile-review-card">
+                <div className="profile-review-header">
+                  <div className="profile-review-avatar">
+                    {reviewerInitials(r.reviewer_name || `User ${r.reviewer}`)}
+                  </div>
+                  <div className="profile-review-author-info">
+                    <span className="profile-review-author">{r.reviewer_name || `User ${r.reviewer}`}</span>
+                    <span className="profile-review-stars">{'⭐'.repeat(r.rating)}</span>
+                  </div>
+                  <span className="profile-review-time">{timeAgo(r.created_at)}</span>
                 </div>
-                <div className="profile-review-author-info">
-                  <span className="profile-review-author">{r.reviewer_name || `User ${r.reviewer}`}</span>
-                  <span className="profile-review-stars">{'⭐'.repeat(r.rating)}</span>
-                </div>
-                <span className="profile-review-time">{timeAgo(r.created_at)}</span>
+                <p className="profile-review-text">{r.comment}</p>
               </div>
-              <p className="profile-review-text">{r.comment}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>

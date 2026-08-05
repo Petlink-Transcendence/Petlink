@@ -32,6 +32,11 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
             return;
         }
 
+        if (text.trim().length > 512) {
+            alert("Post description cannot exceed 512 characters.");
+            return;
+        }
+
         if (!goal) {
             alert("Please select a main goal for your post.");
             return;
@@ -71,18 +76,39 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                 </div>
 
                 <form onSubmit={handleSubmit} className='post-form'>
-                    <div 
-                        contentEditable
-                        className='post-text-input'
-                        data-placeholder="What's on your mind? *"
-                        onInput={(e) => setText(e.currentTarget.textContent || '')}
-                        onBlur={(e) => {
-                            if (!e.currentTarget.textContent?.trim()) {
-                                e.currentTarget.innerHTML = '';
-                                setText('');
-                            }
-                        }}
-                    />
+                    <div>
+                        <div 
+                            contentEditable
+                            className='post-text-input'
+                            data-placeholder="What's on your mind? *"
+                            onInput={(e) => {
+                                const current = e.currentTarget.textContent || '';
+                                if (current.length > 512) {
+                                    const sliced = current.slice(0, 512);
+                                    e.currentTarget.textContent = sliced;
+                                    setText(sliced);
+                                } else {
+                                    setText(current);
+                                }
+                            }}
+                            onBlur={(e) => {
+                                if (!e.currentTarget.textContent?.trim()) {
+                                    e.currentTarget.innerHTML = '';
+                                    setText('');
+                                }
+                            }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                            {text.length >= 512 ? (
+                                <span style={{ color: '#e63946', fontSize: '0.8rem', fontWeight: 600 }}>
+                                    Text too large, limit of 512 characters
+                                </span>
+                            ) : <span />}
+                            <span style={{ fontSize: '0.75rem', color: text.length >= 512 ? '#e63946' : text.length > 480 ? '#d9534f' : '#888' }}>
+                                {text.length}/512
+                            </span>
+                        </div>
+                    </div>
 
                     <div className='photo-upload-section'>
                         <input

@@ -33,6 +33,12 @@ export default function Home() {
   useEffect(() => {
     document.title = 'Home | PetLink';
     fetchPosts();
+
+    const handlePostsUpdate = () => {
+      fetchPosts();
+    };
+    window.addEventListener('postsUpdated', handlePostsUpdate);
+    return () => window.removeEventListener('postsUpdated', handlePostsUpdate);
   }, []);
 
   return (

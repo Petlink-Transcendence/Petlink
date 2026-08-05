@@ -3,9 +3,18 @@
   height: 10rem;
   background: linear-gradient(135deg, var(--petlink-tan) 0%, #c49a50 100%);
   position: relative;
+  width: 100%;
+}
+
+.profile-cover-content {
+  max-width: 60rem;
+  margin: 0 auto;
+  height: 100%;
+  padding: 0 1.5rem;
   display: flex;
   align-items: flex-end;
-  padding: 0 5%;
+  box-sizing: border-box;
+  position: relative;
 }
 
 /* Avatar circle — overlaps into the info bar below */
