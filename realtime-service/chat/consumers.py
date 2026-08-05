@@ -1,22 +1,40 @@
 import json
+from urllib.parse import parse_qs
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.utils import timezone
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .models import Message
 from notifications.models import Notification
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user_id = self.scope['url_route']['kwargs']['user_id']
+        url_user_id = self.scope['url_route']['kwargs']['user_id']
+
+        query_string = self.scope['query_string'].decode()
+        token = parse_qs(query_string).get('token', [None])[0]
+
+        authenticated_user_id = self.get_user_id_from_token(token)
+
+        if authenticated_user_id is None or str(authenticated_user_id) != str(url_user_id):
+            await self.close(code=4001)
+            return
+
+        self.user_id = authenticated_user_id
         self.room_group_name = f'chat_{self.user_id}'
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         await self.update_online_status(True)
+
+    def get_user_id_from_token(self, token):
+        if not token:
+            return None
+        try:
+            return AccessToken(token)['user_id']
+        except (InvalidToken, TokenError):
+            return None
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -54,7 +72,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'send_notification',
                 'notification_type': 'new_message',
-                'content': f'You have a new message',
+                'content': 'You have a new message',
                 'reference_id': int(self.user_id),
                 'reference_type': 'message',
             }
@@ -64,6 +82,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'sender_id': event['sender_id'],
             'content': event['content'],
+        }))
+
+    async def message_deleted(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'message_deleted',
+            'message_id': event['message_id'],
         }))
 
     @database_sync_to_async
