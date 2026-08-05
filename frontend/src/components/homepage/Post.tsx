@@ -86,10 +86,34 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   }, [userId]);
 
   useEffect(() => {
+    setLiked(userLiked);
+  }, [userLiked]);
+
+  useEffect(() => {
+    setLikes(likeCount);
+  }, [likeCount]);
+
+  const fetchComments = () => {
     fetch(`/posts/${postId}/comments/`)
       .then(r => r.ok ? r.json() : [])
       .then(data => setComments(data))
       .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [postId]);
+
+  useEffect(() => {
+    const handlePostsUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const detail = customEvent.detail;
+      if (!detail || !detail.post_id || detail.post_id === postId) {
+        fetchComments();
+      }
+    };
+    window.addEventListener('postsUpdated', handlePostsUpdate);
+    return () => window.removeEventListener('postsUpdated', handlePostsUpdate);
   }, [postId]);
 
   useEffect(() => {

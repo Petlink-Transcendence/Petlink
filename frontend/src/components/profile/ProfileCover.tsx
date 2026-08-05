@@ -11,16 +11,18 @@ export default function ProfileCover({ initials, imageUrl }: ProfileCoverProps) 
 
   return (
     <div className="profile-cover">
-      {imageUrl && !imgError ? (
-        <img
-          className="profile-avatar"
-          src={imageUrl}
-          alt="profile picture"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div className="profile-avatar">{initials}</div>
-      )}
+      <div className="profile-cover-content">
+        {imageUrl && !imgError ? (
+          <img
+            className="profile-avatar"
+            src={imageUrl}
+            alt="profile picture"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="profile-avatar">{initials}</div>
+        )}
+      </div>
     </div>
   );
 }

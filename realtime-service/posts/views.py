@@ -22,6 +22,22 @@ def get_user_id(request):
     except (InvalidToken, TokenError, ValueError, TypeError):
         return None
 
+def broadcast_post_update(post_id, user_id, action):
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                'global_notifications',
+                {
+                    'type': 'post_updated',
+                    'action': action,
+                    'post_id': post_id,
+                    'user_id': user_id,
+                }
+            )
+    except Exception:
+        pass
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def create_post(request):
@@ -53,6 +69,7 @@ def create_post(request):
         pet_size=request.data.get('pet_size'),
         image=image,
     )
+    broadcast_post_update(post.id, post.user_id, 'created')
     return Response({
         'id': post.id,
         'user_id': post.user_id,
@@ -88,6 +105,7 @@ def update_post(request, pk):
     post.pet_type = request.data.get('pet_type', post.pet_type)
     post.pet_size = request.data.get('pet_size', post.pet_size)
     post.save()
+    broadcast_post_update(post.id, post.user_id, 'updated')
     return Response({
         'id': post.id,
         'user_id': post.user_id,
@@ -109,6 +127,7 @@ def delete_post(request, pk):
         return Response({'error': 'Not allowed'}, status=403)
     post.deleted_at = timezone.now()
     post.save()
+    broadcast_post_update(post.id, post.user_id, 'deleted')
     return Response({'status': 'post deleted'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
@@ -117,9 +136,23 @@ def list_posts(request):
     page_size = int(request.query_params.get('page_size', 10))
     offset = (page - 1) * page_size
 
-    all_posts = Post.objects.filter(
-        deleted_at__isnull=True
-    )[offset:offset + page_size]
+    queryset = Post.objects.filter(deleted_at__isnull=True)
+
+    user_id_param = request.query_params.get('user_id')
+    if user_id_param:
+        if user_id_param == 'me':
+            current_uid = get_user_id(request)
+            if current_uid:
+                queryset = queryset.filter(user_id=current_uid)
+            else:
+                return Response([], status=status.HTTP_200_OK)
+        else:
+            try:
+                queryset = queryset.filter(user_id=int(user_id_param))
+            except (ValueError, TypeError):
+                queryset = queryset.filter(user_id=user_id_param)
+
+    all_posts = queryset[offset:offset + page_size]
 
     user_id = get_user_id(request)
     data = [
@@ -197,11 +230,13 @@ def like_post(request, pk):
             except Exception:
                 pass  # never block the like action
 
+        broadcast_post_update(post.id, post.user_id, 'liked')
         return Response({'status': 'liked'}, status=status.HTTP_201_CREATED)
     
     try:
         like = Like.objects.get(user_id=user_id, post=post)
         like.delete()
+        broadcast_post_update(post.id, post.user_id, 'unliked')
         return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
     except Like.DoesNotExist:
         return Response({'error': 'not liked'}, status=status.HTTP_404_NOT_FOUND)
@@ -245,6 +280,7 @@ def post_comments(request, pk):
         except Exception:
             pass
 
+    broadcast_post_update(post.id, post.user_id, 'commented')
     return Response(
         {'id': comment.id, 'user_id': comment.user_id, 'text': comment.text, 'created_at': comment.created_at},
         status=201
@@ -261,4 +297,5 @@ def delete_comment(request, pk, comment_pk):
         return Response({'error': 'Not allowed'}, status=403)
     comment.deleted_at = timezone.now()
     comment.save()
+    broadcast_post_update(comment.post_id, comment.user_id, 'comment_deleted')
     return Response(status=204)

@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import './ProfileContent.css';
 import '../Comments.css';
-import CreatePost from '../homepage/CreatePostContainer.tsx';
+import CreatePost from '../homepage/CreatePostContainer';
+import Post from '../homepage/Post';
 
-type Post = {
+export type BackendPost = {
   id: number;
-  text: string;
-  time: string;
-  likes: number;
+  user_id: number;
+  purpose: string;
+  text?: string | null;
+  pet_type?: string | null;
+  image?: string | null;
+  like_count: number;
+  user_liked: boolean;
+  created_at: string;
 };
 
 type Review = {
@@ -19,125 +25,24 @@ type Review = {
 };
 
 type ProfileContentProps = {
-  posts: Post[];
+  posts: BackendPost[];
   reviews: Review[];
   authorName: string;
   authorInitials: string;
   showCreatePost?: boolean;
+  onPostCreated?: () => void;
+  onPostDeleted?: () => void;
 };
 
-type CommentItem = {
-  id: number;
-  author: string;
-  text: string;
-  time: string;
-};
-
-function ProfilePostCard({ p, authorInitials, authorName }: { p: Post, authorInitials: string, authorName: string }) {
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(p.likes);
-  const [showComments, setShowComments] = useState(false);
-  const [newCommentText, setNewCommentText] = useState("");
-  const [comments, setComments] = useState<CommentItem[]>([
-    { id: 1, author: "Daniela Padilha", text: "Great update! Thanks for sharing.", time: "2h ago" }
-  ]);
-
-  const handleLike = () => {
-    setLikes(liked ? likes - 1 : likes + 1);
-    setLiked(!liked);
-  };
-
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCommentText.trim()) return;
-
-    const newComment: CommentItem = {
-      id: Date.now(),
-      author: "Jane Doe",
-      text: newCommentText.trim(),
-      time: "Just now"
-    };
-
-    setComments([newComment, ...comments]);
-    setNewCommentText("");
-  };
-
-  const getCommentInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
-
-  return (
-    <div className="profile-post-card">
-      <div className="post-header">
-        <div className="post-author-avatar">{authorInitials}</div>
-        <div className="post-header-author-info">
-          <span className="post-author-name">{authorName}</span>
-        </div>
-      </div>
-      
-      <p className="profile-post-text">{p.text}</p>
-      
-      <div className="profile-post-time-wrapper">
-        <span className="post-time">{p.time}</span>
-      </div>
-      
-      <div className="profile-post-footer">
-        <div className="profile-post-actions-group">
-          <button className={`btn like ${liked ? 'liked' : ''}`} onClick={handleLike}>
-            ❤️ {likes}
-          </button>
-          <button 
-            className={`btn comment ${showComments ? 'active' : ''}`} 
-            onClick={() => setShowComments(!showComments)}
-          >
-            📢 Comment
-          </button>
-          <button className="admin admin-btn-remove" title="Remove post">🗑️</button>
-        </div>
-      </div>
-
-      {showComments && (
-        <div className="comments-section-dropdown">
-          <div className="comments-section-separator" />
-          
-          <form className="comment-input-form" onSubmit={handleAddComment}>
-            <input 
-              type="text" 
-              placeholder="Write a comment..." 
-              value={newCommentText}
-              onChange={(e) => setNewCommentText(e.target.value)}
-              className="comment-text-field"
-            />
-            <button type="submit" className="comment-post-btn">Send</button>
-          </form>
-
-          <div className="comments-scroll-container">
-            {comments.length > 0 ? (
-              comments.map((c) => (
-                <div key={c.id} className="comment-row-item">
-                  <div className="comment-row-avatar-fallback">
-                    {getCommentInitials(c.author)}
-                  </div>
-                  <div className="comment-row-content">
-                    <div className="comment-row-header">
-                      <span className="comment-row-author">{c.author}</span>
-                      <span className="comment-row-time">{c.time}</span>
-                    </div>
-                    <p className="comment-row-text">{c.text}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="no-comments-placeholder">No comments yet. Write one above!</p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export default function ProfileContent({ posts, reviews, authorName, authorInitials, showCreatePost = true }: ProfileContentProps) {
+export default function ProfileContent({
+  posts,
+  reviews,
+  authorName,
+  authorInitials,
+  showCreatePost = true,
+  onPostCreated,
+  onPostDeleted,
+}: ProfileContentProps) {
   const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
   const profileReviews = reviews;
 
@@ -147,7 +52,7 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
 
   return (
     <div className="profile-right">
-      {showCreatePost && <CreatePost />}
+      {showCreatePost && <CreatePost onPostCreated={onPostCreated} />}
       <div className="profile-tabs">
         <button
           className={`tab-btn ${activeTab === 'posts' ? 'active' : ''}`}
@@ -165,14 +70,27 @@ export default function ProfileContent({ posts, reviews, authorName, authorIniti
 
       {activeTab === 'posts' && (
         <div className="tab-content">
-          {posts.map(p => (
-            <ProfilePostCard 
-              key={p.id} 
-              p={p} 
-              authorInitials={authorInitials} 
-              authorName={authorName} 
-            />
-          ))}
+          {posts.length > 0 ? (
+            posts.map(p => (
+              <Post
+                key={p.id}
+                postId={p.id}
+                userId={p.user_id}
+                purpose={p.purpose}
+                text={p.text}
+                petType={p.pet_type}
+                image={p.image}
+                createdAt={p.created_at}
+                likeCount={p.like_count}
+                userLiked={p.user_liked}
+                onDeleted={onPostDeleted}
+              />
+            ))
+          ) : (
+            <p style={{ padding: '24px', textAlign: 'center', color: '#666' }}>
+              No posts yet.
+            </p>
+          )}
         </div>
       )}
 
