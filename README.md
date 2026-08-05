@@ -129,13 +129,7 @@ The backend development was split into distinct microservices, while the fronten
 | **Daniela Santos** | `ddo-carm` | Product Owner / Frontend Lead | Frontend design system & component library, media upload & preview pipeline, accessibility compliance (WCAG 2.1), user experience & booking UI. |
 
 ---
-
-## Project Management & Sprint Strategy
-### Website framewiring and design foundations
-- **Phase 0 (Frontend setup):** Frontend setup using React 19, React Router DOM, TypeScript and CSS to design the website's framewire and skeleton to base it on.
-
----
-### Sprint Architecture (5-Week Execution Plan)
+### Sprint Architecture and execusion plan
 
 ```
 main
@@ -143,11 +137,77 @@ main
         └── issue/<issue-related-branch>
 ```
 
-- **Week 1 (Foundation):** Environment setup (`docker compose up`), base Django apps (`core-service` & `realtime-service`), PostgreSQL & Redis binding, Nginx routing setup (`/auth/*`, `/api/*`, `/ws/*`).
-- **Week 2 (Auth, Profiles & WS Core):** Registration/Login JWT flow, user/pet profile CRUD, Daphne ASGI consumer setup, WebSocket message broadcasting, online presence status.
-- **Week 3 (Followers, Permissions & Notifications):** 42 OAuth 2.0 callback flow, RBAC permissions and admin endpoints, followers system, event-triggered WebSocket notification channel groups.
-- **Week 4 (Bookings, Services & Media Uploads):** Sitter availability & booking workflow, file upload validation & storage cleanup, HTTPS SSL certificates, cross-browser test pass.
-- **Week 5 (Polish, Integration & Delivery):** End-to-end integration, privacy policy & terms pages, soft deletion verification, rate limiting, and README documentation.
+#### **Phase 0 — Frontend Setup**
+* **Goal:** Frontend setup using React 19, React Router DOM, TypeScript, and CSS to design the website's wireframe and skeleton to base it on.
+* **Overall Review:**
+  - Initialize the React 19 application structure using Vite and TypeScript.
+  - Set up routing configuration using React Router DOM.
+  - Establish base CSS styling and core layout components (navbars, wrappers, modals).
+  - Build out the initial UI wireframe components and page skeletons.
+
+---
+
+#### **Phase 1 — Foundation**
+* **Goal:** `docker compose up` boots both services, PostgreSQL, Redis, and Nginx, allowing everyone to develop independently from day 1.
+* **Overall Review:**
+  - Create the `core-service/` Django project (`core`), add the `auth` app, and configure PostgreSQL settings to read from `.env`.
+  - Author the `docker-compose.yml` file to orchestrate all containers (`core-service`, `realtime-service`, `postgres`, `redis`, `nginx`).
+  - Configure `nginx/nginx.conf` to route `/auth/*` and `/api/*` to the core-service, and `/ws/*` to the realtime-service.
+  - Expand the `User` model with database fields (`role`, `banner`, `description`, `country`, `city`, `rating`, `is_active`, `oauth_provider`, `oauth_id`), keeping roles strictly to user or admin without online status tracking.
+  - Create the `pets` app with `Pet` and `UserPet` models, running initial database migrations.
+  - Set up the `realtime-service/` folder with `channels`, `channels-redis`, and `daphne`, configuring ASGI, the Redis channel layer, the `chat` app (`Message` model), and the `notifications` app (`Notification` model).
+
+---
+
+#### **Phase 2 — Auth, Profiles & WebSocket Core**
+* **Goal:** Users can register, log in, get a JWT token, and send a WebSocket message, while profile and pet endpoints are established.
+* **Overall Review:**
+  - Implement authentication endpoints (`POST /auth/register/`, `POST /auth/login/` for JWT access/refresh tokens, `POST /auth/token/refresh/`, and `GET /auth/me/`).
+  - Apply user role choices (`admin` / `user`) and write custom DRF permission classes (`IsAdmin`, `IsOwnerOrAdmin`).
+  - Register the 42 OAuth application at `api.intra.42.fr` to obtain client credentials.
+  - Build user profile views and edits (`GET /users/{id}/`, `PUT /users/{id}/`, avatar/banner upload routes) along with pet management routes (`GET /users/{id}/pets/`, `POST /pets/`, `PUT /pets/{id}/`, `DELETE /pets/{id}/`).
+  - Write the WebSocket consumer in `chat/consumers.py` to handle connections, message saving, and broadcasting, alongside the REST history endpoint (`GET /chat/messages/{user_id}/`).
+
+---
+
+#### **Phase 3 — Followers, Permissions & Chat Polish**
+* **Goal:** Establish the followers system, enable administrative user management, and trigger real-time events.
+* **Overall Review:**
+  - Implement 42 OAuth login and callback endpoints (`GET /auth/42/login/` and callback) to provision local JWT user sessions.
+  - Build admin-only user management routes (`GET /users/`, `PUT /users/{id}/role/`, `DELETE /users/{id}/` for soft-deletes via `deleted_at`, and `PUT /users/{id}/activate/`) ensuring soft-deleted users are properly filtered.
+  - Implement follower routes (`POST /users/{id}/follow/`, `DELETE /users/{id}/follow/`, followers/following lists, and count tracking) as well as public user search filters.
+  - Build the notifications WebSocket consumer (`ws/notifications/`) to trigger alerts on events like new followers, messages, or booking updates, paired with notification management REST endpoints (`GET /notifications/`, read/delete actions).
+
+---
+
+#### **Phase 4 — Bookings, Services & File Uploads**
+* **Goal:** Deliver the full bookings workflow, media uploads, reviews, and event notifications.
+* **Overall Review:**
+  - Enforce role-based field visibility on `GET /users/{id}/`, add token blacklisting for `POST /auth/logout/`, configure Nginx with SSL/HTTPS certificates, and build admin dashboard analytics (`GET /admin/stats/`).
+  - Implement service listings, sitter availability blocks, booking lifecycle state machines (pending, confirmed, cancelled, completed), and reviews (`POST /reviews/`, `GET /users/{id}/reviews/`).
+  - Handle multi-format image uploads and storage file cleanups (`DELETE /uploads/{id}/`).
+  - Wire core-service booking events to the realtime-service via internal HTTP endpoints, build post creation and feed endpoints with likes, and conduct cross-browser compatibility testing on Firefox and Edge.
+
+---
+
+#### **Phase 5 — Polish, Integration & Mandatory Requirements**
+* **Goal:** Ensure the project passes all mandatory requirements, runs smoothly with `docker compose up`, and finalizes documentation.
+* **Overall Review:**
+  - Perform final permission audits, add Redis-backed rate limiting on heavy endpoints (login/register), and verify seamless one-command deployment.
+  - Write official Privacy Policy and Terms of Service page content, implement account self-deletion (`DELETE /users/me/`), and add robust server-side form validations with field-level `400` error responses.
+  - Document browser compatibility results in `docs/browser-compat.md`, test WebSocket reconnections with exponential backoff, and draft `docs/websocket.md`.
+
+---
+
+#### **Phase 6 — Full-Stack Integration & Final Delivery**
+* **Goal:** Complete end-to-end integration between the React 19 frontend and the Django/Daphne microservices backends, ensuring system stabilization and feature parity.
+* **Overall Review:**
+  - Connect all React frontend pages, forms, and views to the deployed REST endpoints and WebSocket servers.
+  - Validate JWT authentication persistence, token refreshing flows, and 42 OAuth login loops from the client interface.
+  - Integrate real-time chat and notification components with active WebSocket channel listeners.
+  - Test complete user journeys (registration $\rightarrow$ profile management $\rightarrow$ pet creation $\rightarrow$ sitter booking $\rightarrow$ real-time messaging) and perform final cross-browser quality assurance checks prior to submission.
+
+---
 
 ---
 
