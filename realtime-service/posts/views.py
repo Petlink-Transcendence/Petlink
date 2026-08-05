@@ -1,3 +1,4 @@
+import os
 import json
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
@@ -9,8 +10,37 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from .models import Post, Like, Comment
 from notifications.models import Notification
+
+def is_post_image_deleted(image):
+    if not image or not bool(image):
+        return False
+    name = getattr(image, 'name', None)
+    if not name:
+        return False
+
+    try:
+        if hasattr(image, 'storage') and image.storage and not image.storage.exists(name):
+            return True
+    except Exception:
+        pass
+
+    try:
+        if hasattr(image, 'path') and image.path and not os.path.exists(image.path):
+            return True
+    except Exception:
+        pass
+
+    try:
+        full_path = os.path.join(settings.MEDIA_ROOT, name)
+        if not os.path.exists(full_path):
+            return True
+    except Exception:
+        pass
+
+    return False
 
 def get_user_id(request):
     auth = request.headers.get('Authorization', '')
@@ -39,7 +69,7 @@ def broadcast_post_update(post_id, user_id, action):
         pass
 
 def build_image_url(image, request):
-    if not image:
+    if not image or is_post_image_deleted(image):
         return None
     url = request.build_absolute_uri(image.url)
     if request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https':
@@ -134,12 +164,18 @@ def update_post(request, pk):
 
 @api_view(['DELETE'])
 def delete_post(request, pk):
+    post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
     user_id = get_user_id(request)
-    if not user_id:
-        return Response({'error': 'Authentication required'}, status=401)
-    post = get_object_or_404(Post, pk=pk)
-    if post.user_id != user_id:
+    
+    if post.image and is_post_image_deleted(post.image):
+        post.deleted_at = timezone.now()
+        post.save()
+        broadcast_post_update(post.id, post.user_id, 'deleted')
+        return Response({'status': 'post deleted'}, status=status.HTTP_200_OK)
+
+    if not user_id or post.user_id != user_id:
         return Response({'error': 'Not allowed'}, status=403)
+        
     post.deleted_at = timezone.now()
     post.save()
     broadcast_post_update(post.id, post.user_id, 'deleted')
@@ -170,8 +206,15 @@ def list_posts(request):
     all_posts = queryset[offset:offset + page_size]
 
     user_id = get_user_id(request)
-    data = [
-        {
+    data = []
+    for p in all_posts:
+        if p.image and is_post_image_deleted(p.image):
+            p.deleted_at = timezone.now()
+            p.save()
+            broadcast_post_update(p.id, p.user_id, 'deleted')
+            continue
+
+        data.append({
             'id': p.id,
             'user_id': p.user_id,
             'purpose': p.purpose,
@@ -183,9 +226,7 @@ def list_posts(request):
             'like_count': p.likes.count(),
             'user_liked': p.likes.filter(user_id=user_id).exists() if user_id else False,
             'created_at': p.created_at,
-        }
-        for p in all_posts
-    ]
+        })
     return Response(data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
@@ -194,7 +235,13 @@ def post_detail(request, pk):
         post = Post.objects.get(id=pk, deleted_at__isnull=True)
     except Post.DoesNotExist:
         return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
-    
+
+    if post.image and is_post_image_deleted(post.image):
+        post.deleted_at = timezone.now()
+        post.save()
+        broadcast_post_update(post.id, post.user_id, 'deleted')
+        return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
+
     return Response({
         'id': post.id,
         'user_id': post.user_id,

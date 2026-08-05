@@ -98,8 +98,15 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                                 }
                             }}
                         />
-                        <div style={{ textAlign: 'right', fontSize: '0.75rem', color: text.length > 480 ? '#d9534f' : '#888', marginTop: '0.25rem' }}>
-                            {text.length}/512
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                            {text.length >= 512 ? (
+                                <span style={{ color: '#e63946', fontSize: '0.8rem', fontWeight: 600 }}>
+                                    Text too large, limit of 512 characters
+                                </span>
+                            ) : <span />}
+                            <span style={{ fontSize: '0.75rem', color: text.length >= 512 ? '#e63946' : text.length > 480 ? '#d9534f' : '#888' }}>
+                                {text.length}/512
+                            </span>
                         </div>
                     </div>
 

@@ -2,10 +2,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import connection
+from django.db.models import Q
+from django.conf import settings
+import os
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from .models import Message
-from django.db.models import Q
 
 def get_user_id(request):
     auth = request.headers.get('Authorization', '')
@@ -72,6 +74,15 @@ def chat_contacts(request):
 
     results = []
     for conn in connections:
+        avatar_url = conn.get('avatar')
+        if avatar_url:
+            name = str(avatar_url).lstrip('/')
+            if name.startswith('media/'):
+                name = name[6:]
+            full_path = os.path.join(settings.MEDIA_ROOT, name)
+            if not os.path.exists(full_path):
+                conn['avatar'] = None
+
         other_id = conn['user_id']
         last_msg = Message.objects.filter(
             Q(sender_id=user_id, recipient_id=other_id) |

@@ -1,9 +1,35 @@
+import os
 import re
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from .models import Follower
 
 User = get_user_model()
+
+def check_avatar_exists(obj, request=None):
+    if not obj.avatar or not bool(obj.avatar):
+        return None
+    try:
+        name = getattr(obj.avatar, 'name', None)
+        if name:
+            full_path = os.path.join(settings.MEDIA_ROOT, name)
+            if not os.path.exists(full_path):
+                return None
+            if hasattr(obj.avatar, 'storage') and obj.avatar.storage and not obj.avatar.storage.exists(name):
+                return None
+    except Exception:
+        return None
+
+    try:
+        if request:
+            url = request.build_absolute_uri(obj.avatar.url)
+            if request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https':
+                url = url.replace('http://', 'https://', 1)
+            return url
+        return obj.avatar.url
+    except Exception:
+        return None
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -33,6 +59,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -46,6 +73,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         )
         read_only_fields = fields
 
+    def get_avatar(self, obj):
+        request = self.context.get('request')
+        return check_avatar_exists(obj, request)
+
     def get_followers_count(self, obj):
         following_ids = obj.following.values_list('following_id', flat=True)
         return obj.followers.filter(follower_id__in=following_ids).count()
@@ -55,6 +86,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     following_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
     is_connected = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -66,6 +98,10 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'availability_status', 'availability_location', 'availability_capacity', 'available_times'
         )
         read_only_fields = fields
+
+    def get_avatar(self, obj):
+        request = self.context.get('request')
+        return check_avatar_exists(obj, request)
 
     def get_fields(self):
         fields = super().get_fields()

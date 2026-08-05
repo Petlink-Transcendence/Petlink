@@ -65,6 +65,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   const [comments, setComments] = useState<BackendComment[]>([]);
   const [commentAuthors, setCommentAuthors] = useState<Record<number, AuthorInfo>>({});
   const [newCommentText, setNewCommentText] = useState('');
+  const [avatarError, setAvatarError] = useState(false);
+  const [failedCommentAvatars, setFailedCommentAvatars] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const token = localStorage.getItem('access');
@@ -205,12 +207,17 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
     ? image.replace(/^http:\/\//i, 'https://')
     : image;
 
+  const handleImageError = () => {
+    onDeleted?.();
+    handleDeletePost();
+  };
+
   return (
     <div className="post-container">
       <div className="post-author">
         <Link to={profilePath} className="post-avatar-link" aria-label={`Open profile`}>
-          {safeAvatar ? (
-            <img src={safeAvatar} alt={authorName} />
+          {safeAvatar && !avatarError ? (
+            <img src={safeAvatar} alt={authorName} onError={() => setAvatarError(true)} />
           ) : (
             <div className="post-avatar-fallback">{getInitials(authorName)}</div>
           )}
@@ -227,7 +234,15 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
 
       <div className="post-content">
         {text && <p className="post-text">{text}</p>}
-        {safeImage && <img src={safeImage} alt="Post" className="post-image" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }} />}
+        {safeImage && (
+          <img
+            src={safeImage}
+            alt="Post"
+            className="post-image"
+            style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }}
+            onError={handleImageError}
+          />
+        )}
       </div>
 
       <div className="post-separator" />
@@ -265,6 +280,11 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
             />
             <button type="submit" className="comment-post-btn">Send</button>
           </form>
+          {newCommentText.length >= 512 && (
+            <div style={{ color: '#e63946', fontSize: '0.75rem', fontWeight: 600, margin: '-0.5rem 0 0.5rem 0.5rem', textAlign: 'left' }}>
+              Text too large, limit of 512 characters
+            </div>
+          )}
           <div className="comments-scroll-container">
             {comments.length > 0 ? comments.map(c => {
               const ca = commentAuthors[c.user_id];
@@ -273,8 +293,13 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
               return (
                 <div key={c.id} className="comment-row-item">
                   <Link to={caProfilePath} style={{ textDecoration: 'none', flexShrink: 0 }}>
-                    {ca?.avatar ? (
-                      <img src={ca.avatar} alt={caName} className="comment-row-avatar" />
+                    {ca?.avatar && !failedCommentAvatars[c.user_id] ? (
+                      <img
+                        src={ca.avatar}
+                        alt={caName}
+                        className="comment-row-avatar"
+                        onError={() => setFailedCommentAvatars(prev => ({ ...prev, [c.user_id]: true }))}
+                      />
                     ) : (
                       <div className="comment-row-avatar-fallback">{getInitials(caName)}</div>
                     )}

@@ -26,6 +26,7 @@ export default function RightSidebar() {
   const [suggestedSitters, setSuggestedSitters] = useState<BackendUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectingId, setConnectingId] = useState<number | null>(null);
+  const [failedAvatarIds, setFailedAvatarIds] = useState<Record<number, boolean>>({});
   const navigate = useNavigate();
 
   const fetchSuggestedConnections = async () => {
@@ -101,13 +102,14 @@ export default function RightSidebar() {
 
               return (
                 <li key={s.id} className="rs-item">
-                  {s.avatar && s.avatar !== '/static/avatars/profile-pic.png' ? (
+                  {s.avatar && s.avatar !== '/static/avatars/profile-pic.png' && !failedAvatarIds[s.id] ? (
                     <img
                       src={s.avatar}
                       alt={displayName}
                       className="rs-avatar"
                       style={{ objectFit: 'cover', cursor: 'pointer' }}
                       onClick={() => navigate(profilePath)}
+                      onError={() => setFailedAvatarIds(prev => ({ ...prev, [s.id]: true }))}
                     />
                   ) : (
                     <div
