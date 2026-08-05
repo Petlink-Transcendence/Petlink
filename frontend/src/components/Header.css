@@ -1,6 +1,7 @@
 .main-header {
   display: flex;
   justify-content: space-between; 
+  align-items: center;
   height: 6.25rem;
   padding: 1rem 5%; 
   background-color: white;
@@ -36,6 +37,7 @@
   color: #666;
   font-weight: 500;
   font-size: 0.95rem;
+  white-space: nowrap;
   transition: color 0.2s;
 }
 
@@ -80,4 +82,28 @@
   padding: 0 0.25rem;
   line-height: 1;
   pointer-events: none;
+}
+
+/* Keep every navigation control within narrow phone viewports. */
+@media (max-width: 29.375rem) {
+  .main-header {
+    height: 5rem;
+    padding: 0.5rem 3%;
+  }
+
+  .header-logo img {
+    height: 4rem;
+  }
+
+  .header-nav {
+    gap: 0.5rem;
+  }
+
+  .nav-item {
+    font-size: 0.72rem;
+  }
+
+  .home-link {
+    padding: 0.35rem 0.55rem;
+  }
 }

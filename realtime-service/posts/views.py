@@ -52,6 +52,7 @@ def get_user_id(request):
     except (InvalidToken, TokenError, ValueError, TypeError):
         return None
 
+<<<<<<< HEAD
 def broadcast_post_update(post_id, user_id, action):
     try:
         channel_layer = get_channel_layer()
@@ -75,6 +76,19 @@ def build_image_url(image, request):
     if request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https':
         return url.replace('http://', 'https://', 1)
     return url
+=======
+
+def is_admin(request):
+    """Return whether the signed access token belongs to an admin user."""
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return False
+    try:
+        token = AccessToken(auth.split(' ')[1])
+        return token.get('role') == 'admin'
+    except (InvalidToken, TokenError, ValueError, TypeError):
+        return False
+>>>>>>> origin/fullstack
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
@@ -166,6 +180,7 @@ def update_post(request, pk):
 def delete_post(request, pk):
     post = get_object_or_404(Post, pk=pk, deleted_at__isnull=True)
     user_id = get_user_id(request)
+<<<<<<< HEAD
     
     if post.image and is_post_image_deleted(post.image):
         post.deleted_at = timezone.now()
@@ -174,6 +189,12 @@ def delete_post(request, pk):
         return Response({'status': 'post deleted'}, status=status.HTTP_200_OK)
 
     if not user_id or post.user_id != user_id:
+=======
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=401)
+    post = get_object_or_404(Post, pk=pk)
+    if post.user_id != user_id and not is_admin(request):
+>>>>>>> origin/fullstack
         return Response({'error': 'Not allowed'}, status=403)
         
     post.deleted_at = timezone.now()
@@ -187,6 +208,7 @@ def list_posts(request):
     page_size = int(request.query_params.get('page_size', 10))
     offset = (page - 1) * page_size
 
+<<<<<<< HEAD
     queryset = Post.objects.filter(deleted_at__isnull=True)
 
     user_id_param = request.query_params.get('user_id')
@@ -204,6 +226,14 @@ def list_posts(request):
                 queryset = queryset.filter(user_id=user_id_param)
 
     all_posts = queryset[offset:offset + page_size]
+=======
+    filters = {'deleted_at__isnull': True}
+    user_id_param = request.query_params.get('user_id')
+    if user_id_param:
+        filters['user_id'] = int(user_id_param)
+
+    all_posts = Post.objects.filter(**filters)[offset:offset + page_size]
+>>>>>>> origin/fullstack
 
     user_id = get_user_id(request)
     data = []
@@ -357,7 +387,7 @@ def delete_comment(request, pk, comment_pk):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=401)
     comment = get_object_or_404(Comment, pk=comment_pk, post_id=pk, deleted_at__isnull=True)
-    if comment.user_id != user_id:
+    if comment.user_id != user_id and not is_admin(request):
         return Response({'error': 'Not allowed'}, status=403)
     comment.deleted_at = timezone.now()
     comment.save()
