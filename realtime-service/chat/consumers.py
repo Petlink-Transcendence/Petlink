@@ -44,9 +44,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.update_online_status(False)
 
     async def receive(self, text_data):
-        data = json.loads(text_data)
-        recipient_id = data['recipient_id']
-        content = data['content']
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({'error': 'Invalid JSON'}))
+            return
+
+        recipient_id = data.get('recipient_id')
+        content = data.get('content')
+
+        if recipient_id is None or not content:
+            await self.send(text_data=json.dumps({'error': 'recipient_id and content are required'}))
+            return
 
         await self.save_message(recipient_id, content)
 

@@ -53,23 +53,26 @@ def chat_contacts(request):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    user_id = int(user_id)  # JWT encodes user_id as a string
+
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT DISTINCT
-                    u.user_id, u.username, u.name, u.avatar,
+                    u.id AS user_id, u.username, u.name, u.avatar,
                     u.online_status, u.last_seen
-                FROM "user" u
+                FROM accounts_user u
                 WHERE u.deleted_at IS NULL
-                  AND u.user_id IN (
-                      SELECT following_id FROM followers WHERE follower_id = %s
+                  AND u.id IN (
+                      SELECT following_id FROM accounts_follower WHERE follower_id = %s
                       UNION
-                      SELECT follower_id FROM followers WHERE following_id = %s
+                      SELECT follower_id FROM accounts_follower WHERE following_id = %s
                   )
             """, [user_id, user_id])
             columns = [col[0] for col in cursor.description]
             connections = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    except Exception:
+    except Exception as e:
+        print(f"chat_contacts SQL error: {e}")
         connections = []
 
     results = []
@@ -109,6 +112,8 @@ def delete_message(request, message_id):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    user_id = int(user_id)
+    
     try:
         message = Message.objects.get(id=message_id, sender_id=user_id)
     except Message.DoesNotExist:
