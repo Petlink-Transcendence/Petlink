@@ -137,7 +137,7 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
 - **Project Management Tools:** GitHub Issues for task tracking, Notion project dashboard, Git version control (`main <-> fullstack <-> issue/<name>`), and Makefile automation.
 - **Communication Channels:** Discord (voice & text channels), Slack, and face-to-face 42 campus collaboration.
 
-### Sprint Architecture and Execution Plan
+### Website framewiring and design foundations (Sprint Architecture and Execution Plan)
 
 ```
 main
@@ -168,7 +168,7 @@ main
 #### **Phase 2 — Auth, Profiles & WebSocket Core**
 * **Goal:** Enable user registration, JWT authentication, 42 OAuth login flow, profile/pet CRUD operations, and core WebSocket infrastructure.
 * **Key Tasks:**
-  - Implement JWT auth endpoints (`POST /auth/register/`, `POST /auth/login/`, `POST /auth/token/refresh/`, `GET /auth/me/`), 42 Intranet OAuth application registration, and custom DRF permission classes (`IsAdmin`, `IsOwnerOrAdmin`).
+  - Implement JWT auth endpoints (`POST /auth/register/`, `POST /auth/login/`, `POST /auth/token/refresh/`, `GET /auth/me/`), 42 Intranet OAuth application registration, and custom DRF permission classes (`IsAdmin`, `IsUser`).
   - Build user profile REST endpoints (`GET /users/{id}/`, `PUT /users/{id}/`, avatar upload routes) and pet management routes (`GET /users/{id}/pets/`, `POST /pets/`, `PUT /pets/{id}/`, `DELETE /pets/{id}/`).
   - Write the WebSocket consumer in `chat/consumers.py` to handle connection events, message persistence, and channel broadcasting.
   - Connect React auth forms to JWT endpoints, implement 42 OAuth single sign-on redirect flow (`OAuthCallback.tsx`), integrate public/private profile views (`OwnerProfile.tsx`, `SitterProfile.tsx`), build pet management UI (adding, editing, and removing pets), and create the image upload/preview pipeline for avatars in Settings.
