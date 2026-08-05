@@ -34,7 +34,7 @@ PetLink is a full-stack, real-time social platform engineered as part of the 42 
 
 ### Key Highlights
 - **Interactive Pet & Sitter Discovery:** Browse sitters, filter by availability, pricing, rating, and accepted pet types.
-- **Real-Time WebSocket Communication:** Instant 1-on-1 chat messaging, typing indicators, and user online/offline status tracking.
+- **Real-Time WebSocket Communication:** Instant 1-on-1 chat messaging and file exchange through chat system.
 - **Dual Authentication System:** Standard email/password JWT authentication paired with 42 Intranet OAuth 2.0 single sign-on.
 - **Advanced Permissions (RBAC):** Distinct access levels for `Admin` and `User` roles across backend endpoints and frontend views.
 - **Event-Driven Notifications:** Real-time push alerts for messages, connections, comments/likes on posts and booking lifecycle updates.
