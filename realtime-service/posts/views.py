@@ -22,6 +22,18 @@ def get_user_id(request):
     except (InvalidToken, TokenError, ValueError, TypeError):
         return None
 
+
+def is_admin(request):
+    """Return whether the signed access token belongs to an admin user."""
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return False
+    try:
+        token = AccessToken(auth.split(' ')[1])
+        return token.get('role') == 'admin'
+    except (InvalidToken, TokenError, ValueError, TypeError):
+        return False
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def create_post(request):
@@ -105,7 +117,7 @@ def delete_post(request, pk):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=401)
     post = get_object_or_404(Post, pk=pk)
-    if post.user_id != user_id:
+    if post.user_id != user_id and not is_admin(request):
         return Response({'error': 'Not allowed'}, status=403)
     post.deleted_at = timezone.now()
     post.save()
@@ -257,7 +269,7 @@ def delete_comment(request, pk, comment_pk):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=401)
     comment = get_object_or_404(Comment, pk=comment_pk, post_id=pk, deleted_at__isnull=True)
-    if comment.user_id != user_id:
+    if comment.user_id != user_id and not is_admin(request):
         return Response({'error': 'Not allowed'}, status=403)
     comment.deleted_at = timezone.now()
     comment.save()
