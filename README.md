@@ -289,7 +289,7 @@ The database relies on PostgreSQL mapped via Django ORM.
    ```bash
    make seed
    ```
-   *This single command generates `.env` from `.env.example`, boots containers in detached mode, runs database migrations, and seeds test data.*
+   *This single command generates `.env` from `.env.example`, boots containers in detached mode, runs database migrations, and seeds test data. It launches the website with a set of pre-created users.*
 
 3. **Alternative Docker Command:**
    ```bash
