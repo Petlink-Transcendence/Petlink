@@ -135,7 +135,7 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
 - **Task Distribution:** Work was split between backend service owners (`gde-la-r`, `jpedro-f`, `rjesus-d`) and frontend leads (`icunha-t`, `ddo-carm`) across 5 execution phases.
 - **Sprint Management:** 1-week sprint cycles with daily standup syncs and peer pull request reviews.
 - **Project Management Tools:** GitHub Issues for task tracking, Notion project dashboard, Git version control (`main <-> fullstack <-> issue/<name>`), and Makefile automation.
-- **Communication Channels:** Discord (voice & text channels), Slack, and face-to-face 42 campus collaboration.
+- **Communication Channels:** Google meet, Whats App and face-to-face 42 campus collaboration.
 
 ### Website framewiring and design foundations (Sprint Architecture and Execution Plan)
 
