@@ -552,46 +552,6 @@ export default function SitterProfile() {
     }
   };
 
-  const handleServicesSave = async (services: ServiceRateFormData[]) => {
-    if (!profile) return;
-
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-    };
-    const savedIds: number[] = [];
-
-    for (const service of services) {
-      const payload = getServicePayload(service);
-
-      if (!payload.type || !payload.price) {
-        throw new Error(`Unsupported service or invalid price: ${service.name}`);
-      }
-
-      const response = await fetch(
-        service.id ? `/api/services/${service.id}/` : '/api/services/',
-        {
-          method: service.id ? 'PUT' : 'POST',
-          headers,
-          body: JSON.stringify(payload),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Unable to save ${service.name}.`);
-      }
-
-      const savedService: BackendService = await response.json();
-      savedIds.push(savedService.id);
-    }
-
-    setCurrentServiceRates(services.map((service, index) => ({
-      ...service,
-      id: service.id || savedIds[index],
-    })));
-  };
-
   const handleServiceAdd = async (service: ServiceRateFormData) => {
     const token = localStorage.getItem('access') || localStorage.getItem('access_token');
     const payload = getServicePayload(service);
@@ -610,7 +570,14 @@ export default function SitterProfile() {
     });
 
     if (!response.ok) {
-      throw new Error(`Unable to add ${service.name}.`);
+      let detail = '';
+      try {
+        const errorData = await response.json();
+        detail = Object.values(errorData).flat().join(' ');
+      } catch {
+        // Keep the user-facing fallback below when the response is not JSON.
+      }
+      throw new Error(detail || `Unable to add ${service.name}.`);
     }
 
     const savedService: BackendService = await response.json();
@@ -711,7 +678,6 @@ export default function SitterProfile() {
         <UpdateServicesPopup
           services={currentServiceRates}
           onClose={() => setIsServicesOpen(false)}
-          onSaveServices={handleServicesSave}
           onAddService={handleServiceAdd}
           onRemoveService={handleServiceRemove}
         />
