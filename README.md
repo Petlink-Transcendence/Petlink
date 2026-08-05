@@ -131,7 +131,10 @@ The backend development was split into distinct microservices, while the fronten
 ---
 
 ## Project Management & Sprint Strategy
+### Website framewiring and design foundations
+- **Phase 0 (Frontend setup):** Frontend setup using React 19, React Router DOM, TypeScript and CSS to design the website's framewire and skeleton to base it on.
 
+---
 ### Sprint Architecture (5-Week Execution Plan)
 
 ```
