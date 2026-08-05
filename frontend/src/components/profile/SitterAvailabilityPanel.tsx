@@ -65,23 +65,28 @@ export default function SitterAvailabilityPanel({
       <div className="sitter-availability-metrics">
         <div>
           <span>Location</span>
-          <strong>{location}</strong>
+          <strong>{location || 'Not set'}</strong>
         </div>
         <div>
           <span>Capacity</span>
-          <strong>{capacity}</strong>
+          <strong>{capacity || 'Not set'}</strong>
         </div>
       </div>
 
       <div className="sitter-availability-section">
         <h4>Available times</h4>
         <div className="sitter-availability-windows">
-          {windows.map(window => (
-            <div key={window.label} className="sitter-availability-window">
-              <span>{window.label}</span>
-              <strong>{window.time}</strong>
-            </div>
-          ))}
+          {windows.length > 0 ? windows.map(window => (
+              <div key={window.label} className="sitter-availability-window">
+                <span>{window.label}</span>
+                <strong>{window.time}</strong>
+              </div>
+            )) : (
+              <div className="sitter-availability-window">
+                <span>Not set</span>
+                <strong>Not set</strong>
+              </div>
+            )}
         </div>
       </div>
 
@@ -98,15 +103,15 @@ export default function SitterAvailabilityPanel({
       <div className="sitter-availability-section">
         <h4>Services</h4>
         <div className="sitter-service-list">
-          {services.map(service => (
-            <div key={service.name} className="sitter-service-row">
-              <div>
-                <span>{service.name}</span>
-                <p>{service.detail}</p>
+          {services.length > 0 ? services.map(service => (
+              <div key={service.name} className="sitter-service-row">
+                <div>
+                  <span>{service.name}</span>
+                  <p>{service.detail}</p>
+                </div>
+                <strong>{formatAvailabilityRate(service.rate)}</strong>
               </div>
-              <strong>{formatAvailabilityRate(service.rate)}</strong>
-            </div>
-          ))}
+            )) : <p className="sitter-availability-empty">Not set</p>}
         </div>
       </div>
 
