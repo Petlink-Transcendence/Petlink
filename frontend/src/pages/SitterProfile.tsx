@@ -661,12 +661,7 @@ export default function SitterProfile() {
           />
         </ProfileLeftSidebar>
         <ProfileContent
-<<<<<<< HEAD
-          posts={userPosts}
-          reviews={profile.reviews}
-=======
           profileUserId={Number(profile.id)}
->>>>>>> origin/fullstack
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}

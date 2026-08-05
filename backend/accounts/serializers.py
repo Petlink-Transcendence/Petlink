@@ -2,17 +2,13 @@ import os
 import re
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-<<<<<<< HEAD
 from django.conf import settings
-=======
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
->>>>>>> origin/fullstack
 from .models import Follower
 
 User = get_user_model()
 
-<<<<<<< HEAD
 def check_avatar_exists(obj, request=None):
     if not obj.avatar or not bool(obj.avatar):
         return None
@@ -36,7 +32,7 @@ def check_avatar_exists(obj, request=None):
         return obj.avatar.url
     except Exception:
         return None
-=======
+
 
 class RoleTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Include the application role in tokens consumed by the posts service."""
@@ -61,7 +57,6 @@ class RoleTokenRefreshSerializer(TokenRefreshSerializer):
         access['role'] = user.role
         data['access'] = str(access)
         return data
->>>>>>> origin/fullstack
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
