@@ -93,7 +93,7 @@
   transform: translateY(-0.0625rem);
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 1025px) {
   .reviews-form {
     position: static;
   }
