@@ -44,7 +44,8 @@ body:has(.home-container) .footer {
   margin-bottom: 2.5rem;
 }
 
-@media (max-width: 64rem) {
+/* Prevent the oversized home feed from being centered off-screen at 1025px. */
+@media (max-width: 1025px) {
   .home-container {
     justify-content: flex-start;
   }

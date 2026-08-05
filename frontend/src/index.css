@@ -29,7 +29,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (max-width: 64rem) {
+/* Keep the tablet sizing active at the narrow desktop boundary as well. */
+@media (max-width: 1025px) {
   :root {
     font-size: 1rem;
   }
@@ -57,6 +58,7 @@ html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  overflow-x: auto;
 }
 
 #root {
@@ -80,7 +82,7 @@ h1 {
   letter-spacing: -0.105rem;
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 1025px) {
   h1 {
     font-size: 2.25rem;
   }
