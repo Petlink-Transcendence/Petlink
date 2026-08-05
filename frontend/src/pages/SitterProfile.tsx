@@ -34,6 +34,10 @@ interface BackendUser {
   sitter_pet_types?: string[] | null;
   show_about?: boolean | null;
   show_looking_for?: boolean | null;
+  availability_status?: 'Accepting' | 'Not available' | null;
+  availability_location?: string | null;
+  availability_capacity?: string | null;
+  available_times?: AvailabilityTimeSlot[] | null;
 }
 
 interface BackendAvailability {
@@ -118,6 +122,12 @@ function formatPetType(type: string): string {
 export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData {
   const name = data.name || data.username || 'Jane Doe';
   const username = data.username ? `@${data.username}` : `@user-${data.id}`;
+  const persistedWindows = Array.isArray(data.available_times)
+    ? data.available_times
+        .filter(window => window && typeof window === 'object')
+        .map(window => ({ label: String(window.label || ''), time: String(window.time || '') }))
+        .filter(window => window.label && window.time)
+    : [];
 
   return {
     id: String(data.id),
@@ -152,7 +162,7 @@ export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData 
         items: data.sitter_pet_types && data.sitter_pet_types.length > 0 ? data.sitter_pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
       }] : []),
     ],
-    /* Uncoment and integrate when backend provides posts, reviews and availability*/
+    /* Uncoment and integrate when backend provides posts and reviews */
     // posts: [],
     // reviews: [],
     /* end of uncomment */
@@ -167,14 +177,10 @@ export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData 
       { id: 3, author: 'Sara M.', rating: 4, text: `Great experience. Buddy is a handful but ${username} made it easy.`, time: '2 months ago' },
     ], 
     availability: {
-      status: 'Accepting',
-      location: 'Porto + 8 km',
-      capacity: '2 bookings/day',
-      windows: [
-        { label: 'Mon - Fri', time: '09:00 - 12:00' },
-        { label: 'Saturday', time: '14:00 - 18:00' },
-        { label: 'Sunday', time: 'On request' },
-      ],
+      status: data.availability_status || 'Not available',
+      location: data.availability_location || '',
+      capacity: data.availability_capacity || '',
+      windows: persistedWindows,
       services: [
         { name: 'Cat Sitting', rate: '20 EUR', detail: 'Daily visits, feeding, litter care' },
         { name: 'Home Visits', rate: '15 EUR', detail: 'Short check-ins for cats and small pets' },
@@ -297,6 +303,15 @@ function mapBackendAvailability(
   };
 }
 
+function hasProfileAvailability(data: BackendUser) {
+  return Boolean(
+    data.availability_status === 'Accepting' ||
+    data.availability_location ||
+    data.availability_capacity ||
+    (data.available_times && data.available_times.length > 0),
+  );
+}
+
 export default function SitterProfile() {
   const { profileId } = useParams<{ profileId: string }>();
   const navigate = useNavigate();
@@ -390,7 +405,9 @@ export default function SitterProfile() {
           }
         });
 
-        if (availabilityResponse.ok) {
+        // Availability records predate the profile availability fields. Use them
+        // only as a read fallback for existing data; new edits are stored on User.
+        if (availabilityResponse.ok && !hasProfileAvailability(mergedData)) {
           const availabilityRecords: BackendAvailability[] = await availabilityResponse.json();
           nextProfile = {
             ...nextProfile,
@@ -500,51 +517,61 @@ export default function SitterProfile() {
     setCurrentServiceRates(profile.availability.services);
   }, [profile]);
 
-  const handleAvailabilitySave = (availability: AvailabilityFormData) => {
+  const saveProfileAvailability = async (payload: {
+    status: 'Accepting' | 'Not available';
+    location: string;
+    capacity: string;
+    available_times: AvailabilityTimeSlot[];
+  }) => {
+    if (!profile) return;
+
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    const response = await fetch(`/auth/users/${profile.id}/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+      body: JSON.stringify({
+        availability_status: payload.status,
+        availability_location: payload.location,
+        availability_capacity: payload.capacity,
+        available_times: payload.available_times,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Unable to save availability (server returned ${response.status}).`);
+    }
+  };
+
+  const handleAvailabilitySave = async (availability: AvailabilityFormData) => {
+    await saveProfileAvailability({
+      status: 'Accepting',
+      location: formatAvailabilityLocation(availability.location),
+      capacity: availability.capacity,
+      available_times: availability.availableTimes,
+    });
     setAvailabilityStatus('Accepting');
     setAvailabilityLocation(formatAvailabilityLocation(availability.location));
     setAvailabilityCapacity(availability.capacity);
     setAvailabilityWindows(availability.availableTimes);
   };
 
-  const handleServicesSave = async (services: ServiceRateFormData[]) => {
-    if (!profile) return;
+  const handleAvailabilityToggle = async () => {
+    const nextStatus = availabilityStatus === 'Accepting' ? 'Not available' : 'Accepting';
 
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-    };
-    const savedIds: number[] = [];
-
-    for (const service of services) {
-      const payload = getServicePayload(service);
-
-      if (!payload.type || !payload.price) {
-        throw new Error(`Unsupported service or invalid price: ${service.name}`);
-      }
-
-      const response = await fetch(
-        service.id ? `/api/services/${service.id}/` : '/api/services/',
-        {
-          method: service.id ? 'PUT' : 'POST',
-          headers,
-          body: JSON.stringify(payload),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Unable to save ${service.name}.`);
-      }
-
-      const savedService: BackendService = await response.json();
-      savedIds.push(savedService.id);
+    try {
+      await saveProfileAvailability({
+        status: nextStatus,
+        location: availabilityLocation,
+        capacity: availabilityCapacity,
+        available_times: availabilityWindows,
+      });
+      setAvailabilityStatus(nextStatus);
+    } catch (err) {
+      console.error('Failed to save availability status:', err);
     }
-
-    setCurrentServiceRates(services.map((service, index) => ({
-      ...service,
-      id: service.id || savedIds[index],
-    })));
   };
 
   const handleServiceAdd = async (service: ServiceRateFormData) => {
@@ -565,7 +592,14 @@ export default function SitterProfile() {
     });
 
     if (!response.ok) {
-      throw new Error(`Unable to add ${service.name}.`);
+      let detail = '';
+      try {
+        const errorData = await response.json();
+        detail = Object.values(errorData).flat().join(' ');
+      } catch {
+        // Keep the user-facing fallback below when the response is not JSON.
+      }
+      throw new Error(detail || `Unable to add ${service.name}.`);
     }
 
     const savedService: BackendService = await response.json();
@@ -633,11 +667,7 @@ export default function SitterProfile() {
             windows={availabilityWindows}
             services={currentServiceRates}
             canEdit={isOwnProfile}
-            onAvailabilityToggle={() => {
-              setAvailabilityStatus(currentStatus =>
-                currentStatus === 'Accepting' ? 'Not available' : 'Accepting'
-              );
-            }}
+            onAvailabilityToggle={handleAvailabilityToggle}
             onUpdateAvailability={() => setIsAvailabilityOpen(true)}
             onUpdateServices={() => setIsServicesOpen(true)}
           />
@@ -672,7 +702,6 @@ export default function SitterProfile() {
         <UpdateServicesPopup
           services={currentServiceRates}
           onClose={() => setIsServicesOpen(false)}
-          onSaveServices={handleServicesSave}
           onAddService={handleServiceAdd}
           onRemoveService={handleServiceRemove}
         />

@@ -18,7 +18,7 @@ type UpdateAvailabilityPopupProps = {
   initialLocation?: string;
   initialCapacity?: string;
   initialAvailableTimes?: AvailabilityTimeSlot[];
-  onSaveAvailability?: (availability: AvailabilityFormData) => void;
+  onSaveAvailability?: (availability: AvailabilityFormData) => void | Promise<void>;
 };
 
 function formatAvailableTimesForInput(availableTimes: AvailabilityTimeSlot[]) {
@@ -57,21 +57,31 @@ export default function UpdateAvailabilityPopup({
   const [location, setLocation] = useState(initialLocation);
   const [capacity, setCapacity] = useState(initialCapacity);
   const [timeSlots, setTimeSlots] = useState(formatAvailableTimesForInput(initialAvailableTimes));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!location.trim() || !capacity.trim() || !timeSlots.trim()) {
       return;
     }
 
-    onSaveAvailability?.({
-      location: location.trim(),
-      capacity: capacity.trim(),
-      timeSlots: timeSlots.trim(),
-      availableTimes: parseAvailableTimes(timeSlots),
-    });
-    onClose();
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      await onSaveAvailability?.({
+        location: location.trim(),
+        capacity: capacity.trim(),
+        timeSlots: timeSlots.trim(),
+        availableTimes: parseAvailableTimes(timeSlots),
+      });
+      onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to save availability.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -125,8 +135,10 @@ export default function UpdateAvailabilityPopup({
             />
           </label>
 
-          <button type="submit" className="availability-submit">
-            Save Availability
+          {saveError && <p role="alert" className="availability-error">{saveError}</p>}
+
+          <button type="submit" className="availability-submit" disabled={isSaving}>
+            {isSaving ? 'Saving…' : 'Save Availability'}
           </button>
         </form>
       </section>
