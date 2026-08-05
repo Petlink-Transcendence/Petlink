@@ -114,6 +114,7 @@
     flex-direction: column;
     text-align: left;
     width: 100%;
+    min-width: 0;
   }
 
   .comment-row-header {
@@ -139,12 +140,15 @@
     color: #333;
     margin: 0;
     line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 
   .comment-delete-btn {
     position: absolute;
     right: 0.5rem;
-    bottom: 0.5rem;
+    top: 0.625rem;
     width: 1.5rem;
     height: 1.5rem;
     font-size: 0.65rem;

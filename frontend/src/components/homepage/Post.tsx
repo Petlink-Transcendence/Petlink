@@ -153,13 +153,14 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
 
   const handleAddComment = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    if (!newCommentText.trim()) return;
+    const trimmed = newCommentText.trim();
+    if (!trimmed || trimmed.length > 512) return;
     const token = localStorage.getItem('access');
     try {
       const res = await fetch(`/posts/${postId}/comments/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ text: newCommentText.trim() }),
+        body: JSON.stringify({ text: trimmed }),
       });
       if (res.ok) {
         const comment = await res.json();
@@ -260,6 +261,7 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
               value={newCommentText}
               onChange={(e) => setNewCommentText(e.target.value)}
               className="comment-text-field"
+              maxLength={512}
             />
             <button type="submit" className="comment-post-btn">Send</button>
           </form>

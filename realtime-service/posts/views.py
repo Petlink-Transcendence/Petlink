@@ -68,10 +68,14 @@ def create_post(request):
     except (ValueError, TypeError):
         tags = None
 
+    text = request.data.get('text', '') or ''
+    if len(text) > 512:
+        return Response({'error': 'Post description exceeds maximum length of 512 characters'}, status=400)
+
     post = Post.objects.create(
         user_id=user_id,
         purpose=purpose,
-        text=request.data.get('text'),
+        text=text,
         tags=tags,
         pet_type=request.data.get('pet_type'),
         pet_size=request.data.get('pet_size'),
@@ -108,8 +112,11 @@ def update_post(request, pk):
         if image.size > 5 * 1024 * 1024:
             return Response({'error': 'File too large'}, status=400)
         post.image = image
+    new_text = request.data.get('text', post.text)
+    if new_text and len(new_text) > 512:
+        return Response({'error': 'Post description exceeds maximum length of 512 characters'}, status=400)
     post.purpose = request.data.get('purpose', post.purpose)
-    post.text = request.data.get('text', post.text)
+    post.text = new_text
     post.pet_type = request.data.get('pet_type', post.pet_type)
     post.pet_size = request.data.get('pet_size', post.pet_size)
     post.save()
@@ -268,6 +275,8 @@ def post_comments(request, pk):
     text = request.data.get('text', '').strip()
     if not text:
         return Response({'error': 'text is required'}, status=400)
+    if len(text) > 512:
+        return Response({'error': 'Comment exceeds maximum length of 512 characters'}, status=400)
     comment = Comment.objects.create(user_id=user_id, post=post, text=text)
 
     if post.user_id != user_id:
