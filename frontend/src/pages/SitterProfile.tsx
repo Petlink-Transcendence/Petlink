@@ -162,20 +162,8 @@ export function mapBackendToSitterProfile(data: BackendUser): ProfileSitterData 
         items: data.sitter_pet_types && data.sitter_pet_types.length > 0 ? data.sitter_pet_types.map(type => formatPetType(type)) : ['No pet types specified'],
       }] : []),
     ],
-    /* Uncoment and integrate when backend provides posts and reviews */
-    // posts: [],
-    // reviews: [],
-    /* end of uncomment */
-    /* Hardcoded - to be removed when backend provides posts and reviews */
-    posts: [
-      { id: 1, text: 'Available for sitting for this weekend? DM me 🐱', time: '1h ago', likes: 12 },
-      { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
-    ],
-    reviews: [
-      { id: 1, author: 'Ana C.', rating: 5, text: `${username} is a wonderful pet sitter!`, time: '2 weeks ago' },
-      { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.', time: '1 month ago' },
-      { id: 3, author: 'Sara M.', rating: 4, text: `Great experience. Buddy is a handful but ${username} made it easy.`, time: '2 months ago' },
-    ], 
+    posts: [],
+    reviews: [],
     availability: {
       status: data.availability_status || 'Not available',
       location: data.availability_location || '',
@@ -651,8 +639,7 @@ export default function SitterProfile() {
           />
         </ProfileLeftSidebar>
         <ProfileContent
-          posts={profile.posts}
-          reviews={profile.reviews}
+          profileUserId={Number(profile.id)}
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}

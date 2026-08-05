@@ -155,21 +155,8 @@ export function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []):
         items: data.looking_for && data.looking_for.length > 0 ? data.looking_for.map(item => item.charAt(0).toUpperCase() + item.slice(1)) : ['No preferences set'],
       }] : []),
     ],
-   /* Uncoment and integrate when backend provides posts and reviews */
-    // posts: [],
-    // reviews: [],
-    /* end of uncomment */
-    /* Hardcoded - to be removed when backend provides posts and reviews */
-    posts: [
-      { id: 1, text: 'Available sitters for this weekend? DM me 🐱', time: '1h ago', likes: 12 },
-      { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
-    ],
-    reviews: [
-      { id: 1, author: 'Ana C.', rating: 5, text: `${username} is a wonderful pet owner. Luna and Buddy are so well behaved!`, time: '2 weeks ago' },
-      { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.', time: '1 month ago' },
-      { id: 3, author: 'Sara M.', rating: 4, text: `Great experience. Buddy is a handful but ${username} made it easy.`, time: '2 months ago' },
-    ], 
-    /* end of hardcode */
+    posts: [],
+    reviews: [],
   };
 }
 
@@ -347,8 +334,7 @@ export default function Profile() {
       <div className="profile-body">
         <ProfileLeftSidebar cards={profile.sidebarCards} />
         <ProfileContent
-          posts={profile.posts}
-          reviews={profile.reviews}
+          profileUserId={Number(profile.id)}
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}
