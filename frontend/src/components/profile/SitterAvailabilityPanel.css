@@ -193,6 +193,16 @@
   text-align: left;
 }
 
+.sitter-availability-empty {
+  margin: 0;
+  border: 0.0625rem solid #f0eeeb;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  color: #777;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
 .sitter-service-row strong {
   flex-shrink: 0;
   max-width: 38%;

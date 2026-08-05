@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import './UpdateAvailabilityPopup.css';
 import { formatAvailabilityRate } from '../../utils/availabilityRates';
 
@@ -12,10 +12,17 @@ export type ServiceRateFormData = {
 type UpdateServicesPopupProps = {
   services: ServiceRateFormData[];
   onClose: () => void;
-  onSaveServices: (services: ServiceRateFormData[]) => void | Promise<void>;
-  onAddService?: (service: ServiceRateFormData) => Promise<ServiceRateFormData>;
+  onAddService: (service: ServiceRateFormData) => Promise<ServiceRateFormData>;
   onRemoveService?: (service: ServiceRateFormData) => Promise<void>;
 };
+
+const serviceTypes = [
+  { value: 'Dog Walking', label: 'Dog Walking' },
+  { value: 'Cat Sitting', label: 'Cat Sitting' },
+  { value: 'Home Visits', label: 'Home Visits' },
+  { value: 'Overnight Stay', label: 'Overnight Stay' },
+  { value: 'Grooming', label: 'Grooming' },
+];
 
 function formatServiceName(serviceName: string) {
   return serviceName.trim().replace(/\b\w/g, letter => letter.toUpperCase());
@@ -33,7 +40,6 @@ function normalizeService(service: ServiceRateFormData) {
 export default function UpdateServicesPopup({
   services,
   onClose,
-  onSaveServices,
   onAddService,
   onRemoveService,
 }: UpdateServicesPopupProps) {
@@ -43,7 +49,6 @@ export default function UpdateServicesPopup({
     rate: '',
     detail: '',
   });
-  const [isSaving, setIsSaving] = useState(false);
   const [mutatingIndex, setMutatingIndex] = useState<number | null>(null);
   const [saveError, setSaveError] = useState('');
 
@@ -77,34 +82,13 @@ export default function UpdateServicesPopup({
     setMutatingIndex(-1);
 
     try {
-      const savedService = onAddService ? await onAddService(nextService) : nextService;
+      const savedService = await onAddService(nextService);
       setServiceRates(currentServices => [...currentServices, savedService]);
       setNewService({ name: '', rate: '', detail: '' });
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : 'Unable to add service.');
     } finally {
       setMutatingIndex(null);
-    }
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const nextServices = serviceRates.map(normalizeService);
-
-    if (nextServices.some(service => !service.name || !service.rate)) {
-      return;
-    }
-
-    setIsSaving(true);
-    setSaveError('');
-    try {
-      await onSaveServices(nextServices);
-      onClose();
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : 'Unable to save services.');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -123,7 +107,7 @@ export default function UpdateServicesPopup({
           </button>
         </header>
 
-        <form className="availability-form" onSubmit={handleSubmit}>
+        <div className="availability-form">
           <fieldset className="availability-services">
             <legend>Current services</legend>
             <div className="service-price-list">
@@ -140,7 +124,7 @@ export default function UpdateServicesPopup({
                     type="button"
                     className="service-remove-button"
                     onClick={() => void removeService(index)}
-                    disabled={isSaving || mutatingIndex !== null}
+                    disabled={mutatingIndex !== null}
                     aria-label={`Remove ${service.name}`}
                   >
                     Remove
@@ -155,12 +139,18 @@ export default function UpdateServicesPopup({
             <div className="service-price-item service-add-item">
               <label className="availability-field">
                 <span className="required-label">Service type</span>
-                <input
-                  type="text"
+                <select
                   value={newService.name}
                   onChange={event => updateNewService('name', event.target.value)}
-                  placeholder="Cat Sitting"
-                />
+                  required
+                >
+                  <option value="">Select a service</option>
+                  {serviceTypes.map(serviceType => (
+                    <option key={serviceType.value} value={serviceType.value}>
+                      {serviceType.label}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="availability-field">
@@ -187,7 +177,7 @@ export default function UpdateServicesPopup({
                 type="button"
                 className="availability-submit service-add-button"
                 onClick={() => void addService()}
-                disabled={isSaving || mutatingIndex !== null}
+                disabled={mutatingIndex !== null}
               >
                 {mutatingIndex === -1 ? 'Adding Service...' : 'Add Service'}
               </button>
@@ -196,10 +186,7 @@ export default function UpdateServicesPopup({
 
           {saveError && <p role="alert">{saveError}</p>}
 
-          <button type="submit" className="availability-submit" disabled={isSaving}>
-            {isSaving ? 'Saving Services...' : 'Save Services'}
-          </button>
-        </form>
+        </div>
       </section>
     </div>
   );
