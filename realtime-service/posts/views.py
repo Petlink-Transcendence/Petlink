@@ -38,6 +38,14 @@ def broadcast_post_update(post_id, user_id, action):
     except Exception:
         pass
 
+def build_image_url(image, request):
+    if not image:
+        return None
+    url = request.build_absolute_uri(image.url)
+    if request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https':
+        return url.replace('http://', 'https://', 1)
+    return url
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def create_post(request):
@@ -78,7 +86,7 @@ def create_post(request):
         'tags': post.tags,
         'pet_type': post.pet_type,
         'pet_size': post.pet_size,
-        'image': request.build_absolute_uri(post.image.url) if post.image else None,
+        'image': build_image_url(post.image, request),
         'created_at': post.created_at,
     }, status=status.HTTP_201_CREATED)
 
@@ -113,7 +121,7 @@ def update_post(request, pk):
         'text': post.text,
         'pet_type': post.pet_type,
         'pet_size': post.pet_size,
-        'image': request.build_absolute_uri(post.image.url) if post.image else None,
+        'image': build_image_url(post.image, request),
         'created_at': post.created_at,
     })
 
@@ -164,7 +172,7 @@ def list_posts(request):
             'tags': p.tags,
             'pet_type': p.pet_type,
             'pet_size': p.pet_size,
-            'image': request.build_absolute_uri(p.image.url) if p.image else None,
+            'image': build_image_url(p.image, request),
             'like_count': p.likes.count(),
             'user_liked': p.likes.filter(user_id=user_id).exists() if user_id else False,
             'created_at': p.created_at,
@@ -188,7 +196,7 @@ def post_detail(request, pk):
         'tags': post.tags,
         'pet_type': post.pet_type,
         'pet_size': post.pet_size,
-        'image': request.build_absolute_uri(post.image.url) if post.image else None,
+        'image': build_image_url(post.image, request),
         'like_count': post.likes.count(),
         'created_at': post.created_at,
     }, status=status.HTTP_200_OK)

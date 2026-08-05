@@ -86,6 +86,15 @@
     border: 0.0625rem solid rgba(219, 182, 121, 0.12);
   }
 
+  .comment-row-avatar {
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+  }
+
   .comment-row-avatar-fallback {
     width: 1.875rem;
     height: 1.875rem;
