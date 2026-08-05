@@ -14,8 +14,8 @@ PetLink is a full-stack, real-time social platform engineered as part of the 42 
 ## Table of Contents
 
 - [Description](#description)
-- [Modules & Point Calculation](#modules--point-calculation)
 - [Team Information & Service Ownership](#team-information--service-ownership)
+- [Modules & Point Calculation](#modules--point-calculation)
 - [Project Management & Sprint Strategy](#project-management--sprint-strategy)
 - [Technical Stack](#technical-stack)
 - [Microservices Architecture](#microservices-architecture)
@@ -34,11 +34,32 @@ PetLink is a full-stack, real-time social platform engineered as part of the 42 
 
 ### Key Highlights
 - **Interactive Pet & Sitter Discovery:** Browse sitters, filter by availability, pricing, rating, and accepted pet types.
-- **Real-Time WebSocket Communication:** Instant 1-on-1 chat messaging and file exchange through chat system.
+- **Real-Time WebSocket Communication:** Instant 1-on-1 chat messaging, typing indicators, and real-time event notifications.
 - **Dual Authentication System:** Standard email/password JWT authentication paired with 42 Intranet OAuth 2.0 single sign-on.
 - **Advanced Permissions (RBAC):** Distinct access levels for `Admin` and `User` roles across backend endpoints and frontend views.
-- **Event-Driven Notifications:** Real-time push alerts for messages, connections, comments/likes on posts and booking lifecycle updates.
+- **Event-Driven Notifications:** Real-time push alerts for messages, followers, and booking lifecycle updates.
 - **Secure Media Management:** Multi-format file uploads (avatars and pet photos) with client/server validation, preview, and storage cleanup.
+
+---
+
+## Team Information & Service Ownership
+
+The backend development was split into distinct microservices, while the frontend was engineered by Isabel and Daniela:
+
+### Backend Development Team
+
+| Person | 42 Login | Primary Role | Service Ownership | Django Apps / Scope | Key Responsibilities |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Gabriel La Rocque** | `gde-la-r` | Technical Lead / DevOps | `core-service` & Infrastructure | `auth/`, `api/`, `nginx/`, `docker` | Auth system, JWT issuance, 42 OAuth 2.0, soft deletion system (`ActiveUserManager` & `deleted_at`), DRF custom permissions (`IsAdmin`, `IsOwnerOrAdmin`), microservices Docker Compose & Nginx HTTPS proxy. |
+| **João Vieira** | `jpedro-f` | Project Manager / Backend Dev | `core-service` | `accounts/`, `pets/`, `bookings/` | User profile endpoints, pet management, booking workflow, file upload validation, database seeding scripts. |
+| **Ricardo Marques** | `rjesus-d` | Product Owner / Backend Dev | `realtime-service` | `chat/`, `notifications/` | Django Channels & Daphne ASGI setup, Redis channel layer, WebSocket chat consumer, real-time push notifications, cross-browser compatibility testing. |
+
+### Frontend Development Team
+
+| Member | 42 Login | Primary Role | Key Responsibilities |
+| :--- | :--- | :--- | :--- |
+| **Isabel Tootill** | `icunha-t` | Project Manager / Frontend Lead | React SPA architecture, client-side routing (React Router v7), real-time WebSocket state integration in React, cross-browser layout QA. |
+| **Daniela Santos** | `ddo-carm` | Product Owner / Frontend Lead | Frontend design system & component library, media upload & preview pipeline, accessibility compliance (WCAG 2.1), user experience & booking UI. |
 
 ---
 
@@ -72,11 +93,11 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
    - **Implementation:** Built using Django ORM connected to PostgreSQL for model definition and relational mapping.
 
 3. **Real-Time Features using WebSockets (Major - 2 pts)**
-   - **Justification:** Provides instant bi-directional communication for chat and user online status tracking without inefficient polling.
+   - **Justification:** Provides instant bi-directional communication for chat and real-time event updates without inefficient polling.
    - **Implementation:** Developed using Django Channels, Daphne ASGI server, and Redis channel layer pub/sub queues.
 
 4. **User Interaction System (Major - 2 pts)**
-   - **Justification:** Core requirement enabling pet owners and sitters to connect, message, exchange services and form social relationships.
+   - **Justification:** Core requirement enabling pet owners and sitters to connect, message, and form social relationships.
    - **Implementation:** Combines 1-on-1 WebSocket chat, public sitter/owner profile views, and follower connection models.
 
 5. **Complete Notification System (Minor - 1 pt)**
@@ -101,7 +122,7 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
 
 10. **Advanced Permissions System & Roles (Major - 2 pts)**
     - **Justification:** Protects administrative routes and enforces strict authorization boundaries based on user authority tiers.
-    - **Implementation:** Role-Based Access Control (`Admin` and `User`), DRF permission classes (`IsAdmin`, `isUser`), and soft deletion manager (`ActiveUserManager` & `deleted_at`).
+    - **Implementation:** Role-Based Access Control (`Admin` and `User` roles), DRF permission classes (`IsAdmin`, `IsOwnerOrAdmin`), and soft deletion manager (`ActiveUserManager` & `deleted_at`).
 
 11. **Backend as Microservices (Major - 2 pts)**
     - **Justification:** Decouples REST API HTTP workload from persistent WebSocket connections, ensuring independent scaling and fault tolerance.
@@ -109,27 +130,7 @@ Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory
 
 ---
 
-## Team Information & Service Ownership
-
-The backend development was split into distinct microservices, while the frontend was engineered by Isabel and Daniela:
-
-### Backend Development Team
-
-| Person | 42 Login | Primary Role | Service Ownership | Django Apps / Scope | Key Responsibilities |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Gabriel La Rocque** *(Person A)* | `gde-la-r` | Technical Lead / DevOps | `core-service` & Infrastructure | `auth/`, `api/`, `nginx/`, `docker` | Auth system, JWT issuance, 42 OAuth 2.0, soft deletion system (`ActiveUserManager` & `deleted_at`), DRF custom permissions (`IsAdmin`, `IsModerator`, `IsOwnerOrAdmin`), microservices Docker Compose & Nginx HTTPS proxy. |
-| **João Vieira** *(Person B)* | `jpedro-f` | Project Manager / Backend Dev | `core-service` | `accounts/`, `pets/`, `bookings/` | User profile endpoints, pet management, booking workflow, file upload validation, database seeding scripts. |
-| **Ricardo Marques** *(Person C)* | `rjesus-d` | Product Owner / Backend Dev | `realtime-service` | `chat/`, `notifications/` | Django Channels & Daphne ASGI setup, Redis channel layer, WebSocket chat consumer, real-time push notifications, cross-browser compatibility testing. |
-
-### Frontend Development Team
-
-| Member | 42 Login | Primary Role | Key Responsibilities |
-| :--- | :--- | :--- | :--- |
-| **Isabel Tootill** | `icunha-t` | Project Manager / Frontend Lead | React SPA architecture, client-side routing (React Router v7), real-time WebSocket state integration in React, cross-browser layout QA. |
-| **Daniela Santos** | `ddo-carm` | Product Owner / Frontend Lead | Frontend design system & component library, media upload & preview pipeline, accessibility compliance (WCAG 2.1), user experience & booking UI. |
-
----
-### Sprint Architecture and execusion plan
+### Sprint Architecture and Execution Plan
 
 ```
 main
@@ -137,77 +138,74 @@ main
         └── issue/<issue-related-branch>
 ```
 
-#### **Phase 0 — Frontend Setup**
-* **Goal:** Frontend setup using React 19, React Router DOM, TypeScript, and CSS to design the website's wireframe and skeleton to base it on.
-* **Overall Review:**
+#### **Phase 0 — Frontend Setup & Wireframing**
+* **Goal:** Initialize the React 19 frontend application with TypeScript, Vite, React Router DOM, and CSS to establish core layouts, wireframes, and page skeletons.
+* **Key Tasks:**
   - Initialize the React 19 application structure using Vite and TypeScript.
-  - Set up routing configuration using React Router DOM.
-  - Establish base CSS styling and core layout components (navbars, wrappers, modals).
-  - Build out the initial UI wireframe components and page skeletons.
+  - Configure client-side routing using React Router DOM v7.
+  - Establish base CSS design tokens, typography, and reusable core layout components (navbars, footers, modal dialogs).
+  - Build initial static page skeletons for Home, Authentication (Login/Register), Profile, Search, Chat, and Settings.
 
 ---
 
-#### **Phase 1 — Foundation**
-* **Goal:** `docker compose up` boots both services, PostgreSQL, Redis, and Nginx, allowing everyone to develop independently from day 1.
-* **Overall Review:**
-  - Create the `core-service/` Django project (`core`), add the `auth` app, and configure PostgreSQL settings to read from `.env`.
-  - Author the `docker-compose.yml` file to orchestrate all containers (`core-service`, `realtime-service`, `postgres`, `redis`, `nginx`).
-  - Configure `nginx/nginx.conf` to route `/auth/*` and `/api/*` to the core-service, and `/ws/*` to the realtime-service.
-  - Expand the `User` model with database fields (`role`, `banner`, `description`, `country`, `city`, `rating`, `is_active`, `oauth_provider`, `oauth_id`), keeping roles strictly to user or admin without online status tracking.
-  - Create the `pets` app with `Pet` and `UserPet` models, running initial database migrations.
-  - Set up the `realtime-service/` folder with `channels`, `channels-redis`, and `daphne`, configuring ASGI, the Redis channel layer, the `chat` app (`Message` model), and the `notifications` app (`Notification` model).
+#### **Phase 1 — Foundation & Core Layouts**
+* **Goal:** Boot all microservice containers via `docker compose up` while building initial frontend form controls and layout sections.
+* **Key Tasks:**
+  - Create the `core-service/` Django project, set up `auth` and `pets` apps, configure PostgreSQL/Redis in `docker-compose.yml`, and set up Nginx reverse proxy routes (`/auth/*`, `/api/*`, `/ws/*`).
+  - Set up `realtime-service/` with `channels`, `channels-redis`, `daphne`, ASGI routing, and base `Message` and `Notification` models.
+  - Expand the `User` model with database fields (`role`, `description`, `country`, `city`, `rating`, `is_active`, `oauth_provider`, `oauth_id`), keeping roles strictly to `admin` or `user`.
+  - Build authentication form layouts (`Login.tsx`, `Register.tsx`, `ChooseRole.tsx`), modular profile sections (`ProfileCover`, `ProfileInfoBar`, `ProfileLeftSidebar`), and multi-tab settings navigation (`AccountSection`, `SecuritySection`, `NotificationsSection`).
 
 ---
 
 #### **Phase 2 — Auth, Profiles & WebSocket Core**
-* **Goal:** Users can register, log in, get a JWT token, and send a WebSocket message, while profile and pet endpoints are established.
-* **Overall Review:**
-  - Implement authentication endpoints (`POST /auth/register/`, `POST /auth/login/` for JWT access/refresh tokens, `POST /auth/token/refresh/`, and `GET /auth/me/`).
-  - Apply user role choices (`admin` / `user`) and write custom DRF permission classes (`IsAdmin`, `IsOwnerOrAdmin`).
-  - Register the 42 OAuth application at `api.intra.42.fr` to obtain client credentials.
-  - Build user profile views and edits (`GET /users/{id}/`, `PUT /users/{id}/`, avatar/banner upload routes) along with pet management routes (`GET /users/{id}/pets/`, `POST /pets/`, `PUT /pets/{id}/`, `DELETE /pets/{id}/`).
-  - Write the WebSocket consumer in `chat/consumers.py` to handle connections, message saving, and broadcasting, alongside the REST history endpoint (`GET /chat/messages/{user_id}/`).
+* **Goal:** Enable user registration, JWT authentication, 42 OAuth login flow, profile/pet CRUD operations, and core WebSocket infrastructure.
+* **Key Tasks:**
+  - Implement JWT auth endpoints (`POST /auth/register/`, `POST /auth/login/`, `POST /auth/token/refresh/`, `GET /auth/me/`), 42 Intranet OAuth application registration, and custom DRF permission classes (`IsAdmin`, `IsOwnerOrAdmin`).
+  - Build user profile REST endpoints (`GET /users/{id}/`, `PUT /users/{id}/`, avatar upload routes) and pet management routes (`GET /users/{id}/pets/`, `POST /pets/`, `PUT /pets/{id}/`, `DELETE /pets/{id}/`).
+  - Write the WebSocket consumer in `chat/consumers.py` to handle connection events, message persistence, and channel broadcasting.
+  - Connect React auth forms to JWT endpoints, implement 42 OAuth single sign-on redirect flow (`OAuthCallback.tsx`), integrate public/private profile views (`OwnerProfile.tsx`, `SitterProfile.tsx`), build pet management UI (adding, editing, and removing pets), and create the image upload/preview pipeline for avatars in Settings.
 
 ---
 
-#### **Phase 3 — Followers, Permissions & Chat Polish**
-* **Goal:** Establish the followers system, enable administrative user management, and trigger real-time events.
-* **Overall Review:**
-  - Implement 42 OAuth login and callback endpoints (`GET /auth/42/login/` and callback) to provision local JWT user sessions.
-  - Build admin-only user management routes (`GET /users/`, `PUT /users/{id}/role/`, `DELETE /users/{id}/` for soft-deletes via `deleted_at`, and `PUT /users/{id}/activate/`) ensuring soft-deleted users are properly filtered.
-  - Implement follower routes (`POST /users/{id}/follow/`, `DELETE /users/{id}/follow/`, followers/following lists, and count tracking) as well as public user search filters.
-  - Build the notifications WebSocket consumer (`ws/notifications/`) to trigger alerts on events like new followers, messages, or booking updates, paired with notification management REST endpoints (`GET /notifications/`, read/delete actions).
+#### **Phase 3 — Followers, Permissions, Search & Real-Time Notifications**
+* **Goal:** Implement the followers system, enable administrative user management tools, build public sitter search filters, and trigger real-time notifications.
+* **Key Tasks:**
+  - Implement 42 OAuth login callback processing to provision local JWT sessions.
+  - Build admin-only user management routes (`GET /users/`, `PUT /users/{id}/role/`, `DELETE /users/{id}/` for soft-deletes via `deleted_at`, and `PUT /users/{id}/activate/`).
+  - Implement follower routes (`POST /users/{id}/follow/`, `DELETE /users/{id}/follow/`, followers/following list views, and connection counts) alongside public user search filters.
+  - Build the notifications WebSocket consumer (`ws/notifications/`) to trigger alerts on events (new followers, messages, booking updates) with paired notification REST endpoints (`GET /notifications/`, read/delete actions).
+  - Build connection request action buttons and followers modal (`Connections.tsx`), construct the public search page (`Search.tsx`) with multi-criteria filters (location, pet type, rating, availability status), and implement the notifications view (`Notifications.tsx`) with real-time push alerts.
 
 ---
 
-#### **Phase 4 — Bookings, Services & File Uploads**
-* **Goal:** Deliver the full bookings workflow, media uploads, reviews, and event notifications.
-* **Overall Review:**
-  - Enforce role-based field visibility on `GET /users/{id}/`, add token blacklisting for `POST /auth/logout/`, configure Nginx with SSL/HTTPS certificates, and build admin dashboard analytics (`GET /admin/stats/`).
-  - Implement service listings, sitter availability blocks, booking lifecycle state machines (pending, confirmed, cancelled, completed), and reviews (`POST /reviews/`, `GET /users/{id}/reviews/`).
+#### **Phase 4 — Bookings, Services, Media & Interactive Feed**
+* **Goal:** Deliver the full bookings lifecycle, sitter availability management, reviews, interactive post feed, and mandatory legal pages.
+* **Key Tasks:**
+  - Enforce role-based field visibility on `GET /users/{id}/`, add token blacklisting for `POST /auth/logout/`, configure Nginx SSL/HTTPS certificates, and build admin dashboard analytics (`GET /admin/stats/`).
+  - Implement service listings, sitter availability blocks, booking state machines (pending, confirmed, cancelled, completed), and reviews endpoints (`POST /reviews/`, `GET /users/{id}/reviews/`).
   - Handle multi-format image uploads and storage file cleanups (`DELETE /uploads/{id}/`).
-  - Wire core-service booking events to the realtime-service via internal HTTP endpoints, build post creation and feed endpoints with likes, and conduct cross-browser compatibility testing on Firefox and Edge.
+  - Wire core-service booking events to the realtime-service via internal HTTP endpoints, and build post creation and feed REST endpoints with likes and comments.
+  - Build sitter availability and service configuration popups (`AvailabilityList`, `ServiceList`), construct the bookings management interface (`Bookings.tsx`), implement review submission modals (`Reviews.tsx`), build the interactive post feed on the homepage (`Home.tsx`) with post creation forms, real-time likes, and comments, and add the Privacy Policy (`PrivacyPolicy.tsx`) and Terms of Service (`TermsOfService.tsx`) pages with footer integration.
 
 ---
 
-#### **Phase 5 — Polish, Integration & Mandatory Requirements**
-* **Goal:** Ensure the project passes all mandatory requirements, runs smoothly with `docker compose up`, and finalizes documentation.
-* **Overall Review:**
-  - Perform final permission audits, add Redis-backed rate limiting on heavy endpoints (login/register), and verify seamless one-command deployment.
-  - Write official Privacy Policy and Terms of Service page content, implement account self-deletion (`DELETE /users/me/`), and add robust server-side form validations with field-level `400` error responses.
-  - Document browser compatibility results in `docs/browser-compat.md`, test WebSocket reconnections with exponential backoff, and draft `docs/websocket.md`.
+#### **Phase 5 — Polish, Responsiveness & Platform Compliance**
+* **Goal:** Ensure full system responsiveness, cross-browser compatibility, client-side input validation, and project compliance.
+* **Key Tasks:**
+  - Perform backend permission audits, enforce Redis-backed rate-limiting on heavy endpoints (login/register), and refine error handling with field-level `400` HTTP responses.
+  - Standardize responsive CSS styling across desktop, tablet, and mobile breakpoints (`Admin.css`, `Auth.css`, `Chat.css`, `Home.css`, `LegalPages.css`), add client-side file size and MIME-type error handling for image uploads, add confirmation popups for destructive actions (account deletion, post removal), and integrate Privacy Policy and Terms of Service links into the global footer.
 
 ---
 
 #### **Phase 6 — Full-Stack Integration & Final Delivery**
-* **Goal:** Complete end-to-end integration between the React 19 frontend and the Django/Daphne microservices backends, ensuring system stabilization and feature parity.
-* **Overall Review:**
-  - Connect all React frontend pages, forms, and views to the deployed REST endpoints and WebSocket servers.
+* **Goal:** Complete end-to-end integration between the React 19 frontend and the Django/Daphne microservices backends, ensuring system stabilization and single-command deployment.
+* **Key Tasks:**
+  - Connect all React frontend pages, forms, and views to the deployed REST endpoints and WebSocket channels.
   - Validate JWT authentication persistence, token refreshing flows, and 42 OAuth login loops from the client interface.
-  - Integrate real-time chat and notification components with active WebSocket channel listeners.
-  - Test complete user journeys (registration $\rightarrow$ profile management $\rightarrow$ pet creation $\rightarrow$ sitter booking $\rightarrow$ real-time messaging) and perform final cross-browser quality assurance checks prior to submission.
-
----
+  - Integrate real-time chat and notification components with active WebSocket channel listeners and routing (e.g., clicking post/comment notifications redirects to the specific profile post).
+  - Perform thorough cross-browser quality assurance checks across Google Chrome, Mozilla Firefox, and Microsoft Edge / Safari.
+  - Verify seamless single-command project execution (`make seed` / `docker compose up --build -d`) and finalize documentation.
 
 ---
 
@@ -282,14 +280,13 @@ The database relies on PostgreSQL mapped via Django ORM.
  | user_type         : Varchar      |          +----------------------------------+
  | role              : Varchar      |          |               Pet                |
  | avatar            : ImageField   |          +----------------------------------+
- | banner            : ImageField   | 1      * | id                : BigInt       |
- | online_status     : Boolean      |----------| owner_id          : BigInt       |
- | oauth_provider    : Varchar      |          | name              : Varchar      |
- | deleted_at        : DateTime     |          | pet_type          : Varchar      |
- +----------------------------------+          | breed             : Varchar      |
+ | oauth_provider    : Varchar      | 1      * | id                : BigInt       |
+ | deleted_at        : DateTime     |----------| owner_id          : BigInt       |
+ +----------------------------------+          | name              : Varchar      |
+                   |                           | pet_type          : Varchar      |
+                   | 1                         | breed             : Varchar      |
                    |                           | age               : Integer      |
-                   | 1                         +----------------------------------+
-                   |
+                   |                           +----------------------------------+
                    | *                         +----------------------------------+
  +----------------------------------+          |             Message              |
  |             Booking              |          +----------------------------------+
@@ -320,12 +317,12 @@ The database relies on PostgreSQL mapped via Django ORM.
 | Feature | Primary Developer(s) | Description |
 | :--- | :--- | :--- |
 | **Authentication & 42 OAuth 2.0** | Gabriel (`gde-la-r`) | JWT authentication (register/login/refresh) and 42 Intranet OAuth 2.0 single sign-on callback flow. |
-| **Advanced RBAC, Roles & Soft Delete** | Gabriel (`gde-la-r`) | Granular access control (`IsAdmin`, `IsModerator`, `IsOwnerOrAdmin`) and soft deletion system (`ActiveUserManager` & `deleted_at`). |
+| **Advanced RBAC, Roles & Soft Delete** | Gabriel (`gde-la-r`) | Granular access control (`IsAdmin`, `IsOwnerOrAdmin`) for `Admin` and `User` roles, alongside soft deletion system (`ActiveUserManager` & `deleted_at`). |
 | **Microservices Setup & DevOps** | Gabriel (`gde-la-r`) | Containerized services with Docker Compose, Nginx SSL reverse proxy, PostgreSQL, and Redis. |
 | **User Profiles & Management** | João (`jpedro-f`) | Public sitter/owner profiles, profile editing, user searching, and account management. |
 | **Pet & Booking Management** | João (`jpedro-f`) | Pet CRUD, sitter availability scheduling, booking reservation states (pending/confirmed/cancelled). |
-| **Media Upload Engine** | João (`jpedro-f`) / Daniela | Avatar/banner file processing, image validation (format/size), storage security, and preview UI. |
-| **WebSocket Real-Time Chat** | Ricardo (`rjesus-d`) | Asynchronous 1-on-1 WebSocket chat via Daphne/Channels, online status tracking, and message history REST API. |
+| **Media Upload Engine** | João (`jpedro-f`) / Daniela | Avatar file processing, image validation (format/size), storage security, and preview UI. |
+| **WebSocket Real-Time Chat** | Ricardo (`rjesus-d`) | Asynchronous 1-on-1 WebSocket chat via Daphne/Channels and message history REST API. |
 | **Notification Engine** | Ricardo (`rjesus-d`) | Real-time push and persistent notifications for messages, followers, and booking updates. |
 | **Browser Compatibility** | Ricardo (`rjesus-d`) / Isabel / Daniela | QA testing and styling fixes ensuring full compatibility across Chrome, Firefox, and Edge/Safari. |
 | **Frontend React SPA & Routing** | Isabel (`icunha-t`) | Single page application setup with React Router v7, state management, and real-time WebSocket integration. |
@@ -373,18 +370,18 @@ The database relies on PostgreSQL mapped via Django ORM.
 
 ### Gabriel La Rocque (`gde-la-r`) — Technical Lead / DevOps / Person A
 - **Microservices & DevOps:** Authored the `docker-compose.yml`, `Dockerfile`s, and Nginx reverse proxy configuration for SSL termination and route splitting (`/auth/*`, `/api/*`, `/ws/*`).
-- **Auth, Permissions & Soft Delete:** Implemented JWT registration, login, token refresh, 42 Intranet OAuth 2.0 integration, custom `ActiveUserManager` soft-delete system (`deleted_at`), and DRF custom permission classes (`IsAdmin`, `IsModerator`, `IsOwnerOrAdmin`).
+- **Auth, Permissions & Soft Delete:** Implemented JWT registration, login, token refresh, 42 Intranet OAuth 2.0 integration, custom `ActiveUserManager` soft-delete system (`deleted_at`), and DRF custom permission classes (`IsAdmin`, `IsOwnerOrAdmin`).
 - **Challenges Overcome:** Resolving Nginx WebSocket upgrade header forwarding to `daphne` and configuring Redis rate-limiting middleware.
 
 ### João Vieira (`jpedro-f`) — Project Manager / Backend / Person B
-- **User & Pet Management:** Built `users/`, `pets/`, `bookings/`, `services/` endpoints, user profile management, avatar/banner uploads, and database seeding scripts.
+- **User & Pet Management:** Built `users/`, `pets/`, `bookings/`, `services/` endpoints, user profile management, avatar uploads, and database seeding scripts.
 - **Media Uploads & Seeding:** Implemented server-side file upload validation for images, automated seeding commands, and booking lifecycle state machines.
 - **Challenges Overcome:** Maintaining data integrity and cascade constraints across bookings and pets when accounts are managed.
 
 ### Ricardo Marques (`rjesus-d`) — Product Owner / Backend / Person C
-- **Real-Time WebSocket Service:** Built `realtime-service` with Django Channels, Daphne ASGI, and Redis channel layers for 1-on-1 chat and online presence detection.
+- **Real-Time WebSocket Service:** Built `realtime-service` with Django Channels, Daphne ASGI, and Redis channel layers for 1-on-1 chat and real-time push notifications.
 - **Notifications & Browser Support:** Developed the notification consumer and REST history endpoints; conducted cross-browser compatibility testing for Firefox and Edge.
-- **Challenges Overcome:** Ensuring synchronization between online status toggles in WebSocket handlers and direct database writes without locking PostgreSQL connections.
+- **Challenges Overcome:** Ensuring synchronization between notification triggers in WebSocket handlers and direct database writes without locking PostgreSQL connections.
 
 ### Isabel Tootill (`icunha-t`) — Project Manager / Frontend Lead
 - **React SPA Architecture:** Engineered the React 19 single-page application structure, router integration with React Router v7, and client-side view state.
