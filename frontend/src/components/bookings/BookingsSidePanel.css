@@ -87,7 +87,7 @@
   vertical-align: 0.1rem;
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 1025px) {
   .bookings-side-card {
     position: static;
   }
