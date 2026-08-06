@@ -190,7 +190,10 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) onDeleted?.();
+      if (res.ok) {
+        onDeleted?.();
+        window.dispatchEvent(new Event('postDeleted'));
+      }
     } catch {}
   };
 

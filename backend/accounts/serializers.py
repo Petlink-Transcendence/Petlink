@@ -1,5 +1,6 @@
 import os
 import re
+import requests as http_requests
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -8,6 +9,17 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from .models import Follower
 
 User = get_user_model()
+
+def _fetch_posts_count(user_id: int) -> int:
+    """Ask the realtime service for a user's post count."""
+    base = os.environ.get('REALTIME_SERVICE_URL', 'http://realtime-service:8001')
+    try:
+        resp = http_requests.get(f'{base}/posts/count/', params={'user_id': user_id}, timeout=2)
+        if resp.ok:
+            return resp.json().get('count', 0)
+    except Exception:
+        pass
+    return 0
 
 def check_avatar_exists(obj, request=None):
     if not obj.avatar or not bool(obj.avatar):
@@ -87,6 +99,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    posts_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -96,7 +109,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
             'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times',
-            'followers_count'
+            'followers_count', 'posts_count'
         )
         read_only_fields = fields
 
@@ -108,18 +121,22 @@ class UserProfileSerializer(serializers.ModelSerializer):
         following_ids = obj.following.values_list('following_id', flat=True)
         return obj.followers.filter(follower_id__in=following_ids).count()
 
+    def get_posts_count(self, obj):
+        return _fetch_posts_count(obj.pk)
+
 class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
     is_connected = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    posts_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'id', 'name', 'username', 'role', 'avatar', 'banner', 'description',
-            'city', 'country', 'user_type', 'rating', 'followers_count',
+            'city', 'country', 'user_type', 'rating', 'followers_count', 'posts_count',
             'following_count', 'is_following', 'is_connected', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times'
@@ -142,9 +159,6 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
                 fields.pop(field, None)
         return fields
 
-    def get_followers_count(self, obj): return obj.followers.count()
-    def get_following_count(self, obj): return obj.following.count()
-
     def get_followers_count(self, obj):
         following_ids = obj.following.values_list('following_id', flat=True)
         return obj.followers.filter(follower_id__in=following_ids).count()
@@ -165,6 +179,9 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             return False
         return Follower.objects.filter(follower=request.user, following=obj).exists() and \
                Follower.objects.filter(follower=obj, following=request.user).exists()
+
+    def get_posts_count(self, obj):
+        return _fetch_posts_count(obj.pk)
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150, min_length=1, required=False)

@@ -58,6 +58,7 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
             });
             if (res.ok) {
                 onPostCreated?.();
+                window.dispatchEvent(new Event('postCreated'));
                 onClose();
             } else {
                 alert('Failed to create post. Please try again.');

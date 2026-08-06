@@ -96,8 +96,16 @@ export default function ProfileCard() {
   
     fetchProfileCardData();
     const handleConnectionUpdate = () => fetchProfileCardData(true);
+    const handlePostCreated = () => fetchProfileCardData(true);
+    const handlePostDeleted = () => fetchProfileCardData(true);
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
-    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
+    window.addEventListener('postCreated', handlePostCreated);
+    window.addEventListener('postDeleted', handlePostDeleted);
+    return () => {
+      window.removeEventListener('connectionUpdated', handleConnectionUpdate);
+      window.removeEventListener('postCreated', handlePostCreated);
+      window.removeEventListener('postDeleted', handlePostDeleted);
+    };
   }, [id]);
 
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;

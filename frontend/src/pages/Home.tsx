@@ -27,7 +27,9 @@ export default function Home() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) setPosts(await res.json());
-    } catch {}
+    } catch (err) {
+      console.error('Failed to fetch posts:', err);
+    }
   };
 
   useEffect(() => {
