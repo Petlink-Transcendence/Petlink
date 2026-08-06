@@ -456,7 +456,7 @@ body:has(.chat-container) .footer {
     object-fit: cover;
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 1025px) {
   .chat-sidebar {
     flex-basis: 20rem;
     width: 20rem;

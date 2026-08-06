@@ -5,6 +5,8 @@
   border-radius: 0.75rem;
   padding: 1.25rem;
   box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.08);
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
 }
 
 /* Author section container position */
@@ -106,6 +108,9 @@
   line-height: 1.4;
   color: black;
   text-align: left;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 /* Separator */

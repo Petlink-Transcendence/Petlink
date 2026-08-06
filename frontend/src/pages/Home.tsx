@@ -27,12 +27,20 @@ export default function Home() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) setPosts(await res.json());
-    } catch {}
+    } catch (err) {
+      console.error('Failed to fetch posts:', err);
+    }
   };
 
   useEffect(() => {
     document.title = 'Home | PetLink';
     fetchPosts();
+
+    const handlePostsUpdate = () => {
+      fetchPosts();
+    };
+    window.addEventListener('postsUpdated', handlePostsUpdate);
+    return () => window.removeEventListener('postsUpdated', handlePostsUpdate);
   }, []);
 
   return (

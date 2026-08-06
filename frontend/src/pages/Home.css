@@ -6,7 +6,7 @@ body:has(.home-container) {
 }
 
 body:has(.home-container) .footer {
-  min-width: 60rem;
+  min-width: 80rem;
   box-sizing: border-box;
 }
 
@@ -16,7 +16,7 @@ body:has(.home-container) .footer {
   justify-content: center;
   gap: 2.5rem;
   width: 100%;
-  min-width: 60rem;
+  min-width: 80rem;
   box-sizing: border-box;
   margin-top: 6.25rem;
   padding: 1.25rem;
@@ -44,7 +44,8 @@ body:has(.home-container) .footer {
   margin-bottom: 2.5rem;
 }
 
-@media (max-width: 64rem) {
+/* Prevent the oversized home feed from being centered off-screen at 1025px. */
+@media (max-width: 1025px) {
   .home-container {
     justify-content: flex-start;
   }

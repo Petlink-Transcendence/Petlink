@@ -124,7 +124,7 @@
   color: white;
 }
 
-@media (max-width: 64rem) {
+@media (max-width: 1025px) {
   .bookings-page {
     padding-top: 6.25rem;
   }

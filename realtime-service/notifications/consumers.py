@@ -10,11 +10,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             self.group_name,
             self.channel_name
         )
+        await self.channel_layer.group_add(
+            'global_notifications',
+            self.channel_name
+        )
         await self.accept()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
             self.group_name,
+            self.channel_name
+        )
+        await self.channel_layer.group_discard(
+            'global_notifications',
             self.channel_name
         )
     
@@ -33,4 +41,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'follower_id': event.get('follower_id'),
             'following_id': event.get('following_id'),
             'content': event.get('content', '')
+        }))
+
+    async def post_updated(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'post_updated',
+            'action': event.get('action'),
+            'post_id': event.get('post_id'),
+            'user_id': event.get('user_id'),
         }))

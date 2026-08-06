@@ -65,6 +65,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   const [comments, setComments] = useState<BackendComment[]>([]);
   const [commentAuthors, setCommentAuthors] = useState<Record<number, AuthorInfo>>({});
   const [newCommentText, setNewCommentText] = useState('');
+  const [avatarError, setAvatarError] = useState(false);
+  const [failedCommentAvatars, setFailedCommentAvatars] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const token = localStorage.getItem('access');
@@ -86,10 +88,37 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   }, [userId]);
 
   useEffect(() => {
+    setLiked(userLiked);
+  }, [userLiked]);
+
+  useEffect(() => {
+    setLikes(likeCount);
+  }, [likeCount]);
+
+  const fetchComments = () => {
     fetch(`/posts/${postId}/comments/`)
       .then(r => r.ok ? r.json() : [])
-      .then(data => setComments(data))
+      .then(data => setComments(Array.isArray(data) ? data : []))
       .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [postId]);
+
+  useEffect(() => {
+    const handlePostsUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const detail = customEvent.detail;
+      if (detail?.action === 'deleted' && detail?.post_id === postId) {
+        return;
+      }
+      if (!detail || !detail.post_id || detail.post_id === postId) {
+        fetchComments();
+      }
+    };
+    window.addEventListener('postsUpdated', handlePostsUpdate);
+    return () => window.removeEventListener('postsUpdated', handlePostsUpdate);
   }, [postId]);
 
   useEffect(() => {
@@ -126,13 +155,14 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
 
   const handleAddComment = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    if (!newCommentText.trim()) return;
+    const trimmed = newCommentText.trim();
+    if (!trimmed || trimmed.length > 512) return;
     const token = localStorage.getItem('access');
     try {
       const res = await fetch(`/posts/${postId}/comments/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ text: newCommentText.trim() }),
+        body: JSON.stringify({ text: trimmed }),
       });
       if (res.ok) {
         const comment = await res.json();
@@ -156,11 +186,14 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   const handleDeletePost = async () => {
     const token = localStorage.getItem('access');
     try {
-      await fetch(`/posts/${postId}/delete/`, {
+      const res = await fetch(`/posts/${postId}/delete/`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      onDeleted?.();
+      if (res.ok) {
+        onDeleted?.();
+        window.dispatchEvent(new Event('postDeleted'));
+      }
     } catch {}
   };
 
@@ -169,12 +202,25 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
 
   const canDeletePost = currentUser?.role === 'admin' || currentUser?.id === userId;
 
+  const safeAvatar = author?.avatar && window.location.protocol === 'https:'
+    ? author.avatar.replace(/^http:\/\//i, 'https://')
+    : author?.avatar;
+
+  const safeImage = image && window.location.protocol === 'https:'
+    ? image.replace(/^http:\/\//i, 'https://')
+    : image;
+
+  const handleImageError = () => {
+    onDeleted?.();
+    handleDeletePost();
+  };
+
   return (
     <div className="post-container">
       <div className="post-author">
         <Link to={profilePath} className="post-avatar-link" aria-label={`Open profile`}>
-          {author?.avatar ? (
-            <img src={author.avatar} alt={authorName} />
+          {safeAvatar && !avatarError ? (
+            <img src={safeAvatar} alt={authorName} onError={() => setAvatarError(true)} />
           ) : (
             <div className="post-avatar-fallback">{getInitials(authorName)}</div>
           )}
@@ -191,7 +237,15 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
 
       <div className="post-content">
         {text && <p className="post-text">{text}</p>}
-        {image && <img src={image} alt="Post" className="post-image" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }} />}
+        {safeImage && (
+          <img
+            src={safeImage}
+            alt="Post"
+            className="post-image"
+            style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }}
+            onError={handleImageError}
+          />
+        )}
       </div>
 
       <div className="post-separator" />
@@ -225,19 +279,39 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
               value={newCommentText}
               onChange={(e) => setNewCommentText(e.target.value)}
               className="comment-text-field"
+              maxLength={512}
             />
             <button type="submit" className="comment-post-btn">Send</button>
           </form>
+          {newCommentText.length >= 512 && (
+            <div style={{ color: '#e63946', fontSize: '0.75rem', fontWeight: 600, margin: '-0.5rem 0 0.5rem 0.5rem', textAlign: 'left' }}>
+              Text too large, limit of 512 characters
+            </div>
+          )}
           <div className="comments-scroll-container">
             {comments.length > 0 ? comments.map(c => {
               const ca = commentAuthors[c.user_id];
               const caName = ca?.name || `User ${c.user_id}`;
+              const caProfilePath = ca?.user_type === 'provider' ? `/sitterprofile/${c.user_id}` : `/ownerprofile/${c.user_id}`;
               return (
                 <div key={c.id} className="comment-row-item">
-                  <div className="comment-row-avatar-fallback">{getInitials(caName)}</div>
+                  <Link to={caProfilePath} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                    {ca?.avatar && !failedCommentAvatars[c.user_id] ? (
+                      <img
+                        src={ca.avatar}
+                        alt={caName}
+                        className="comment-row-avatar"
+                        onError={() => setFailedCommentAvatars(prev => ({ ...prev, [c.user_id]: true }))}
+                      />
+                    ) : (
+                      <div className="comment-row-avatar-fallback">{getInitials(caName)}</div>
+                    )}
+                  </Link>
                   <div className="comment-row-content">
                     <div className="comment-row-header">
-                      <span className="comment-row-author">{caName}</span>
+                      <Link to={caProfilePath} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <span className="comment-row-author">{caName}</span>
+                      </Link>
                       <span className="comment-row-time">{timeAgo(c.created_at)}</span>
                     </div>
                     <p className="comment-row-text">{c.text}</p>

@@ -75,6 +75,8 @@ export function useWebSocket() {
             if (data.type === 'connection_updated') {
               // Dispatch local window event so all open components re-fetch/update live
               window.dispatchEvent(new CustomEvent('connectionUpdated', { detail: data }));
+            } else if (data.type === 'post_updated') {
+              window.dispatchEvent(new CustomEvent('postsUpdated', { detail: data }));
             } else {
               window.dispatchEvent(new CustomEvent('newNotification', { detail: data }));
             }

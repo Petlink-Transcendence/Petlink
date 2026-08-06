@@ -5,26 +5,28 @@ body:has(.profile-page) {
 }
 
 body:has(.profile-page) .footer {
-  min-width: 60rem;
   box-sizing: border-box;
 }
 
 .profile-page {
   min-height: 100vh;
   width: 100%;
-  min-width: 60rem;
   box-sizing: border-box;
   background-color: var(--social-bg);
   padding-top: 6.25rem;
 }
 
-/* Main content layout: left sidebar + right column */
+/* Main content layout: centered max-width container with left sidebar + right column */
 .profile-body {
   display: flex;
-  gap: 1.5rem;
-  padding: 1.5rem 5%;
+  justify-content: center;
+  gap: 2rem;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem;
   align-items: flex-start;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .profile-body > .profile-left {
@@ -32,20 +34,27 @@ body:has(.profile-page) .footer {
 }
 
 .profile-body > .profile-right {
+  flex: 1;
+  max-width: 37.5rem;
   min-width: 0;
 }
 
 /* ── Responsiveness ── */
 @media (max-width: 48rem) {
-  .profile-page {
-    min-width: 60rem;
-  }
-
   .profile-body {
+    flex-direction: column;
+    align-items: center;
     padding: 1rem;
   }
 
   .profile-body > .profile-left {
-    width: 17.5rem;
+    width: 100%;
+    max-width: 37.5rem;
+    flex: 1 1 auto;
+  }
+
+  .profile-body > .profile-right {
+    width: 100%;
+    max-width: 37.5rem;
   }
 }

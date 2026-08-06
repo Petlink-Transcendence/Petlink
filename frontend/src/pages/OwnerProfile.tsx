@@ -5,7 +5,7 @@ import './Profile.css';
 import ProfileCover from '../components/profile/ProfileCover';
 import ProfileInfoBar from '../components/profile/ProfileInfoBar';
 import ProfileLeftSidebar from '../components/profile/ProfileLeftSidebar';
-import ProfileContent from '../components/profile/ProfileContent';
+import ProfileContent, { type BackendPost } from '../components/profile/ProfileContent';
 
 export interface BackendUser {
   id: number;
@@ -155,21 +155,8 @@ export function mapBackendToProfile(data: BackendUser, pets: BackendPet[] = []):
         items: data.looking_for && data.looking_for.length > 0 ? data.looking_for.map(item => item.charAt(0).toUpperCase() + item.slice(1)) : ['No preferences set'],
       }] : []),
     ],
-   /* Uncoment and integrate when backend provides posts and reviews */
-    // posts: [],
-    // reviews: [],
-    /* end of uncomment */
-    /* Hardcoded - to be removed when backend provides posts and reviews */
-    posts: [
-      { id: 1, text: 'Available sitters for this weekend? DM me 🐱', time: '1h ago', likes: 12 },
-      { id: 2, text: 'Just went on a long walk with Buddy. Such a joy!', time: '3 days ago', likes: 27 },
-    ],
-    reviews: [
-      { id: 1, author: 'Ana C.', rating: 5, text: `${username} is a wonderful pet owner. Luna and Buddy are so well behaved!`, time: '2 weeks ago' },
-      { id: 2, author: 'Miguel R.', rating: 5, text: 'Always on time and very communicative. A pleasure to work with.', time: '1 month ago' },
-      { id: 3, author: 'Sara M.', rating: 4, text: `Great experience. Buddy is a handful but ${username} made it easy.`, time: '2 months ago' },
-    ], 
-    /* end of hardcode */
+    posts: [],
+    reviews: [],
   };
 }
 
@@ -178,12 +165,26 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [userPosts, setUserPosts] = useState<BackendPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [connections, setConnections] = useState<Record<string, boolean>>({});
 
   const isOwnProfile = !id;
   const isConnected = profile ? Boolean(connections[profile.id]) : false;
+
+  const fetchUserPosts = async (targetId: number | string) => {
+    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
+    try {
+      const res = await fetch(`/posts/?user_id=${targetId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserPosts(data);
+      }
+    } catch {}
+  };
   
   useEffect(() => {
     const fetchProfileData = async (isBackground = false) => {
@@ -248,10 +249,12 @@ export default function Profile() {
       }
 
       setProfile(mapBackendToProfile(mergedData, petsData));
-    
-  } catch (err: any) {
-    setError(err.message || 'Failed to load profile.');
-    console.error("Fetch error details:", err);
+      if (mergedData.id) {
+        fetchUserPosts(mergedData.id);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to load profile.');
+      console.error("Fetch error details:", err);
     } finally {
       setLoading(false);
     }
@@ -259,8 +262,13 @@ export default function Profile() {
 
     fetchProfileData();
     const handleConnectionUpdate = () => fetchProfileData(true);
+    const handlePostsUpdate = () => fetchProfileData(true);
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
-    return () => window.removeEventListener('connectionUpdated', handleConnectionUpdate);
+    window.addEventListener('postsUpdated', handlePostsUpdate);
+    return () => {
+      window.removeEventListener('connectionUpdated', handleConnectionUpdate);
+      window.removeEventListener('postsUpdated', handlePostsUpdate);
+    };
   }, [id]);
 
   useEffect(() => {
@@ -347,11 +355,12 @@ export default function Profile() {
       <div className="profile-body">
         <ProfileLeftSidebar cards={profile.sidebarCards} />
         <ProfileContent
-          posts={profile.posts}
-          reviews={profile.reviews}
+          profileUserId={Number(profile.id)}
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}
+          onPostCreated={() => profile?.id && fetchUserPosts(profile.id)}
+          onPostDeleted={() => profile?.id && fetchUserPosts(profile.id)}
         />
       </div>
     </div>
