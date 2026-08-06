@@ -194,6 +194,16 @@ def delete_post(request, pk):
     return Response({'status': 'post deleted'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+def user_post_count(request):
+    user_id_param = request.query_params.get('user_id')
+    try:
+        uid = int(user_id_param)
+    except (ValueError, TypeError):
+        return Response({'count': 0})
+    count = Post.objects.filter(user_id=uid, deleted_at__isnull=True).count()
+    return Response({'count': count})
+
+@api_view(['GET'])
 def list_posts(request):
     page = int(request.query_params.get('page', 1))
     page_size = int(request.query_params.get('page_size', 10))
