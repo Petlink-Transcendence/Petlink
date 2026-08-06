@@ -79,6 +79,12 @@ export default function ProfileContent({
   useEffect(() => {
     fetchPosts();
     fetchReviews();
+
+    const handlePostsUpdate = () => {
+      fetchPosts();
+    };
+    window.addEventListener('postsUpdated', handlePostsUpdate);
+    return () => window.removeEventListener('postsUpdated', handlePostsUpdate);
   }, [profileUserId]);
 
   return (

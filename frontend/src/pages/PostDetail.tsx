@@ -32,22 +32,33 @@ export default function PostDetail() {
         if (!id) return;
         setLoading(true);
         setError(null);
-        fetch(`/posts/${id}/`)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('Post not found');
-                }
-                return res.json() as Promise<BackendPostDetail>;
-            })
-            .then(data => {
-                setPost(data);
-            })
-            .catch(() => {
-                setError('This post is no longer available or was removed.');
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+        
+        const fetchPostData = () => {
+            return fetch(`/posts/${id}/`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Post not found');
+                    }
+                    return res.json() as Promise<BackendPostDetail>;
+                })
+                .then(data => {
+                    setPost(data);
+                })
+                .catch(() => {
+                    setError('This post is no longer available or was removed.');
+                });
+        };
+
+        fetchPostData().finally(() => {
+            setLoading(false);
+        });
+
+        const handlePostsUpdate = () => {
+            fetchPostData();
+        };
+
+        window.addEventListener('postsUpdated', handlePostsUpdate);
+        return () => window.removeEventListener('postsUpdated', handlePostsUpdate);
     }, [id]);
 
     return (

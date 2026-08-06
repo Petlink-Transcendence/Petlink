@@ -165,7 +165,6 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [userPosts, setUserPosts] = useState<BackendPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [connections, setConnections] = useState<Record<string, boolean>>({});
@@ -173,18 +172,7 @@ export default function Profile() {
   const isOwnProfile = !id;
   const isConnected = profile ? Boolean(connections[profile.id]) : false;
 
-  const fetchUserPosts = async (targetId: number | string) => {
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    try {
-      const res = await fetch(`/posts/?user_id=${targetId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUserPosts(data);
-      }
-    } catch {}
-  };
+
   
   useEffect(() => {
     const fetchProfileData = async (isBackground = false) => {
@@ -249,9 +237,6 @@ export default function Profile() {
       }
 
       setProfile(mapBackendToProfile(mergedData, petsData));
-      if (mergedData.id) {
-        fetchUserPosts(mergedData.id);
-      }
     } catch (err: any) {
       setError(err.message || 'Failed to load profile.');
       console.error("Fetch error details:", err);
@@ -262,12 +247,9 @@ export default function Profile() {
 
     fetchProfileData();
     const handleConnectionUpdate = () => fetchProfileData(true);
-    const handlePostsUpdate = () => fetchProfileData(true);
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
-    window.addEventListener('postsUpdated', handlePostsUpdate);
     return () => {
       window.removeEventListener('connectionUpdated', handleConnectionUpdate);
-      window.removeEventListener('postsUpdated', handlePostsUpdate);
     };
   }, [id]);
 
@@ -359,8 +341,6 @@ export default function Profile() {
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}
-          onPostCreated={() => profile?.id && fetchUserPosts(profile.id)}
-          onPostDeleted={() => profile?.id && fetchUserPosts(profile.id)}
         />
       </div>
     </div>

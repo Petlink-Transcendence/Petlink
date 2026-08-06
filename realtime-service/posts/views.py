@@ -414,5 +414,17 @@ def delete_comment(request, pk, comment_pk):
         return Response({'error': 'Not allowed'}, status=403)
     comment.deleted_at = timezone.now()
     comment.save()
+
+    # Delete one associated notification if it exists
+    notif = Notification.objects.filter(
+        user_id=comment.post.user_id,
+        actor_id=comment.user_id,
+        type='new_comment',
+        reference_id=comment.post.id,
+        reference_type='post'
+    ).first()
+    if notif:
+        notif.delete()
+
     broadcast_post_update(comment.post_id, comment.user_id, 'comment_deleted')
     return Response(status=204)

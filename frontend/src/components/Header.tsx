@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import './Header.css';
 import HomeDropdown from './HomeDropdown';
 import { getLoggedInUserId } from '../utils/auth';
@@ -49,8 +49,7 @@ export default function Header() {
     loadCurrentUser();
   }, [location.pathname]);
 
-  // Fetch unread count on mount and whenever the route changes
-  useEffect(() => {
+  const refreshUnreadCount = useCallback(() => {
     const userId = getLoggedInUserId();
     if (!userId) {
       setUnreadCount(0);
@@ -61,18 +60,27 @@ export default function Header() {
       .then(res => res.ok ? res.json() as Promise<BackendNotification[]> : Promise.resolve([]))
       .then(data => setUnreadCount(data.filter(n => !n.read).length))
       .catch(() => {});
-  }, [location.pathname]);
+  }, []);
+
+  // Fetch unread count on mount and whenever the route changes
+  useEffect(() => {
+    refreshUnreadCount();
+  }, [location.pathname, refreshUnreadCount]);
 
   useEffect(() => {
     const onNew = () => setUnreadCount(count => count + 1);
     const onRead = () => setUnreadCount(0);
     window.addEventListener('newNotification', onNew);
     window.addEventListener('notificationsRead', onRead);
+    window.addEventListener('postsUpdated', refreshUnreadCount);
+    window.addEventListener('connectionUpdated', refreshUnreadCount);
     return () => {
       window.removeEventListener('newNotification', onNew);
       window.removeEventListener('notificationsRead', onRead);
+      window.removeEventListener('postsUpdated', refreshUnreadCount);
+      window.removeEventListener('connectionUpdated', refreshUnreadCount);
     };
-  }, []);
+  }, [refreshUnreadCount]);
 
   return (
     <header className="main-header">
