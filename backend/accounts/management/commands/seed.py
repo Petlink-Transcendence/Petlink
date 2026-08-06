@@ -85,12 +85,16 @@ class Command(BaseCommand):
             {'name': 'Rei', 'type': 'cat', 'breed': 'siamese', 'owner': User.objects.get(username='ricardo')},
             {'name': 'Ritinha', 'type': 'cat', 'breed': 'tricolor', 'owner': User.objects.get(username='ricardo')},
             {'name': 'Bob', 'type': 'dog', 'breed': 'podengo', 'owner': User.objects.get(username='daniela')},
-            {'name': 'Benny', 'type': 'dog', 'breed': 'podengo', 'owner': User.objects.get(username='daniela')}
-
+            {'name': 'Benny', 'type': 'dog', 'breed': 'podengo', 'owner': User.objects.get(username='daniela')},
+            {'name': 'Bella', 'type': 'cat', 'breed': 'black cat', 'age': '4 years', 'owner': User.objects.get(username='gabriel')},
+            {'name': 'Zelda', 'type': 'cat', 'breed': 'siamese', 'age': '3 years', 'owner': User.objects.get(username='gabriel')}
         ]
 
         for data in pets_data:
-            pet, _ = Pet.objects.get_or_create(name=data['name'], type=data['type'], breed=data['breed'])
+            defaults = {}
+            if 'age' in data:
+                defaults['age'] = data['age']
+            pet, _ = Pet.objects.get_or_create(name=data['name'], type=data['type'], breed=data['breed'], defaults=defaults)
             UserPet.objects.get_or_create(user=data['owner'], pet=pet)
 
         maria = User.objects.get(username='maria')
@@ -201,7 +205,7 @@ class Command(BaseCommand):
             )
 
         # ── Posts, comments, likes (realtime-service shares this DB) ──────────
-        def get_or_create_post(cur, user_id, purpose, text, pet_type=None):
+        def get_or_create_post(cur, user_id, purpose, text, pet_type=None, image=None):
             cur.execute(
                 "SELECT id FROM posts_post WHERE user_id=%s AND purpose=%s AND text=%s AND deleted_at IS NULL",
                 [user_id, purpose, text],
@@ -210,8 +214,8 @@ class Command(BaseCommand):
             if row:
                 return row[0]
             cur.execute(
-                "INSERT INTO posts_post (user_id, purpose, text, pet_type, created_at) VALUES (%s, %s, %s, %s, NOW()) RETURNING id",
-                [user_id, purpose, text, pet_type],
+                "INSERT INTO posts_post (user_id, purpose, text, pet_type, image, created_at) VALUES (%s, %s, %s, %s, %s, NOW()) RETURNING id",
+                [user_id, purpose, text, pet_type, image],
             )
             return cur.fetchone()[0]
 
@@ -245,6 +249,7 @@ class Command(BaseCommand):
             p5 = get_or_create_post(cur, ricardo.id, 'playdate',      'Rei and Ritinha are looking for playdate partners in Porto! 🐾', 'cat')
             p6 = get_or_create_post(cur, daniela.id, 'social',        'Bob and Benny after their morning run. Best boys ever. 🐕🐕', 'dog')
             p7 = get_or_create_post(cur, rafael.id,  'service_promo', 'Available this weekend for cat sitting and home visits in Porto! DM me for rates 🐱', 'cat')
+            p8 = get_or_create_post(cur, gabriel.id, 'social',        'Bella taking her morning sun bath', 'cat', 'posts/Bella.jpg')
 
             ensure_comment(cur, p1, isabel.id,  'They look so happy together! 😍')
             ensure_comment(cur, p1, daniela.id, 'Zeus is adorable, reminds me of Bob!')
@@ -262,6 +267,7 @@ class Command(BaseCommand):
                 (p5, joao.id),
                 (p6, joao.id), (p6, isabel.id),
                 (p7, isabel.id), (p7, daniela.id),
+                (p8, isabel.id), (p8, daniela.id),
             ]:
                 ensure_like(cur, post_id, liker_id)
 
