@@ -11,8 +11,21 @@ from django.shortcuts import get_object_or_404
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.conf import settings
+from django.db import connection
 from .models import Post, Like, Comment
 from notifications.models import Notification
+
+def get_user_display_name(user_id):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT name, username FROM accounts_user WHERE id = %s", [user_id])
+            row = cursor.fetchone()
+            if row:
+                name, username = row[0], row[1]
+                return name or username or "Someone"
+    except Exception:
+        pass
+    return "Someone"
 
 def is_post_image_deleted(image):
     if not image or not bool(image):
@@ -190,6 +203,7 @@ def delete_post(request, pk):
         
     post.deleted_at = timezone.now()
     post.save()
+    Notification.objects.filter(reference_type='post', reference_id=post.id).delete()
     broadcast_post_update(post.id, post.user_id, 'deleted')
     return Response({'status': 'post deleted'}, status=status.HTTP_200_OK)
 
@@ -264,6 +278,11 @@ def post_detail(request, pk):
         broadcast_post_update(post.id, post.user_id, 'deleted')
         return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    user_id = get_user_id(request)
+    user_liked = False
+    if user_id:
+        user_liked = Like.objects.filter(post=post, user_id=user_id).exists()
+
     return Response({
         'id': post.id,
         'user_id': post.user_id,
@@ -274,6 +293,7 @@ def post_detail(request, pk):
         'pet_size': post.pet_size,
         'image': build_image_url(post.image, request),
         'like_count': post.likes.count(),
+        'user_liked': user_liked,
         'created_at': post.created_at,
     }, status=status.HTTP_200_OK)
 
@@ -293,10 +313,12 @@ def like_post(request, pk):
         # Notify the post owner — skip if the liker IS the owner
         if post.user_id != user_id:
             try:
+                user_name = get_user_display_name(user_id)
                 notif = Notification.objects.create(
                     user_id=post.user_id,
+                    actor_id=user_id,
                     type='new_like',
-                    content='Someone liked your post.',
+                    content=f'{user_name} liked your post.',
                     reference_id=post.id,
                     reference_type='post',
                 )
@@ -320,6 +342,13 @@ def like_post(request, pk):
     try:
         like = Like.objects.get(user_id=user_id, post=post)
         like.delete()
+        Notification.objects.filter(
+            user_id=post.user_id,
+            actor_id=user_id,
+            type='new_like',
+            reference_id=post.id,
+            reference_type='post'
+        ).delete()
         broadcast_post_update(post.id, post.user_id, 'unliked')
         return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
     except Like.DoesNotExist:
@@ -350,10 +379,12 @@ def post_comments(request, pk):
 
     if post.user_id != user_id:
         try:
+            user_name = get_user_display_name(user_id)
             notif = Notification.objects.create(
                 user_id=post.user_id,
+                actor_id=user_id,
                 type='new_comment',
-                content='Someone commented on your post.',
+                content=f'{user_name} commented on your post.',
                 reference_id=post.id,
                 reference_type='post',
             )
