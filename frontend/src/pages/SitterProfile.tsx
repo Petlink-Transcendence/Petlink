@@ -305,7 +305,6 @@ export default function SitterProfile() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileSitterData | null>(null);
-  const [userPosts, setUserPosts] = useState<BackendPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [connections, setConnections] = useState<Record<string, boolean>>({});
@@ -313,18 +312,7 @@ export default function SitterProfile() {
   const isOwnProfile = !profileId;
   const isConnected = profile ? Boolean(connections[profile.id]) : false;
 
-  const fetchUserPosts = async (targetId: number | string) => {
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    try {
-      const res = await fetch(`/posts/?user_id=${targetId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUserPosts(data);
-      }
-    } catch {}
-  };
+
 
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
@@ -426,9 +414,6 @@ export default function SitterProfile() {
         }
 
         setProfile(nextProfile);
-        if (mergedData.id) {
-          fetchUserPosts(mergedData.id);
-        }
       } catch (err: any) {
         console.error("Fetch error details:", err);
         setError('');
@@ -439,12 +424,9 @@ export default function SitterProfile() {
 
     fetchProfileData();
     const handleConnectionUpdate = () => fetchProfileData();
-    const handlePostsUpdate = () => fetchProfileData();
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
-    window.addEventListener('postsUpdated', handlePostsUpdate);
     return () => {
       window.removeEventListener('connectionUpdated', handleConnectionUpdate);
-      window.removeEventListener('postsUpdated', handlePostsUpdate);
     };
   }, [profileId]);
   
@@ -665,8 +647,6 @@ export default function SitterProfile() {
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}
-          onPostCreated={() => profile?.id && fetchUserPosts(profile.id)}
-          onPostDeleted={() => profile?.id && fetchUserPosts(profile.id)}
         />
       </div>
       {isNewBookingOpen && (

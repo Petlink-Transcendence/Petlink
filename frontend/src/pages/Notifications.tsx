@@ -99,9 +99,35 @@ export default function Notifications() {
             };
             setNotifications(prev => [incoming, ...prev]);
         };
+        const handleUpdate = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            
+            if (detail?.action === 'unliked') {
+                setNotifications(prev => prev.filter(n => !(n.type === 'new_like' && n.reference_type === 'post' && n.reference_id === detail.post_id)));
+            } else if (detail?.action === 'comment_deleted') {
+                setNotifications(prev => {
+                    const idx = prev.findIndex(n => n.type === 'new_comment' && n.reference_type === 'post' && n.reference_id === detail.post_id);
+                    if (idx !== -1) {
+                        const next = [...prev];
+                        next.splice(idx, 1);
+                        return next;
+                    }
+                    return prev;
+                });
+            }
+            
+            fetchNotifications();
+        };
+
         window.addEventListener('newNotification', handler);
-        return () => window.removeEventListener('newNotification', handler);
-    }, []);
+        window.addEventListener('postsUpdated', handleUpdate);
+        window.addEventListener('connectionUpdated', handleUpdate);
+        return () => {
+            window.removeEventListener('newNotification', handler);
+            window.removeEventListener('postsUpdated', handleUpdate);
+            window.removeEventListener('connectionUpdated', handleUpdate);
+        };
+    }, [fetchNotifications]);
 
     const handleClick = async (notif: BackendNotification) => {
         if (!notif.read) {
