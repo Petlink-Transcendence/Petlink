@@ -316,8 +316,42 @@ class FollowView(APIView):
 
     def delete(self, request, pk):
         target = get_object_or_404(User, pk=pk)
+        
+        # If they are mutually connected, removing the connection should remove both follow requests
+        was_connected = Follower.objects.filter(follower=request.user, following=target).exists() and \
+                        Follower.objects.filter(follower=target, following=request.user).exists()
+                        
         Follower.objects.filter(follower=request.user, following=target).delete()
+        if was_connected:
+            Follower.objects.filter(follower=target, following=request.user).delete()
 
+        # Remove the notification
+        try:
+            requests.delete(
+                'http://realtime-service:8001/internal/notify/',
+                json={
+                    'user_id': target.id,
+                    'actor_id': request.user.id,
+                    'type': 'new_connection',
+                    'reference_id': request.user.id,
+                    'reference_type': 'user',
+                },
+                timeout=2,
+            )
+            if was_connected:
+                requests.delete(
+                    'http://realtime-service:8001/internal/notify/',
+                    json={
+                        'user_id': request.user.id,
+                        'actor_id': target.id,
+                        'type': 'new_connection',
+                        'reference_id': target.id,
+                        'reference_type': 'user',
+                    },
+                    timeout=2,
+                )
+        except Exception:
+            pass
         # Broadcast real-time WebSocket event
         try:
             if callable(get_channel_layer) and async_to_sync:

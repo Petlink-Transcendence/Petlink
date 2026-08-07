@@ -52,7 +52,7 @@ def delete_notification(request, notification_id):
     except Notification.DoesNotExist:
         return Response({'error': 'not found'}, status=status.HTTP_404_NOT_FOUND)
     
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 def internal_notify(request):
     user_id = request.data.get('user_id')
     actor_id = request.data.get('actor_id')
@@ -61,9 +61,24 @@ def internal_notify(request):
     reference_id = request.data.get('reference_id')
     reference_type = request.data.get('reference_type')
 
-    if not user_id or not notification_type or not content:
+    if not user_id or not notification_type:
         return Response(
-            {'error': 'user_id, type and content are required'},
+            {'error': 'user_id and type are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if request.method == 'DELETE':
+        deleted_count, _ = Notification.objects.filter(
+            user_id=user_id,
+            type=notification_type,
+            reference_id=reference_id,
+            reference_type=reference_type,
+        ).delete()
+        return Response({'status': 'deleted', 'count': deleted_count}, status=status.HTTP_200_OK)
+
+    if not content:
+        return Response(
+            {'error': 'content is required for POST'},
             status=status.HTTP_400_BAD_REQUEST
         )
 

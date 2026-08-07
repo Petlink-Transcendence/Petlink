@@ -64,13 +64,29 @@ export default function Header() {
   }, [location.pathname]);
 
   useEffect(() => {
+    const fetchCount = () => {
+      const userId = getLoggedInUserId();
+      if (!userId) return;
+      fetch(`/notifications/${userId}/`)
+        .then(res => res.ok ? res.json() as Promise<BackendNotification[]> : Promise.resolve([]))
+        .then(data => setUnreadCount(data.filter(n => !n.read).length))
+        .catch(() => {});
+    };
+
     const onNew = () => setUnreadCount(count => count + 1);
     const onRead = () => setUnreadCount(0);
+    const onUpdate = () => fetchCount();
+
     window.addEventListener('newNotification', onNew);
     window.addEventListener('notificationsRead', onRead);
+    window.addEventListener('connectionUpdated', onUpdate);
+    window.addEventListener('postsUpdated', onUpdate);
+
     return () => {
       window.removeEventListener('newNotification', onNew);
       window.removeEventListener('notificationsRead', onRead);
+      window.removeEventListener('connectionUpdated', onUpdate);
+      window.removeEventListener('postsUpdated', onUpdate);
     };
   }, []);
 

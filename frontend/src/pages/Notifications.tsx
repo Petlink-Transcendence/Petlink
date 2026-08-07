@@ -99,9 +99,35 @@ export default function Notifications() {
             };
             setNotifications(prev => [incoming, ...prev]);
         };
+
+        const connectionUpdateHandler = (e: Event) => {
+            const detail = (e as CustomEvent<any>).detail;
+            if (detail.action === 'unfollow') {
+                setNotifications(prev => prev.filter(n =>
+                    !(n.type === 'new_connection' && n.reference_id === detail.follower_id)
+                ));
+            }
+        };
+
+        const postUpdateHandler = (e: Event) => {
+            const detail = (e as CustomEvent<any>).detail;
+            if (detail.action === 'unliked') {
+                fetchNotifications();
+            } else if (detail.action === 'comment_deleted') {
+                fetchNotifications();
+            }
+        };
+
         window.addEventListener('newNotification', handler);
-        return () => window.removeEventListener('newNotification', handler);
-    }, []);
+        window.addEventListener('connectionUpdated', connectionUpdateHandler);
+        window.addEventListener('postsUpdated', postUpdateHandler);
+
+        return () => {
+            window.removeEventListener('newNotification', handler);
+            window.removeEventListener('connectionUpdated', connectionUpdateHandler);
+            window.removeEventListener('postsUpdated', postUpdateHandler);
+        };
+    }, [fetchNotifications]);
 
     const handleClick = async (notif: BackendNotification) => {
         if (!notif.read) {
