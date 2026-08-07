@@ -100,32 +100,38 @@ export default function Notifications() {
             setNotifications(prev => [incoming, ...prev]);
         };
 
-        const connectionUpdateHandler = (e: Event) => {
+        const handleUpdate = (e: Event) => {
             const detail = (e as CustomEvent<any>).detail;
+
             if (detail.action === 'unfollow') {
-                setNotifications(prev => prev.filter(n =>
+                setNotifications(prev => prev.filter(n => 
                     !(n.type === 'new_connection' && n.reference_id === detail.follower_id)
                 ));
-            }
-        };
-
-        const postUpdateHandler = (e: Event) => {
-            const detail = (e as CustomEvent<any>).detail;
-            if (detail.action === 'unliked') {
-                fetchNotifications();
+            } else if (detail.action === 'unliked') {
+                setNotifications(prev => prev.filter(n => !(n.type === 'new_like' && n.reference_type === 'post' && n.reference_id === detail.post_id)));
             } else if (detail.action === 'comment_deleted') {
-                fetchNotifications();
+                setNotifications(prev => {
+                    const idx = prev.findIndex(n => n.type === 'new_comment' && n.reference_type === 'post' && n.reference_id === detail.post_id);
+                    if (idx !== -1) {
+                        const next = [...prev];
+                        next.splice(idx, 1);
+                        return next;
+                    }
+                    return prev;
+                });
             }
+            
+            fetchNotifications();
         };
 
         window.addEventListener('newNotification', handler);
-        window.addEventListener('connectionUpdated', connectionUpdateHandler);
-        window.addEventListener('postsUpdated', postUpdateHandler);
+        window.addEventListener('postsUpdated', handleUpdate);
+        window.addEventListener('connectionUpdated', handleUpdate);
 
         return () => {
             window.removeEventListener('newNotification', handler);
-            window.removeEventListener('connectionUpdated', connectionUpdateHandler);
-            window.removeEventListener('postsUpdated', postUpdateHandler);
+            window.removeEventListener('postsUpdated', handleUpdate);
+            window.removeEventListener('connectionUpdated', handleUpdate);
         };
     }, [fetchNotifications]);
 

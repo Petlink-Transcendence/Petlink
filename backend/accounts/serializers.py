@@ -64,7 +64,8 @@ class RoleTokenRefreshSerializer(TokenRefreshSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        user = User.all_objects.get(pk=self.token['user_id'])
+        refresh = RefreshToken(attrs['refresh'])
+        user = User.all_objects.get(pk=refresh['user_id'])
         access = AccessToken(data['access'])
         access['role'] = user.role
         data['access'] = str(access)
@@ -140,7 +141,8 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
             'city', 'country', 'user_type', 'rating', 'followers_count', 'posts_count',
             'following_count', 'is_following', 'is_follower', 'is_connected', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
-            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times',
+            'show_about', 'show_pets', 'show_looking_for'
         )
         read_only_fields = fields
 
@@ -152,7 +154,10 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
-            public_fields = {'id', 'name', 'username', 'role', 'user_type', 'avatar', 'banner', 'followers_count', 'following_count'}
+            public_fields = {
+                'id', 'name', 'username', 'role', 'user_type', 'avatar', 'banner',
+                'followers_count', 'following_count', 'show_about', 'show_pets', 'show_looking_for'
+            }
         else:
             public_fields = set(fields.keys()) | {'is_following', 'is_follower', 'is_connected'}
         for field in list(fields.keys()):
