@@ -103,13 +103,13 @@ export default function Notifications() {
         const handleUpdate = (e: Event) => {
             const detail = (e as CustomEvent<any>).detail;
 
-            if (detail.action === 'unfollow') {
+            if (detail?.action === 'unfollow') {
                 setNotifications(prev => prev.filter(n => 
                     !(n.type === 'new_connection' && n.reference_id === detail.follower_id)
                 ));
-            } else if (detail.action === 'unliked') {
+            } else if (detail?.action === 'unliked') {
                 setNotifications(prev => prev.filter(n => !(n.type === 'new_like' && n.reference_type === 'post' && n.reference_id === detail.post_id)));
-            } else if (detail.action === 'comment_deleted') {
+            } else if (detail?.action === 'comment_deleted') {
                 setNotifications(prev => {
                     const idx = prev.findIndex(n => n.type === 'new_comment' && n.reference_type === 'post' && n.reference_id === detail.post_id);
                     if (idx !== -1) {
