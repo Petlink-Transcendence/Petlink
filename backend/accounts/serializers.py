@@ -107,8 +107,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 
             'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 
-            'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
-            'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for',
+            'sitter_pet_types', 'looking_for', 'oauth_provider', 'show_about', 'show_pets', 'show_looking_for',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times',
             'followers_count', 'posts_count'
         )
@@ -198,11 +197,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     price = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     sitter_pet_types = serializers.ListField(child=serializers.CharField(max_length=50), required=False, allow_empty=True)
     looking_for = serializers.ListField(child=serializers.CharField(max_length=50), required=False, allow_empty=True)
-    notify_bookings = serializers.BooleanField(required=False)
-    notify_messages = serializers.BooleanField(required=False)
-    notify_reviews = serializers.BooleanField(required=False)
-    notify_comments = serializers.BooleanField(required=False)
-    notify_connections = serializers.BooleanField(required=False)
     show_about = serializers.BooleanField(required=False)
     show_pets = serializers.BooleanField(required=False)
     show_looking_for = serializers.BooleanField(required=False)
@@ -211,10 +205,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'username', 'name', 'description', 'country', 'city', 'experience', 'price', 
-            'sitter_pet_types', 'looking_for', 'notify_bookings', 'notify_messages', 
-            'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 
-            'show_pets', 'show_looking_for', 'availability_status', 'availability_location', 
-            'availability_capacity', 'available_times'
+            'sitter_pet_types', 'looking_for', 'show_about','show_pets', 'show_looking_for', 
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
         )
 
     def validate_username(self, value):
