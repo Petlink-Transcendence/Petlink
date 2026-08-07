@@ -5,7 +5,6 @@ import ProfileSection from '../components/settings/ProfileSection';
 import PetCareSection from '../components/settings/PetCareSection';
 import PrivacySection from '../components/settings/PrivacySection';
 import DangerZoneSection from '../components/settings/DangerZoneSection';
-import NotificationsSection from '../components/settings/NotificationsSection';
 import SecuritySection from '../components/settings/SecuritySection';
 
 export interface Pet {
@@ -28,11 +27,6 @@ export interface SettingsForm {
   newPassword: string;
   confirmPassword: string;
   userType: string;
-  bookingAlerts: boolean;
-  messageAlerts: boolean;
-  reviewAlerts: boolean;
-  commentAlerts: boolean;
-  connectionRequestAlerts: boolean;
   showAbout: boolean;
   showPets: boolean;
   showLookingFor: boolean;
@@ -55,11 +49,6 @@ const initialSettings: SettingsForm = {
   newPassword: '',
   confirmPassword: '',
   userType: 'owner',
-  bookingAlerts: true,
-  messageAlerts: true,
-  reviewAlerts: true,
-  commentAlerts: true,
-  connectionRequestAlerts: true,
   showAbout: true,
   showPets: true,
   showLookingFor: true,
@@ -72,20 +61,10 @@ const initialSettings: SettingsForm = {
 
 const resettableSettings: Pick<
   SettingsForm,
-  | 'bookingAlerts'
-  | 'messageAlerts'
-  | 'reviewAlerts'
-  | 'commentAlerts'
-  | 'connectionRequestAlerts'
   | 'showAbout'
   | 'showPets'
   | 'showLookingFor'
 > = {
-  bookingAlerts: true,
-  messageAlerts: true,
-  reviewAlerts: true,
-  commentAlerts: true,
-  connectionRequestAlerts: true,
   showAbout: true,
   showPets: true,
   showLookingFor: true,
@@ -201,12 +180,7 @@ export default function Settings() {
         experience?: number | null; 
         price?: number | string | null; 
         sitter_pet_types?: string[]; 
-        looking_for?: string[]; 
-        notify_bookings?: boolean; 
-        notify_messages?: boolean; 
-        notify_reviews?: boolean; 
-        notify_comments?: boolean; 
-        notify_connections?: boolean;
+        looking_for?: string[];
         show_about?: boolean;
         show_pets?: boolean;
         show_looking_for?: boolean;
@@ -247,11 +221,6 @@ export default function Settings() {
         hourlyRate: backendData.price != null ? String(backendData.price) : '',
         sitterPetTypes: (backendData.sitter_pet_types ?? prev.sitterPetTypes).map((s: string) => s.toLowerCase()),
         lookingForServices: (backendData.looking_for ?? prev.lookingForServices).map((s: string) => s.toLowerCase()),
-        bookingAlerts: backendData.notify_bookings ?? prev.bookingAlerts,
-        messageAlerts: backendData.notify_messages ?? prev.messageAlerts,
-        reviewAlerts: backendData.notify_reviews ?? prev.reviewAlerts,
-        commentAlerts: backendData.notify_comments ?? prev.commentAlerts,
-        connectionRequestAlerts: backendData.notify_connections ?? prev.connectionRequestAlerts,
         showAbout: backendData.show_about ?? prev.showAbout,
         showPets: backendData.show_pets ?? prev.showPets,
         showLookingFor: backendData.show_looking_for ?? prev.showLookingFor,
@@ -500,11 +469,6 @@ export default function Settings() {
           price: form.hourlyRate || null,
           looking_for: form.lookingForServices,
           sitter_pet_types: form.sitterPetTypes,
-          notify_bookings: form.bookingAlerts,
-          notify_messages: form.messageAlerts,
-          notify_reviews: form.reviewAlerts,
-          notify_comments: form.commentAlerts,
-          notify_connections: form.connectionRequestAlerts,
           show_about: form.showAbout,
           show_pets: form.showPets,
           show_looking_for: form.showLookingFor
@@ -640,7 +604,6 @@ export default function Settings() {
           <a className={`settings-menu-item ${activeSection === 'profile' ? 'active' : ''}`} href="#profile" onClick={() => setActiveSection('profile')}>Profile</a>
           {!oauthProvider && <a className={`settings-menu-item ${activeSection === 'security' ? 'active' : ''}`} href="#security" onClick={() => setActiveSection('security')}>Security</a>}          
           <a className={`settings-menu-item ${activeSection === 'care' ? 'active' : ''}`} href="#care" onClick={() => setActiveSection('care')}>Pet care</a>
-          <a className={`settings-menu-item ${activeSection === 'notifications' ? 'active' : ''}`} href="#notifications" onClick={() => setActiveSection('notifications')}>Notifications</a>
           <a className={`settings-menu-item ${activeSection === 'privacy' ? 'active' : ''}`} href="#privacy" onClick={() => setActiveSection('privacy')}>Privacy</a>
           <a className={`settings-menu-item settings-danger-menu-item ${activeSection === 'danger' ? 'active' : ''}`} href="#danger" onClick={() => setActiveSection('danger')}>Danger zone</a>
         </aside>
@@ -689,15 +652,6 @@ export default function Settings() {
             toggleTagField={toggleTagField}
             handleAddPet={handleAddPet}
             handleRemovePet={handleRemovePet}
-            updateField={updateField}
-          />
-          
-          <NotificationsSection
-            bookingAlerts={form.bookingAlerts}
-            messageAlerts={form.messageAlerts}
-            reviewAlerts={form.reviewAlerts}
-            commentAlerts={form.commentAlerts}
-            connectionRequestAlerts={form.connectionRequestAlerts}
             updateField={updateField}
           />
 

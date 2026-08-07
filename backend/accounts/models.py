@@ -56,13 +56,6 @@ class User(AbstractUser):
     online_status = models.BooleanField(default=False)
     last_seen = models.DateTimeField(null=True, blank=True)
 
-    # Notification preferences
-    notify_bookings = models.BooleanField(default=True)
-    notify_messages = models.BooleanField(default=True)
-    notify_reviews = models.BooleanField(default=True)
-    notify_comments = models.BooleanField(default=True)
-    notify_connections = models.BooleanField(default=True)
-
     #Privacy settings
     show_about = models.BooleanField(default=True)
     show_pets = models.BooleanField(default=True)
