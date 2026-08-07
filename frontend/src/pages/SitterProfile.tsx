@@ -309,6 +309,17 @@ export default function SitterProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [connections, setConnections] = useState<Record<string, { following: boolean, follower: boolean, connected: boolean }>>({});
+  const [currentUserType, setCurrentUserType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    if (token) {
+      fetch('/auth/me/', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(u => { if (u) setCurrentUserType(u.user_type); })
+        .catch(() => {});
+    }
+  }, []);
 
   const loggedInUserId = getLoggedInUserId();
   const isOwnProfile = !profileId || (profile && profile.id === loggedInUserId);
@@ -647,7 +658,7 @@ export default function SitterProfile() {
         actions={isOwnProfile
           ? [{ label: 'Edit Profile', variant: 'secondary',  onClick: () => navigate('/settings') }]
           : [
-            { label: 'Make a booking', variant: 'primary', onClick: () => setIsNewBookingOpen(true) },
+            ...(currentUserType === 'owner' ? [{ label: 'Make a booking', variant: 'primary' as const, onClick: () => setIsNewBookingOpen(true) }] : []),
             {
               label: getConnectionButtonLabel(),
               variant: 'secondary',

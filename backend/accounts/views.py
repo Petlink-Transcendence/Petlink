@@ -48,6 +48,15 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
     serializer_class = RoleTokenObtainPairSerializer
     throttle_classes = [LoginRateThrottle]
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({"error": "Invalid username or password."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
 
 class RoleTokenRefreshView(TokenRefreshView):
     serializer_class = RoleTokenRefreshSerializer
