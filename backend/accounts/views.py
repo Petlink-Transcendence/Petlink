@@ -283,7 +283,14 @@ class FollowView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        target = get_object_or_404(User, pk=pk)
+        try:
+            target = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_200_OK)
+        
+        if target == request.user:
+            return Response({"error": "You cannot connect with yourself."}, status=status.HTTP_200_OK)
+
         _, created = Follower.objects.get_or_create(follower=request.user, following=target)
 
         # Broadcast real-time WebSocket event
@@ -324,7 +331,10 @@ class FollowView(APIView):
         return Response(status=204)
 
     def delete(self, request, pk):
-        target = get_object_or_404(User, pk=pk)
+        try:
+            target = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_200_OK)
         
         # If they are mutually connected, removing the connection should remove both follow requests
         was_connected = Follower.objects.filter(follower=request.user, following=target).exists() and \

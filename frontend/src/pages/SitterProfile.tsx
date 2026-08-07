@@ -495,13 +495,18 @@ export default function SitterProfile() {
       });
 
       if (response.ok) {
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : {};
+        if (data.error) {
+          throw new Error(data.error);
+        }
         window.dispatchEvent(new Event('connectionUpdated'));
       } else {
         throw new Error(`Connection update failed with status ${response.status}`);
       }
     } catch (err) {
-      console.error('Failed to toggle connection:', err);
-      // Roll back the optimistic update when persistence fails.
+      console.error(err);
+      // Revert optimistic update
       setConnections(prev => ({
         ...prev,
         [targetId]: prevState,
