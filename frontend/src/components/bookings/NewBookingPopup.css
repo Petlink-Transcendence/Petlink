@@ -137,3 +137,22 @@
     grid-template-columns: 1fr;
   }
 }
+
+.new-booking-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  border: 1px solid #ffeeba;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.new-booking-submit:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}

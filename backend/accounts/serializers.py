@@ -128,6 +128,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
+    is_follower = serializers.SerializerMethodField()
     is_connected = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     posts_count = serializers.SerializerMethodField()
@@ -137,7 +138,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'username', 'role', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count', 'posts_count',
-            'following_count', 'is_following', 'is_connected', 'experience', 'price',
+            'following_count', 'is_following', 'is_follower', 'is_connected', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times',
             'show_about', 'show_pets', 'show_looking_for'
@@ -157,7 +158,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
                 'followers_count', 'following_count', 'show_about', 'show_pets', 'show_looking_for'
             }
         else:
-            public_fields = set(fields.keys()) | {'is_following', 'is_connected'}
+            public_fields = set(fields.keys()) | {'is_following', 'is_follower', 'is_connected'}
         for field in list(fields.keys()):
             if field not in public_fields:
                 fields.pop(field, None)
@@ -176,6 +177,12 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         if not request or not request.user or not request.user.is_authenticated:
             return False
         return Follower.objects.filter(follower=request.user, following=obj).exists()
+
+    def get_is_follower(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        return Follower.objects.filter(follower=obj, following=request.user).exists()
 
     def get_is_connected(self, obj):
         request = self.context.get('request')

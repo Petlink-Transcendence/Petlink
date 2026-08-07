@@ -48,6 +48,15 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
     serializer_class = RoleTokenObtainPairSerializer
     throttle_classes = [LoginRateThrottle]
 
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({"error": "Invalid username or password."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
 
 class RoleTokenRefreshView(TokenRefreshView):
     serializer_class = RoleTokenRefreshSerializer
@@ -274,7 +283,14 @@ class FollowView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        target = get_object_or_404(User, pk=pk)
+        try:
+            target = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_200_OK)
+        
+        if target == request.user:
+            return Response({"error": "You cannot connect with yourself."}, status=status.HTTP_200_OK)
+
         _, created = Follower.objects.get_or_create(follower=request.user, following=target)
 
         # Broadcast real-time WebSocket event
@@ -315,9 +331,46 @@ class FollowView(APIView):
         return Response(status=204)
 
     def delete(self, request, pk):
-        target = get_object_or_404(User, pk=pk)
+        try:
+            target = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=status.HTTP_200_OK)
+        
+        # If they are mutually connected, removing the connection should remove both follow requests
+        was_connected = Follower.objects.filter(follower=request.user, following=target).exists() and \
+                        Follower.objects.filter(follower=target, following=request.user).exists()
+                        
         Follower.objects.filter(follower=request.user, following=target).delete()
+        if was_connected:
+            Follower.objects.filter(follower=target, following=request.user).delete()
 
+        # Remove the notification
+        try:
+            requests.delete(
+                'http://realtime-service:8001/internal/notify/',
+                json={
+                    'user_id': target.id,
+                    'actor_id': request.user.id,
+                    'type': 'new_connection',
+                    'reference_id': request.user.id,
+                    'reference_type': 'user',
+                },
+                timeout=2,
+            )
+            if was_connected:
+                requests.delete(
+                    'http://realtime-service:8001/internal/notify/',
+                    json={
+                        'user_id': request.user.id,
+                        'actor_id': target.id,
+                        'type': 'new_connection',
+                        'reference_id': target.id,
+                        'reference_type': 'user',
+                    },
+                    timeout=2,
+                )
+        except Exception:
+            pass
         # Broadcast real-time WebSocket event
         try:
             if callable(get_channel_layer) and async_to_sync:

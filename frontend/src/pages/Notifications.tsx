@@ -99,10 +99,15 @@ export default function Notifications() {
             };
             setNotifications(prev => [incoming, ...prev]);
         };
+
         const handleUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail;
-            
-            if (detail?.action === 'unliked') {
+            const detail = (e as CustomEvent<any>).detail;
+
+            if (detail?.action === 'unfollow') {
+                setNotifications(prev => prev.filter(n => 
+                    !(n.type === 'new_connection' && n.reference_id === detail.follower_id)
+                ));
+            } else if (detail?.action === 'unliked') {
                 setNotifications(prev => prev.filter(n => !(n.type === 'new_like' && n.reference_type === 'post' && n.reference_id === detail.post_id)));
             } else if (detail?.action === 'comment_deleted') {
                 setNotifications(prev => {
@@ -122,6 +127,7 @@ export default function Notifications() {
         window.addEventListener('newNotification', handler);
         window.addEventListener('postsUpdated', handleUpdate);
         window.addEventListener('connectionUpdated', handleUpdate);
+
         return () => {
             window.removeEventListener('newNotification', handler);
             window.removeEventListener('postsUpdated', handleUpdate);

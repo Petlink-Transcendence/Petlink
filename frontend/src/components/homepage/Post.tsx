@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './Post.css'
 import '../Comments.css'
+import NewBookingPopup from '../bookings/NewBookingPopup'
 
 type BackendComment = {
   id: number;
@@ -38,7 +39,7 @@ const PURPOSE_LABELS: Record<string, string> = {
   adoption: 'Adoption',
   lost: 'Lost Pet',
   found: 'Found Pet',
-  service_promo: 'Sitter',
+  service_promo: 'Providing Service',
 };
 
 function timeAgo(dateStr: string): string {
@@ -60,7 +61,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   const [liked, setLiked] = useState(userLiked);
   const [likes, setLikes] = useState(likeCount);
   const [author, setAuthor] = useState<AuthorInfo | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ id: number; role: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: number; role: string; user_type: string } | null>(null);
+  const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<BackendComment[]>([]);
   const [commentAuthors, setCommentAuthors] = useState<Record<number, AuthorInfo>>({});
@@ -73,7 +75,7 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
     if (!token) return;
     fetch('/auth/me/', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(u => { if (u) setCurrentUser({ id: u.id, role: u.role }); })
+      .then(u => { if (u) setCurrentUser({ id: u.id, role: u.role, user_type: u.user_type }); })
       .catch(() => {});
   }, []);
 
@@ -138,7 +140,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   }, [comments]);
 
   const authorName = author?.name || `User ${userId}`;
-  const profilePath = author?.user_type === 'provider' ? `/sitterprofile/${userId}` : `/ownerprofile/${userId}`;
+  const isOwnProfile = currentUser?.id === userId;
+  const profilePath = isOwnProfile ? '/profile' : (author?.user_type === 'provider' ? `/sitterprofile/${userId}` : `/ownerprofile/${userId}`);
   const tag = PURPOSE_LABELS[purpose] || purpose.toUpperCase();
 
   const handleLike = async () => {
@@ -226,7 +229,9 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
           )}
         </Link>
         <div className="post-author-info">
-          <p className="post-name">{authorName}</p>
+          <Link to={profilePath} className="post-name-link" aria-label={`Open profile of ${authorName}`}>
+            <p className="post-name">{authorName}</p>
+          </Link>
           <div className="author-tags-container">
             <p className="post-tags">{tag}</p>
             {petType && <p className="post-tags">{petType.charAt(0).toUpperCase() + petType.slice(1)}</p>}
@@ -264,6 +269,13 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
           onClick={() => navigate('/chat', { state: { contact: { id: userId, name: authorName } } })}>
           💬 Message
         </button>
+        {purpose === 'service_promo' && author?.user_type === 'provider' && currentUser?.user_type === 'owner' && (
+          <button
+            className="action-btn primary"
+            onClick={() => setIsNewBookingOpen(true)}>
+            Make a booking
+          </button>
+        )}
         {canDeletePost && (
           <button className="admin admin-btn-remove" title="Remove post" onClick={handleDeletePost}>🗑️</button>
         )}
@@ -292,7 +304,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
             {comments.length > 0 ? comments.map(c => {
               const ca = commentAuthors[c.user_id];
               const caName = ca?.name || `User ${c.user_id}`;
-              const caProfilePath = ca?.user_type === 'provider' ? `/sitterprofile/${c.user_id}` : `/ownerprofile/${c.user_id}`;
+              const isOwnComment = currentUser?.id === c.user_id;
+              const caProfilePath = isOwnComment ? '/profile' : (ca?.user_type === 'provider' ? `/sitterprofile/${c.user_id}` : `/ownerprofile/${c.user_id}`);
               return (
                 <div key={c.id} className="comment-row-item">
                   <Link to={caProfilePath} style={{ textDecoration: 'none', flexShrink: 0 }}>
@@ -333,6 +346,15 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
             )}
           </div>
         </div>
+      )}
+
+      {isNewBookingOpen && (
+        <NewBookingPopup
+          onClose={() => setIsNewBookingOpen(false)}
+          onCreateBooking={() => undefined}
+          initialSitter={authorName}
+          petType={petType}
+        />
       )}
     </div>
   );

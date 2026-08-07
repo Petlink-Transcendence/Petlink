@@ -156,6 +156,7 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                             <option value="playdate">Looking for a Playdate 🦴</option>
                             <option value="advice">Pet Advice / Question ❓</option>
                             <option value="social">Just Sharing / Social 📸</option>
+                            <option value="service_promo">Providing a service 💼</option>
                         </select>
                     </div>
 
