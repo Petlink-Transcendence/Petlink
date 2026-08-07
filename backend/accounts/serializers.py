@@ -64,7 +64,8 @@ class RoleTokenRefreshSerializer(TokenRefreshSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        user = User.all_objects.get(pk=self.token['user_id'])
+        refresh = RefreshToken(attrs['refresh'])
+        user = User.all_objects.get(pk=refresh['user_id'])
         access = AccessToken(data['access'])
         access['role'] = user.role
         data['access'] = str(access)
@@ -106,8 +107,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'username', 'email', 'name', 'user_type', 'role', 'avatar', 'banner', 'description', 
             'city', 'country', 'rating', 'online_status', 'created_at', 'experience', 'price', 
-            'sitter_pet_types', 'looking_for', 'oauth_provider', 'notify_bookings', 'notify_messages',
-            'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 'show_pets', 'show_looking_for',
+            'sitter_pet_types', 'looking_for', 'oauth_provider', 'show_about', 'show_pets', 'show_looking_for',
             'availability_status', 'availability_location', 'availability_capacity', 'available_times',
             'followers_count', 'posts_count'
         )
@@ -128,6 +128,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
     is_following = serializers.SerializerMethodField()
+    is_follower = serializers.SerializerMethodField()
     is_connected = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     posts_count = serializers.SerializerMethodField()
@@ -137,9 +138,10 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'username', 'role', 'avatar', 'banner', 'description',
             'city', 'country', 'user_type', 'rating', 'followers_count', 'posts_count',
-            'following_count', 'is_following', 'is_connected', 'experience', 'price',
+            'following_count', 'is_following', 'is_follower', 'is_connected', 'experience', 'price',
             'sitter_pet_types', 'looking_for', 'created_at',
-            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times',
+            'show_about', 'show_pets', 'show_looking_for'
         )
         read_only_fields = fields
 
@@ -151,9 +153,12 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
-            public_fields = {'id', 'name', 'username', 'role', 'user_type', 'avatar', 'banner', 'followers_count', 'following_count'}
+            public_fields = {
+                'id', 'name', 'username', 'role', 'user_type', 'avatar', 'banner',
+                'followers_count', 'following_count', 'show_about', 'show_pets', 'show_looking_for'
+            }
         else:
-            public_fields = set(fields.keys()) | {'is_following', 'is_connected'}
+            public_fields = set(fields.keys()) | {'is_following', 'is_follower', 'is_connected'}
         for field in list(fields.keys()):
             if field not in public_fields:
                 fields.pop(field, None)
@@ -172,6 +177,12 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
         if not request or not request.user or not request.user.is_authenticated:
             return False
         return Follower.objects.filter(follower=request.user, following=obj).exists()
+
+    def get_is_follower(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        return Follower.objects.filter(follower=obj, following=request.user).exists()
 
     def get_is_connected(self, obj):
         request = self.context.get('request')
@@ -193,11 +204,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     price = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     sitter_pet_types = serializers.ListField(child=serializers.CharField(max_length=50), required=False, allow_empty=True)
     looking_for = serializers.ListField(child=serializers.CharField(max_length=50), required=False, allow_empty=True)
-    notify_bookings = serializers.BooleanField(required=False)
-    notify_messages = serializers.BooleanField(required=False)
-    notify_reviews = serializers.BooleanField(required=False)
-    notify_comments = serializers.BooleanField(required=False)
-    notify_connections = serializers.BooleanField(required=False)
     show_about = serializers.BooleanField(required=False)
     show_pets = serializers.BooleanField(required=False)
     show_looking_for = serializers.BooleanField(required=False)
@@ -206,10 +212,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'username', 'name', 'description', 'country', 'city', 'experience', 'price', 
-            'sitter_pet_types', 'looking_for', 'notify_bookings', 'notify_messages', 
-            'notify_reviews', 'notify_comments', 'notify_connections', 'show_about', 
-            'show_pets', 'show_looking_for', 'availability_status', 'availability_location', 
-            'availability_capacity', 'available_times'
+            'sitter_pet_types', 'looking_for', 'show_about','show_pets', 'show_looking_for', 
+            'availability_status', 'availability_location', 'availability_capacity', 'available_times'
         )
 
     def validate_username(self, value):

@@ -56,13 +56,6 @@ class User(AbstractUser):
     online_status = models.BooleanField(default=False)
     last_seen = models.DateTimeField(null=True, blank=True)
 
-    # Notification preferences
-    notify_bookings = models.BooleanField(default=True)
-    notify_messages = models.BooleanField(default=True)
-    notify_reviews = models.BooleanField(default=True)
-    notify_comments = models.BooleanField(default=True)
-    notify_connections = models.BooleanField(default=True)
-
     #Privacy settings
     show_about = models.BooleanField(default=True)
     show_pets = models.BooleanField(default=True)
@@ -80,14 +73,32 @@ class User(AbstractUser):
     objects = ActiveUserManager() # Default: ignore deleteds
     all_objects = UserManager()   # Extra: admins can see deleteds if needed
 
+    def _cleanup_notifications(self):
+        try:
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM notifications_notification WHERE user_id = %s", [self.id])
+                cursor.execute("DELETE FROM notifications_notification WHERE actor_id = %s", [self.id])
+                cursor.execute("DELETE FROM notifications_notification WHERE reference_type = 'user' AND reference_id = %s", [self.id])
+                cursor.execute("DELETE FROM notifications_notification WHERE reference_type = 'post' AND reference_id IN (SELECT id FROM posts_post WHERE user_id = %s)", [self.id])
+        except Exception:
+            pass
+        try:
+            import requests
+            requests.delete(f'http://realtime-service:8001/internal/notifications/user/{self.id}/', timeout=2)
+        except Exception:
+            pass
+
     def soft_delete(self):
         """Deactivates the user account logically without removing it from the database"""
         self.deleted_at = timezone.now()
         self.is_active = False
         self.save()
+        self._cleanup_notifications()
 
     def delete(self, *args, **kwargs):
         """Hard delete the user and completely erase their uploaded files from storage"""
+        self._cleanup_notifications()
         if self.avatar:
             self.avatar.delete(save=False)
         if self.banner:

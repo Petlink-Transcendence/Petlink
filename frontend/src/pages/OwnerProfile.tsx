@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate} from 'react-router-dom';
+import { getLoggedInUserId } from '../utils/auth';
 import './Profile.css';
 
 import ProfileCover from '../components/profile/ProfileCover';
@@ -165,26 +166,16 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [userPosts, setUserPosts] = useState<BackendPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [connections, setConnections] = useState<Record<string, boolean>>({});
+  const [connections, setConnections] = useState<Record<string, { following: boolean, follower: boolean, connected: boolean }>>({});
 
-  const isOwnProfile = !id;
-  const isConnected = profile ? Boolean(connections[profile.id]) : false;
+  const loggedInUserId = getLoggedInUserId();
+  // It is the own profile if no id is in the URL, or if the loaded profile's id matches the logged-in user.
+  const isOwnProfile = !id || (profile && profile.id === loggedInUserId);
+  const connState = profile ? connections[profile.id] : null;
 
-  const fetchUserPosts = async (targetId: number | string) => {
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    try {
-      const res = await fetch(`/posts/?user_id=${targetId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUserPosts(data);
-      }
-    } catch {}
-  };
+
   
   useEffect(() => {
     const fetchProfileData = async (isBackground = false) => {
@@ -244,14 +235,15 @@ export default function Profile() {
       if (mergedData.id && (mergedData as any).is_following !== undefined) {
         setConnections(prev => ({
           ...prev,
-          [mergedData.id]: Boolean((mergedData as any).is_following || (mergedData as any).is_connected)
+          [mergedData.id]: {
+            following: Boolean((mergedData as any).is_following),
+            follower: Boolean((mergedData as any).is_follower),
+            connected: Boolean((mergedData as any).is_connected)
+          }
         }));
       }
 
       setProfile(mapBackendToProfile(mergedData, petsData));
-      if (mergedData.id) {
-        fetchUserPosts(mergedData.id);
-      }
     } catch (err: any) {
       setError(err.message || 'Failed to load profile.');
       console.error("Fetch error details:", err);
@@ -262,12 +254,9 @@ export default function Profile() {
 
     fetchProfileData();
     const handleConnectionUpdate = () => fetchProfileData(true);
-    const handlePostsUpdate = () => fetchProfileData(true);
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
-    window.addEventListener('postsUpdated', handlePostsUpdate);
     return () => {
       window.removeEventListener('connectionUpdated', handleConnectionUpdate);
-      window.removeEventListener('postsUpdated', handlePostsUpdate);
     };
   }, [id]);
 
@@ -293,13 +282,19 @@ export default function Profile() {
   const handleConnectionToggle = async () => {
     if (!profile) return;
     const targetId = profile.id;
-    const currentlyConnected = Boolean(connections[targetId]);
-    const method = currentlyConnected ? 'DELETE' : 'POST';
+    const prevState = connState || { following: false, follower: false, connected: false };
+    const isCurrentlyFollowing = prevState.connected || prevState.following;
+    const method = isCurrentlyFollowing ? 'DELETE' : 'POST';
 
     // Update the UI immediately while persisting the change remotely.
     setConnections(prev => ({
       ...prev,
-      [targetId]: !currentlyConnected,
+      [targetId]: {
+        ...prevState,
+        following: !isCurrentlyFollowing,
+        follower: (isCurrentlyFollowing && prevState.connected) ? false : prevState.follower,
+        connected: !isCurrentlyFollowing ? prevState.follower : false,
+      },
     }));
 
     try {
@@ -322,7 +317,7 @@ export default function Profile() {
       // Roll back the optimistic update when persistence fails.
       setConnections(prev => ({
         ...prev,
-        [targetId]: currentlyConnected,
+        [targetId]: prevState,
       }));
     }
   };
@@ -330,6 +325,14 @@ export default function Profile() {
   if (loading) return <div className="profile-status-msg">⏳ Fetching real backend data...</div>;
   if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
   if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
+
+  const getConnectionButtonLabel = () => {
+    if (!connState) return 'Connect';
+    if (connState.connected) return 'Disconnect';
+    if (connState.following) return 'Waiting approval';
+    if (connState.follower) return 'Connect back';
+    return 'Connect';
+  };
 
   return (
     <div className="profile-page">
@@ -344,7 +347,7 @@ export default function Profile() {
           ? [{ label: 'Edit Profile', variant: 'secondary', onClick: () => navigate('/settings') }]
           : [
             {
-              label: isConnected ? 'Waiting approval' : 'Connect',
+              label: getConnectionButtonLabel(),
               variant: 'primary',
               onClick: handleConnectionToggle,
             },
@@ -359,8 +362,6 @@ export default function Profile() {
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}
-          onPostCreated={() => profile?.id && fetchUserPosts(profile.id)}
-          onPostDeleted={() => profile?.id && fetchUserPosts(profile.id)}
         />
       </div>
     </div>

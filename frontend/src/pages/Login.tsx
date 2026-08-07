@@ -29,9 +29,13 @@ export default function Login() {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('access', data.access);
-                localStorage.setItem('refresh', data.refresh);
-                navigate('/');
+                if (data.error) {
+                    setError("Invalid username or password.");
+                } else {
+                    localStorage.setItem('access', data.access);
+                    localStorage.setItem('refresh', data.refresh);
+                    navigate('/');
+                }
             } else {
                 setError("Invalid username or password.");
             }

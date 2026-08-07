@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getLoggedInUserId } from '../utils/auth';
 import './Profile.css';
 
 import ProfileCover from '../components/profile/ProfileCover';
@@ -305,26 +306,26 @@ export default function SitterProfile() {
   const navigate = useNavigate();
 
   const [profile, setProfile] = useState<ProfileSitterData | null>(null);
-  const [userPosts, setUserPosts] = useState<BackendPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [connections, setConnections] = useState<Record<string, boolean>>({});
+  const [connections, setConnections] = useState<Record<string, { following: boolean, follower: boolean, connected: boolean }>>({});
+  const [currentUserType, setCurrentUserType] = useState<string | null>(null);
 
-  const isOwnProfile = !profileId;
-  const isConnected = profile ? Boolean(connections[profile.id]) : false;
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    if (token) {
+      fetch('/auth/me/', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(u => { if (u) setCurrentUserType(u.user_type); })
+        .catch(() => {});
+    }
+  }, []);
 
-  const fetchUserPosts = async (targetId: number | string) => {
-    const token = localStorage.getItem('access') || localStorage.getItem('access_token');
-    try {
-      const res = await fetch(`/posts/?user_id=${targetId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUserPosts(data);
-      }
-    } catch {}
-  };
+  const loggedInUserId = getLoggedInUserId();
+  const isOwnProfile = !profileId || (profile && profile.id === loggedInUserId);
+  const connState = profile ? connections[profile.id] : null;
+
+
 
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
@@ -380,7 +381,11 @@ export default function SitterProfile() {
         if (mergedData.id && (mergedData as any).is_following !== undefined) {
           setConnections(prev => ({
             ...prev,
-            [mergedData.id]: Boolean((mergedData as any).is_following || (mergedData as any).is_connected)
+            [mergedData.id]: {
+              following: Boolean((mergedData as any).is_following),
+              follower: Boolean((mergedData as any).is_follower),
+              connected: Boolean((mergedData as any).is_connected)
+            }
           }));
         }
 
@@ -426,9 +431,6 @@ export default function SitterProfile() {
         }
 
         setProfile(nextProfile);
-        if (mergedData.id) {
-          fetchUserPosts(mergedData.id);
-        }
       } catch (err: any) {
         console.error("Fetch error details:", err);
         setError('');
@@ -439,12 +441,9 @@ export default function SitterProfile() {
 
     fetchProfileData();
     const handleConnectionUpdate = () => fetchProfileData();
-    const handlePostsUpdate = () => fetchProfileData();
     window.addEventListener('connectionUpdated', handleConnectionUpdate);
-    window.addEventListener('postsUpdated', handlePostsUpdate);
     return () => {
       window.removeEventListener('connectionUpdated', handleConnectionUpdate);
-      window.removeEventListener('postsUpdated', handlePostsUpdate);
     };
   }, [profileId]);
   
@@ -470,8 +469,20 @@ export default function SitterProfile() {
   const handleConnectionToggle = async () => {
     if (!profile) return;
     const targetId = profile.id;
-    const currentlyConnected = Boolean(connections[targetId]);
-    const method = currentlyConnected ? 'DELETE' : 'POST';
+    const prevState = connState || { following: false, follower: false, connected: false };
+    const isCurrentlyFollowing = prevState.connected || prevState.following;
+    const method = isCurrentlyFollowing ? 'DELETE' : 'POST';
+
+    // Update the UI immediately while persisting the change remotely.
+    setConnections(prev => ({
+      ...prev,
+      [targetId]: {
+        ...prevState,
+        following: !isCurrentlyFollowing,
+        follower: (isCurrentlyFollowing && prevState.connected) ? false : prevState.follower,
+        connected: !isCurrentlyFollowing ? prevState.follower : false,
+      },
+    }));
 
     try {
       const token = localStorage.getItem('access') || localStorage.getItem('access_token');
@@ -484,14 +495,22 @@ export default function SitterProfile() {
       });
 
       if (response.ok) {
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : {};
+        if (data.error) {
+          throw new Error(data.error);
+        }
         window.dispatchEvent(new Event('connectionUpdated'));
-        setConnections(prev => ({
-          ...prev,
-          [targetId]: !currentlyConnected,
-        }));
+      } else {
+        throw new Error(`Connection update failed with status ${response.status}`);
       }
     } catch (err) {
-      console.error('Failed to toggle connection:', err);
+      console.error(err);
+      // Revert optimistic update
+      setConnections(prev => ({
+        ...prev,
+        [targetId]: prevState,
+      }));
     }
   };
 
@@ -624,6 +643,14 @@ export default function SitterProfile() {
   if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
   if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
 
+  const getConnectionButtonLabel = () => {
+    if (!connState) return 'Connect';
+    if (connState.connected) return 'Disconnect';
+    if (connState.following) return 'Waiting approval';
+    if (connState.follower) return 'Connect back';
+    return 'Connect';
+  };
+
   return (
     <div className="profile-page">
       <ProfileCover initials={profile.initials} imageUrl={profile.imageUrl} />
@@ -636,9 +663,9 @@ export default function SitterProfile() {
         actions={isOwnProfile
           ? [{ label: 'Edit Profile', variant: 'secondary',  onClick: () => navigate('/settings') }]
           : [
-            { label: 'Make a booking', variant: 'primary', onClick: () => setIsNewBookingOpen(true) },
+            ...(currentUserType === 'owner' ? [{ label: 'Make a booking', variant: 'primary' as const, onClick: () => setIsNewBookingOpen(true) }] : []),
             {
-              label: isConnected ? 'Disconnect' : 'Connect',
+              label: getConnectionButtonLabel(),
               variant: 'secondary',
               onClick: handleConnectionToggle,
             },
@@ -665,8 +692,6 @@ export default function SitterProfile() {
           authorName={profile.name}
           authorInitials={profile.initials}
           showCreatePost={isOwnProfile}
-          onPostCreated={() => profile?.id && fetchUserPosts(profile.id)}
-          onPostDeleted={() => profile?.id && fetchUserPosts(profile.id)}
         />
       </div>
       {isNewBookingOpen && (

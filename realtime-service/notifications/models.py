@@ -13,6 +13,7 @@ class Notification(models.Model):
     ]
 
     user_id = models.IntegerField()
+    actor_id = models.IntegerField(null=True, blank=True)
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
     content = models.CharField(max_length=500)
     reference_id = models.IntegerField(null=True, blank=True)

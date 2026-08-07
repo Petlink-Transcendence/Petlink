@@ -126,8 +126,8 @@
   margin-top: 0.9375rem;
 }
 
-/* push last button to the right */
-.post-buttons > :last-child {
+/* push message button (and subsequent buttons) to the right */
+.post-buttons > .btn.message {
   margin-left: auto;
 }
 
@@ -239,3 +239,14 @@
   }
 }
 
+
+.post-name-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.post-name-link:hover .post-name {
+  text-decoration: underline;
+}

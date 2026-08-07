@@ -52,6 +52,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await database_sync_to_async(Notification.objects.create)(
             user_id=recipient_id,
+            actor_id=int(self.user_id),
             type='new_message',
             content='You have a new message.',
             reference_id=int(self.user_id),
