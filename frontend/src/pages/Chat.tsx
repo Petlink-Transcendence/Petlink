@@ -33,7 +33,7 @@ interface ChatRouteState {
 }
 
 function getToken(): string | null {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem('access');
 }
 
 function getCurrentUserId(): number | null {
