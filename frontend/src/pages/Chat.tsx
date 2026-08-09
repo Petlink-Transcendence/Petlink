@@ -313,67 +313,71 @@ export default function Chat() {
     useEffect(() => {
         if (!currentUserId) return;
 
-        const token = getToken();
-        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const socket = new WebSocket(
-            `${protocol}://${window.location.host}/ws/chat/${currentUserId}/?token=${token}`
-        );
-        wsRef.current = socket;
+        let cancelled = false;
+        let socket: WebSocket | null = null;
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+        const timeoutId = setTimeout(() => {
+            if (cancelled) return;
 
-            if (data.type === 'message_deleted') {
-                setMessages(prev => prev.filter(m => m.id !== data.message_id));
-                return;
-            }
+            const token = getToken();
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            socket = new WebSocket(
+                `${protocol}://${window.location.host}/ws/chat/${currentUserId}/?token=${token}`
+            );
+            wsRef.current = socket;
 
-            if (data.type === 'message_sent_ack') {
-                setMessages(prev => prev.map(m =>
-                    m.id === data.temp_id ? { ...m, id: data.real_id } : m
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'message_deleted') {
+                    setMessages(prev => prev.filter(m => m.id !== data.message_id));
+                    return;
+                }
+
+                if (data.type === 'message_sent_ack') {
+                    setMessages(prev => prev.map(m =>
+                        m.id === data.temp_id ? { ...m, id: data.real_id } : m
+                    ));
+                    return;
+                }
+
+                const senderId = Number(data.sender_id);
+                const now = new Date();
+                const incoming: Message = {
+                    id: data.message_id,
+                    contactId: senderId,
+                    text: data.content,
+                    sender: 'them',
+                    time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    createdAt: now.toISOString(),
+                };
+                setMessages(prev => [...prev, incoming]);
+
+                setContacts(prev => prev.map(c =>
+                    c.id === senderId
+                        ? {
+                            ...c,
+                            lastMessage: data.content,
+                            lastMessageAt: now.toISOString(),
+                            unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
+                        }
+                        : c
                 ));
-                return;
-            }
-
-            // regular incoming chat message: { sender_id, content }
-            const senderId = Number(data.sender_id);
-            const now = new Date();
-            const incoming: Message = {
-                id: data.message_id,
-                contactId: senderId,
-                text: data.content,
-                sender: 'them',
-                time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                createdAt: now.toISOString(),
             };
-            setMessages(prev => [...prev, incoming]);
 
-            // bump that contact's preview + unread count if it's not the
-            // conversation currently open (use the ref so this closure
-            // always sees the latest activeChat without needing to
-            // reopen the socket on every chat switch)
-            setContacts(prev => prev.map(c =>
-                c.id === senderId
-                    ? {
-                        ...c,
-                        lastMessage: data.content,
-                        lastMessageAt: now.toISOString(),
-                        unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
-                    }
-                    : c
-            ));
-        };
-
-        socket.onclose = (event) => {
-            if (event.code === 4001) {
-                console.error('Chat auth failed — token invalid or expired');
-                // TODO: redirect to login rather than retry
-            }
-            // TODO: reconnect-with-backoff for other close codes (pending Week 5 item)
-        };
+            socket.onclose = (event) => {
+                if (event.code === 4001) {
+                    console.error('Chat auth failed — token invalid or expired');
+                }
+            };
+        }, 0);
 
         return () => {
-            socket.close();
+            cancelled = true;
+            clearTimeout(timeoutId);
+            if (socket) {
+                socket.close();
+            }
         };
     }, [currentUserId]);
 
