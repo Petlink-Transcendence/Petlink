@@ -77,6 +77,39 @@ class Command(BaseCommand):
                 user.set_password('Test1234!')
                 user.save()
 
+        provider_availability = {
+            'rafael': {
+                'availability_status': 'Accepting',
+                'availability_location': 'Porto',
+                'availability_capacity': '2 bookings/day',
+                'available_times': [
+                    {'label': 'Mon - Fri', 'time': '09:00 - 12:00'},
+                    {'label': 'Saturday', 'time': '14:00 - 19:00'},
+                    {'label': 'Sunday', 'time': 'On request'},
+                ],
+            },
+            'maria': {
+                'availability_status': 'Accepting',
+                'availability_location': 'Porto',
+                'availability_capacity': '3 walks/day',
+                'available_times': [
+                    {'label': 'Weekdays morning', 'time': '08:00 - 10:00'},
+                    {'label': 'Weekdays evening', 'time': '17:00 - 19:00'},
+                ],
+            },
+            'carlos': {
+                'availability_status': 'Accepting',
+                'availability_location': 'Porto',
+                'availability_capacity': '2 cats/day',
+                'available_times': [
+                    {'label': 'Saturday', 'time': '10:00 - 14:00'},
+                    {'label': 'Sunday', 'time': '10:00 - 18:00'},
+                ],
+            },
+        }
+        for username, fields in provider_availability.items():
+            User.objects.filter(username=username).update(**fields)
+
         pets_data = [
             {'name': 'Zeus', 'type': 'dog', 'breed': 'Labrador', 'owner': User.objects.get(username='joao')},
             {'name': 'Kyara', 'type': 'cat', 'breed': 'Yorkshire', 'owner': User.objects.get(username='joao')},
@@ -142,66 +175,69 @@ class Command(BaseCommand):
         Availability.objects.get_or_create(user=maria, start_date='2026-07-14', end_date='2026-07-31', defaults={'time_slots': 'Weekdays 09:00-12:00', 'price': '15.00', 'currency': 'EUR'})
         Availability.objects.get_or_create(user=carlos, start_date='2026-07-14', end_date='2026-07-31', defaults={'time_slots': 'Weekends 10:00-18:00', 'price': '12.00', 'currency': 'EUR'})
 
-        Booking.objects.get_or_create(requester=joao, provider=maria, service=service_maria, pet=zeus, date='2026-07-15', defaults={'start_time': '09:00', 'end_time': '10:00', 'location': 'Porto', 'message': 'Walk', 'currency': 'EUR'})
-        Booking.objects.get_or_create(requester=isabel, provider=carlos, service=service_carlos, pet=sushi, date='2026-07-16', defaults={'start_time': '10:00', 'end_time': '18:00', 'location': 'Porto', 'message': 'Feed', 'currency': 'EUR'})
-
         gabriel = User.objects.get(username='gabriel')
         ricardo = User.objects.get(username='ricardo')
-        rafael = User.objects.get(username='rafael')
+        rei = Pet.objects.get(name='Rei')
+        bella = Pet.objects.get(name='Bella')
+
+        service_rafael_cat, _ = Service.objects.get_or_create(user=rafael, type='cat_sitting')
+        service_rafael_home, _ = Service.objects.get_or_create(user=rafael, type='home_visits')
+        service_rafael_groom, _ = Service.objects.get_or_create(user=rafael, type='grooming')
+
+        bookings_data = [
+            # completed — can leave reviews
+            dict(requester=joao, provider=maria, service=service_maria, pet=zeus, date='2026-06-10', status='completed', start_time='09:00', end_time='10:00', location='Porto', message='Morning walk, Zeus loves fetch!'),
+            dict(requester=isabel, provider=carlos, service=service_carlos, pet=sushi, date='2026-06-12', status='completed', start_time='10:00', end_time='18:00', location='Porto', message='Sushi needs wet food at noon.'),
+            dict(requester=joao, provider=rafael, service=service_rafael_cat, pet=zeus, date='2026-06-20', status='completed', start_time='09:00', end_time='11:00', location='Porto', message='Zeus is friendly, loves treats.'),
+            dict(requester=isabel, provider=rafael, service=service_rafael_home, pet=sushi, date='2026-06-25', status='completed', start_time='14:00', end_time='15:00', location='Porto', message='Check litter box and water.'),
+            dict(requester=ricardo, provider=rafael, service=service_rafael_groom, pet=rei, date='2026-07-01', status='completed', start_time='11:00', end_time='12:00', location='Porto', message='Rei is a bit shy at first.'),
+            dict(requester=gabriel, provider=rafael, service=service_rafael_cat, pet=bella, date='2026-07-05', status='completed', start_time='10:00', end_time='12:00', location='Porto', message='Bella likes to hide, be patient!'),
+            # confirmed — upcoming
+            dict(requester=joao, provider=rafael, service=service_rafael_home, pet=zeus, date='2026-09-10', status='confirmed', start_time='09:00', end_time='10:00', location='Porto', message='Quick check-in while I travel.'),
+            dict(requester=isabel, provider=rafael, service=service_rafael_cat, pet=sushi, date='2026-09-15', status='confirmed', start_time='14:00', end_time='16:00', location='Porto', message='Two visits, afternoon feeding.'),
+            # pending
+            dict(requester=joao, provider=maria, service=service_maria, pet=zeus, date='2026-09-20', status='pending', start_time='08:00', end_time='09:00', location='Porto', message='Early morning walk please.'),
+            dict(requester=gabriel, provider=rafael, service=service_rafael_groom, pet=bella, date='2026-09-22', status='pending', start_time='11:00', end_time='12:00', location='Porto', message='First grooming session for Bella.'),
+            # cancelled
+            dict(requester=isabel, provider=carlos, service=service_carlos, pet=sushi, date='2026-07-16', status='cancelled', start_time='10:00', end_time='18:00', location='Porto', message='Had to cancel, sorry!'),
+        ]
+
+        for b in bookings_data:
+            status = b.pop('status')
+            obj, created = Booking.objects.get_or_create(
+                requester=b['requester'], provider=b['provider'],
+                service=b['service'], pet=b['pet'], date=b['date'],
+                defaults={**{k: v for k, v in b.items() if k not in ('requester', 'provider', 'service', 'pet', 'date')}, 'currency': 'EUR'},
+            )
+            if created or obj.status != status:
+                obj.status = status
+                obj.save()
 
         reviews_data = [
-            {
-                'reviewer': joao,
-                'reviewee': daniela,
-                'rating': 5,
-                'comment': 'Daniela gave clear care instructions, responded quickly, and made the booking easy from start to finish.'
-            },
-            {
-                'reviewer': isabel,
-                'reviewee': daniela,
-                'rating': 4,
-                'comment': 'Daniela was organized and thoughtful as a pet owner, with everything ready for a smooth visit.'
-            },
-            {
-                'reviewer': daniela,
-                'reviewee': isabel,
-                'rating': 5,
-                'comment': 'Isabel is a thoughtful pet owner. And Kiwi and Sushi are the best cats ever, well behaved and cute.'
-            },
-            {
-                'reviewer': joao,
-                'reviewee': rafael,
-                'rating': 5,
-                'comment': 'Rafael took incredible care of Zeus. Super professional, always updated me and Zeus loved him!'
-            },
-            {
-                'reviewer': isabel,
-                'reviewee': rafael,
-                'rating': 5,
-                'comment': 'Best cat sitter in Porto. Sushi and Quiwi were happy and relaxed when I came back.'
-            },
-            {
-                'reviewer': ricardo,
-                'reviewee': rafael,
-                'rating': 4,
-                'comment': 'Very attentive and reliable. Rei warmed up to him quickly which says a lot!'
-            },
-            {
-                'reviewer': gabriel,
-                'reviewee': joao,
-                'rating': 5,
-                'comment': 'Joao is super communicative and responsible. Would trust him with my pets anytime.'
-            },
+            {'reviewer': joao,    'reviewee': daniela, 'rating': 5, 'comment': 'Daniela gave clear care instructions, responded quickly, and made the booking easy from start to finish.'},
+            {'reviewer': isabel,  'reviewee': daniela, 'rating': 4, 'comment': 'Daniela was organized and thoughtful as a pet owner, with everything ready for a smooth visit.'},
+            {'reviewer': daniela, 'reviewee': isabel,  'rating': 5, 'comment': 'Isabel is a thoughtful pet owner. And Kiwi and Sushi are the best cats ever, well behaved and cute.'},
+            {'reviewer': joao,    'reviewee': rafael,  'rating': 5, 'comment': 'Rafael took incredible care of Zeus. Super professional, always updated me and Zeus loved him!'},
+            {'reviewer': isabel,  'reviewee': rafael,  'rating': 5, 'comment': 'Best cat sitter in Porto. Sushi and Quiwi were happy and relaxed when I came back.'},
+            {'reviewer': ricardo, 'reviewee': rafael,  'rating': 4, 'comment': 'Very attentive and reliable. Rei warmed up to him quickly which says a lot!'},
+            {'reviewer': gabriel, 'reviewee': rafael,  'rating': 5, 'comment': 'Bella loved the attention. Rafael was patient and professional throughout.'},
+            {'reviewer': gabriel, 'reviewee': joao,    'rating': 5, 'comment': 'Joao is super communicative and responsible. Would trust him with my pets anytime.'},
+            {'reviewer': maria,   'reviewee': joao,    'rating': 5, 'comment': 'Zeus is an absolute joy to walk. Joao left great instructions and was easy to coordinate with.'},
+            {'reviewer': carlos,  'reviewee': isabel,  'rating': 4, 'comment': 'Isabel was well prepared and Sushi is a lovely cat. Would take care of her again.'},
+            {'reviewer': rafael,  'reviewee': joao,    'rating': 5, 'comment': 'Very easy to work with. Zeus is well trained and Joao is always punctual and communicative.'},
+            {'reviewer': rafael,  'reviewee': isabel,  'rating': 5, 'comment': 'Isabel is a great owner — detailed notes, responsive, and Sushi is adorable.'},
+            {'reviewer': rafael,  'reviewee': ricardo, 'rating': 4, 'comment': 'Ricardo was clear about Rei\'s needs. Would work together again.'},
+            {'reviewer': rafael,  'reviewee': gabriel, 'rating': 5, 'comment': 'Gabriel is super organised. Bella is shy but warmed up fast — great experience.'},
         ]
 
         for data in reviews_data:
+            qs = Review.objects.filter(reviewer=data['reviewer'], reviewee=data['reviewee'])
+            if qs.count() > 1:
+                qs.delete()
             Review.objects.update_or_create(
                 reviewer=data['reviewer'],
                 reviewee=data['reviewee'],
-                defaults={
-                    'rating': data['rating'],
-                    'comment': data['comment']
-                }
+                defaults={'rating': data['rating'], 'comment': data['comment']}
             )
 
         # ── Posts, comments, likes (realtime-service shares this DB) ──────────

@@ -151,6 +151,48 @@
   text-align: left;
 }
 
+.new-booking-day-picker,
+.new-booking-date-picker {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.new-booking-day-btn,
+.new-booking-date-btn {
+  border: 1.5px solid #ddd;
+  border-radius: 0.65rem;
+  padding: 0.45rem 0.8rem;
+  background: white;
+  color: #555;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.new-booking-day-btn:hover,
+.new-booking-date-btn:hover {
+  border-color: var(--petlink-tan);
+  color: var(--petlink-tan);
+}
+
+.new-booking-day-btn.is-selected,
+.new-booking-date-btn.is-selected {
+  border-color: var(--petlink-tan);
+  background: var(--petlink-tan);
+  color: white;
+}
+
+.new-booking-field select:disabled,
+.new-booking-field input:disabled {
+  background: #f3f2f0;
+  color: #bbb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .new-booking-submit:disabled {
   background: #cccccc;
   cursor: not-allowed;
