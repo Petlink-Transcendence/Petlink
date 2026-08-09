@@ -75,8 +75,16 @@ export default function Chat() {
         document.title = "Chat | PetLink";
     }, []);
 
-    function initials(name: string) {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    function initials(name: string | undefined | null): string {
+        if (!name) return '?';
+
+        const parts = name.trim().split(/[\s_-]+/);
+
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+
+        return name.trim().slice(0, 2).toUpperCase();
     }
 
     /* CHAT */
