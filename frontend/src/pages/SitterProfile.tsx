@@ -697,7 +697,7 @@ export default function SitterProfile() {
       {isNewBookingOpen && (
         <NewBookingPopup
           onClose={() => setIsNewBookingOpen(false)}
-          onCreateBooking={() => undefined}
+          providerId={Number(profile.id)}
           initialSitter={profile.name}
         />
       )}

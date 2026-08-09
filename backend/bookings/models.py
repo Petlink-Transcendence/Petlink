@@ -58,6 +58,9 @@ class Booking(models.Model):
     currency = models.CharField(max_length=10, default='EUR')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
 class Review(models.Model):
     reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_given')
     reviewee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_received')

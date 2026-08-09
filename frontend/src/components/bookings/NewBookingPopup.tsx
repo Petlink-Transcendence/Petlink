@@ -2,108 +2,122 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { getLoggedInUserId } from '../../utils/auth';
 import './NewBookingPopup.css';
 
-const MIN_BOOKING_DATE = '2026-01-01';
-
-export type NewBookingFormData = {
-  service: string;
-  pet: string;
-  sitter: string;
-  date: string;
-  time: string;
-  location: string;
-  notes: string;
-};
+const MIN_BOOKING_DATE = new Date().toISOString().slice(0, 10);
 
 type NewBookingPopupProps = {
   onClose: () => void;
-  onCreateBooking: (booking: NewBookingFormData) => void;
+  providerId: number;
   initialSitter?: string;
-  petType?: string;
 };
 
-export default function NewBookingPopup({ onClose, onCreateBooking, initialSitter = '', petType }: NewBookingPopupProps) {
-  const [service, setService] = useState('');
-  const [pet, setPet] = useState('');
-  const [sitter, setSitter] = useState(initialSitter);
+type Pet = { id: number; name: string; type: string };
+type Service = { id: number; type: string; description: string | null; price: string; currency: string; price_unit: string };
+
+const SERVICE_LABELS: Record<string, string> = {
+  dog_walking: 'Dog Walking',
+  cat_sitting: 'Cat Sitting',
+  home_visits: 'Home Visits',
+  overnight_stay: 'Overnight Stay',
+  grooming: 'Grooming',
+};
+
+export default function NewBookingPopup({ onClose, providerId, initialSitter = '' }: NewBookingPopupProps) {
+  const [serviceId, setServiceId] = useState('');
+  const [petId, setPetId] = useState('');
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const [userPets, setUserPets] = useState<{ id: number; name: string; type: string }[]>([]);
+  const [userPets, setUserPets] = useState<Pet[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   useEffect(() => {
     const userId = getLoggedInUserId();
+    const token = localStorage.getItem('access');
+
     if (userId) {
-      fetch(`/api/users/${userId}/pets/`)
+      fetch(`/api/users/${userId}/pets/`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
         .then(res => res.ok ? res.json() : [])
         .then(data => setUserPets(data))
         .catch(() => {});
     }
-  }, []);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    fetch('/api/services/', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then((data: Service[]) => setServices(data.filter(s => (s as any).user === providerId)))
+      .catch(() => {});
+  }, [providerId]);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!serviceId || !petId || !date || !startTime || !endTime || !location.trim()) return;
 
-    if (
-      !service ||
-      !pet.trim() ||
-      !sitter.trim() ||
-      !date ||
-      date < MIN_BOOKING_DATE ||
-      !time.trim() ||
-      !location.trim()
-    ) {
-      return;
+    setSubmitting(true);
+    setError('');
+
+    const token = localStorage.getItem('access');
+    try {
+      const res = await fetch('/api/bookings/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          provider: providerId,
+          service: Number(serviceId),
+          pet: Number(petId),
+          date,
+          start_time: startTime,
+          end_time: endTime,
+          location: location.trim(),
+          message: notes.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        onClose();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(Object.values(data).flat().join(' ') || 'Failed to create booking.');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
-
-    onCreateBooking({
-      service,
-      pet: pet.trim(),
-      sitter: sitter.trim(),
-      date,
-      time: time.trim(),
-      location: location.trim(),
-      notes: notes.trim(),
-    });
-    onClose();
   };
-
-  const hasPetMismatch =
-    petType &&
-    userPets.length > 0 &&
-    userPets.every(p => p.type && p.type.toLowerCase() !== petType.toLowerCase());
 
   return (
     <div className="new-booking-overlay" onClick={onClose}>
       <section className="new-booking-container" onClick={event => event.stopPropagation()}>
         <header className="new-booking-header">
-          <h2>New Booking</h2>
+          <h2>Book {initialSitter || 'Sitter'}</h2>
           <button type="button" className="new-booking-close" onClick={onClose} aria-label="Close new booking form">
             &times;
           </button>
         </header>
 
         <form className="new-booking-form" onSubmit={handleSubmit}>
-          {hasPetMismatch && (
-            <div className="new-booking-warning">
-              ⚠️ Note: This post is offering a {petType} service, but you don't seem to have any {petType}s registered on your profile.
-            </div>
-          )}
+          {error && <div className="new-booking-warning">⚠️ {error}</div>}
 
           <label className="new-booking-field">
             <span className="required-label">Service</span>
-            <select value={service} onChange={event => setService(event.target.value)} required>
+            <select value={serviceId} onChange={e => setServiceId(e.target.value)} required>
               <option value="">Select a service</option>
-              {(!petType || petType.toLowerCase() === 'dog') && (
-                <option value="Dog walking">Dog walking</option>
-              )}
-              {(!petType || petType.toLowerCase() === 'cat') && (
-                <option value="Cat sitting">Cat sitting</option>
-              )}
-              <option value="Home visits">Home visits</option>
-              <option value="Overnight stay">Overnight stay</option>
-              <option value="Grooming">Grooming</option>
+              {services.map(s => (
+                <option key={s.id} value={s.id}>
+                  {SERVICE_LABELS[s.type] ?? s.type} — {s.price} {s.currency}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -111,32 +125,24 @@ export default function NewBookingPopup({ onClose, onCreateBooking, initialSitte
             <label className="new-booking-field">
               <span className="required-label">Pet</span>
               {userPets.length > 0 ? (
-                <select value={pet} onChange={event => setPet(event.target.value)} required>
+                <select value={petId} onChange={e => setPetId(e.target.value)} required>
                   <option value="">Select a pet</option>
-                  {userPets
-                    .filter(p => !petType || !p.type || p.type.toLowerCase() === petType.toLowerCase())
-                    .map(p => (
-                      <option key={p.id} value={p.name}>{p.name}</option>
+                  {userPets.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               ) : (
-                <input
-                  type="text"
-                  value={pet}
-                  onChange={event => setPet(event.target.value)}
-                  placeholder="Luna"
-                  required
-                />
+                <input type="text" placeholder="Add a pet in your profile first" disabled />
               )}
             </label>
 
             <label className="new-booking-field">
-              <span className="required-label">Sitter</span>
+              <span className="required-label">Date</span>
               <input
-                type="text"
-                value={sitter}
-                onChange={event => setSitter(event.target.value)}
-                placeholder="Ana Costa"
+                type="date"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                min={MIN_BOOKING_DATE}
                 required
               />
             </label>
@@ -144,23 +150,21 @@ export default function NewBookingPopup({ onClose, onCreateBooking, initialSitte
 
           <div className="new-booking-row">
             <label className="new-booking-field">
-              <span className="required-label">Date</span>
+              <span className="required-label">Start time</span>
               <input
-                type="date"
-                value={date}
-                onChange={event => setDate(event.target.value)}
-                min={MIN_BOOKING_DATE}
+                type="time"
+                value={startTime}
+                onChange={e => setStartTime(e.target.value)}
                 required
               />
             </label>
 
             <label className="new-booking-field">
-              <span className="required-label">Time</span>
+              <span className="required-label">End time</span>
               <input
-                type="text"
-                value={time}
-                onChange={event => setTime(event.target.value)}
-                placeholder="09:00 - 10:00"
+                type="time"
+                value={endTime}
+                onChange={e => setEndTime(e.target.value)}
                 required
               />
             </label>
@@ -171,7 +175,7 @@ export default function NewBookingPopup({ onClose, onCreateBooking, initialSitte
             <input
               type="text"
               value={location}
-              onChange={event => setLocation(event.target.value)}
+              onChange={e => setLocation(e.target.value)}
               placeholder="Porto, PT"
               required
             />
@@ -181,14 +185,14 @@ export default function NewBookingPopup({ onClose, onCreateBooking, initialSitte
             <span>Notes</span>
             <textarea
               value={notes}
-              onChange={event => setNotes(event.target.value)}
+              onChange={e => setNotes(e.target.value)}
               placeholder="Feeding instructions, access details, or anything the sitter should know."
               rows={4}
             />
           </label>
 
-          <button type="submit" className="new-booking-submit" disabled={hasPetMismatch}>
-            Create Booking
+          <button type="submit" className="new-booking-submit" disabled={submitting}>
+            {submitting ? 'Creating…' : 'Create Booking'}
           </button>
         </form>
       </section>
