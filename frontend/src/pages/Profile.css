@@ -31,6 +31,10 @@ body:has(.profile-page) .footer {
 
 .profile-body > .profile-left {
   flex: 0 0 17.5rem;
+  width: 17.5rem;
+  max-width: 17.5rem;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .profile-body > .profile-right {
@@ -49,8 +53,8 @@ body:has(.profile-page) .footer {
 
   .profile-body > .profile-left {
     width: 100%;
-    max-width: 37.5rem;
-    flex: 1 1 auto;
+    max-width: 20rem;
+    flex: 0 0 auto;
   }
 
   .profile-body > .profile-right {

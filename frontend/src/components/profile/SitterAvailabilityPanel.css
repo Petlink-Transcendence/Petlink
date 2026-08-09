@@ -3,6 +3,11 @@
   flex-direction: column;
   gap: 0.95rem;
   overflow: hidden;
+  width: 100%;
+  max-width: 17.5rem;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .sitter-availability-header {

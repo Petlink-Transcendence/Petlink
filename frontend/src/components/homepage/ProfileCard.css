@@ -107,7 +107,9 @@
 @media (max-width: 48rem) {
   .profile-card {
     width: 100%;
+    max-width: 20rem;
     padding: 1rem;
+    box-sizing: border-box;
   }
 
   .profile-card img {

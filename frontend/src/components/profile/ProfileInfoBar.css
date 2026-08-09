@@ -120,6 +120,9 @@
   max-width: 36rem;
   text-align: left;
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 /* Stats row */
