@@ -252,17 +252,20 @@ export default function Chat() {
             return;
         }
 
+        const tempId = Date.now();
+
         // NOTE: the Message model only has a `content` text field — there is
         // no backend support for image attachments yet, so attachedPhoto is
         // only shown locally and never actually transmitted.
         wsRef.current.send(JSON.stringify({
             recipient_id: activeChat,
             content: message,
+            temp_id: tempId,
         }));
 
         const now = new Date();
         const newMessage: Message = {
-            id: Date.now(), // temporary client-side id until next reload
+            id: tempId, // temporary client-side id until next reload
             contactId: activeChat,
             text: message,
             attachment: attachedPhoto || undefined,
@@ -322,11 +325,18 @@ export default function Chat() {
                 return;
             }
 
+            if (data.type === 'message_sent_ack') {
+                setMessages(prev => prev.map(m =>
+                    m.id === data.temp_id ? { ...m, id: data.real_id } : m
+                ));
+                return;
+            }
+
             // regular incoming chat message: { sender_id, content }
             const senderId = Number(data.sender_id);
             const now = new Date();
             const incoming: Message = {
-                id: Date.now(),
+                id: data.message_id,
                 contactId: senderId,
                 text: data.content,
                 sender: 'them',

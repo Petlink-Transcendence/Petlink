@@ -52,12 +52,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         recipient_id = data.get('recipient_id')
         content = data.get('content')
+        temp_id = data.get('temp_id')
 
         if recipient_id is None or not content:
             await self.send(text_data=json.dumps({'error': 'recipient_id and content are required'}))
             return
 
-        await self.save_message(recipient_id, content)
+        real_id = await self.save_message(recipient_id, content)
 
         await database_sync_to_async(Notification.objects.create)(
             user_id=recipient_id,
@@ -72,6 +73,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             f'chat_{recipient_id}',
             {
                 'type': 'chat_message',
+                'message_id': real_id,
                 'sender_id': self.user_id,
                 'content': content,
             }
@@ -88,8 +90,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        if temp_id is not None:
+            await self.channel_layer.group_send(
+                f'chat_{self.user_id}',
+                {
+                    'type': 'message_sent_ack',
+                    'temp_id': temp_id,
+                    'real_id': real_id,
+                }
+            )
+
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
+            'message_id': event['message_id'],
             'sender_id': event['sender_id'],
             'content': event['content'],
         }))
@@ -100,13 +113,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message_id': event['message_id'],
         }))
 
+    async def message_sent_ack(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'message_sent_ack',
+            'temp_id': event['temp_id'],
+            'real_id': event['real_id'],
+        }))
+
     @database_sync_to_async
     def save_message(self, recipient_id, content):
-        Message.objects.create(
+        message = Message.objects.create(
             sender_id=self.user_id,
             recipient_id=recipient_id,
             content=content
         )
+        return message.id
 
     @database_sync_to_async
     def update_online_status(self, status):
