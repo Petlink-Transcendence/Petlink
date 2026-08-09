@@ -14,9 +14,23 @@ class AvailabilitySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'user', 'created_at')
 
 class BookingSerializer(serializers.ModelSerializer):
+    requester_name = serializers.CharField(source='requester.name', read_only=True)
+    provider_name = serializers.CharField(source='provider.name', read_only=True)
+    pet_name = serializers.CharField(source='pet.name', read_only=True)
+    pet_type = serializers.CharField(source='pet.type', read_only=True)
+    service_type = serializers.CharField(source='service.type', read_only=True)
+    service_price = serializers.DecimalField(source='service.price', max_digits=10, decimal_places=2, read_only=True)
+    service_currency = serializers.CharField(source='service.currency', read_only=True)
+
     class Meta:
         model = Booking
-        fields = ('id', 'requester', 'provider', 'service', 'pet', 'status', 'date', 'start_time', 'end_time', 'location', 'message', 'price_at_booking', 'currency', 'created_at')
+        fields = (
+            'id', 'requester', 'requester_name', 'provider', 'provider_name',
+            'service', 'service_type', 'service_price', 'service_currency',
+            'pet', 'pet_name', 'pet_type',
+            'status', 'date', 'start_time', 'end_time', 'location',
+            'message', 'price_at_booking', 'currency', 'created_at'
+        )
         read_only_fields = ('id', 'requester', 'status', 'price_at_booking', 'created_at')
 
 class ReviewSerializer(serializers.ModelSerializer):

@@ -17,11 +17,13 @@ export type Booking = {
   status: BookingStatus;
   price: string;
   note: string;
+  layout: 'owner' | 'sitter';
   chatContactId?: number;
 };
 
 type BookingCardProps = {
   booking: Booking;
+  onAction: (id: number, action: 'confirm' | 'cancel') => void;
 };
 
 const statusLabels: Record<BookingStatus, string> = {
@@ -105,7 +107,7 @@ function hasBookingTimePassed(booking: Booking) {
   return bookingEndDate.getTime() < Date.now();
 }
 
-export default function BookingCard({ booking }: BookingCardProps) {
+export default function BookingCard({ booking, onAction }: BookingCardProps) {
   const navigate = useNavigate();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -196,6 +198,20 @@ export default function BookingCard({ booking }: BookingCardProps) {
             <button type="button" onClick={() => setIsReviewOpen(true)}>
               Write a Review
             </button>
+          )}
+          {booking.layout === 'owner' && (booking.status === 'pending' || booking.status === 'confirmed') && (
+            <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>
+              Cancel
+            </button>
+          )}
+          {booking.layout === 'sitter' && booking.status === 'pending' && (
+            <>
+              <button type="button" onClick={() => onAction(booking.id, 'confirm')}>Accept</button>
+              <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>Reject</button>
+            </>
+          )}
+          {booking.layout === 'sitter' && booking.status === 'confirmed' && (
+            <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>Cancel</button>
           )}
         </div>
       </article>
