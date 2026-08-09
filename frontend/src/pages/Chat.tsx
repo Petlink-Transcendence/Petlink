@@ -147,6 +147,9 @@ export default function Chat() {
         if (!routeContact?.name) {
             return;
         }
+        if (contactsLoading) {
+            return;
+        }
         const contactKey = `${routeContact.id ?? 'new'}|${routeContact.name}`;
         if (openedRouteContactRef.current === contactKey) {
             return;
@@ -166,7 +169,7 @@ export default function Chat() {
             // to connections only, or should allow starting a chat with
             // anyone regardless of follow status.
         }
-    }, [routeContact?.id, routeContact?.name, contacts]);
+    }, [routeContact?.id, routeContact?.name, contacts, contactsLoading]);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLocaleLowerCase().includes(searchTermContacts.toLocaleLowerCase())
