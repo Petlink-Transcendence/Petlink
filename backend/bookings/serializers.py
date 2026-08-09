@@ -51,5 +51,5 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_avatar',
-            'reviewee_name', 'reviewee_username', 'created_at'
+            'reviewee', 'reviewee_name', 'reviewee_username', 'created_at'
         )

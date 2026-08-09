@@ -134,7 +134,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
         return Review.objects.filter(reviewee_id=self.kwargs['pk'], deleted_at__isnull=True)
 
     def perform_create(self, serializer):
-        review = serializer.save(reviewer=self.request.user)
+        review = serializer.save(reviewer=self.request.user, reviewee_id=self.kwargs['pk'])
         # Notify the person being reviewed
         _notify(
             user_id=review.reviewee.id,
