@@ -23,7 +23,7 @@ export type Booking = {
 
 type BookingCardProps = {
   booking: Booking;
-  onAction: (id: number, action: 'confirm' | 'cancel') => void;
+  onAction: (id: number, action: 'confirm' | 'cancel' | 'complete') => void;
 };
 
 const statusLabels: Record<BookingStatus, string> = {
@@ -158,7 +158,10 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
             </>
           )}
           {booking.layout === 'sitter' && booking.status === 'confirmed' && (
-            <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>Cancel</button>
+            <>
+              <button type="button" onClick={() => onAction(booking.id, 'complete')}>Mark as Complete</button>
+              <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>Cancel</button>
+            </>
           )}
         </div>
       </article>

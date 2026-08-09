@@ -1,6 +1,7 @@
 import os
 import re
 import requests as http_requests
+from django.db.models import Avg
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -101,6 +102,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     posts_count = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+
+    def get_rating(self, obj):
+        avg = obj.reviews_received.filter(deleted_at__isnull=True).aggregate(avg=Avg('rating'))['avg']
+        return round(float(avg), 1) if avg else None
 
     class Meta:
         model = User
@@ -132,6 +138,11 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     is_connected = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     posts_count = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+
+    def get_rating(self, obj):
+        avg = obj.reviews_received.filter(deleted_at__isnull=True).aggregate(avg=Avg('rating'))['avg']
+        return round(float(avg), 1) if avg else None
 
     class Meta:
         model = User

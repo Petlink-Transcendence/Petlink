@@ -104,7 +104,7 @@ export default function Bookings() {
       .catch(() => setError(true));
   }, []);
 
-  const handleAction = async (id: number, action: 'confirm' | 'cancel') => {
+  const handleAction = async (id: number, action: 'confirm' | 'cancel' | 'complete') => {
     const token = localStorage.getItem('access');
     try {
       await fetch(`/api/bookings/${id}/${action}/`, {
@@ -179,7 +179,7 @@ export default function Bookings() {
           <section className="bookings-side-panel">
             <BookingsSidePanel
               layout={activeLayout}
-              nextBooking={bookings[0]}
+              nextBooking={bookings.find(b => b.status === 'confirmed')}
             />
           </section>
         </div>

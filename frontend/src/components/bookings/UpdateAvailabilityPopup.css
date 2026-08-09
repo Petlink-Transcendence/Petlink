@@ -12,7 +12,7 @@
 }
 
 .availability-container {
-  width: min(100%, 34rem);
+  width: min(100%, 38rem);
   max-height: calc(100vh - 2.5rem);
   overflow: hidden;
   background: white;
@@ -254,6 +254,154 @@
 
 .service-add-button {
   grid-column: 1 / -1;
+}
+
+.availability-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.availability-schedule-label {
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.availability-schedule-label::after {
+  content: " *";
+  color: #d9534f;
+}
+
+.availability-days {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.availability-day-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.85rem;
+  border: 1.5px solid #e8e5e0;
+  background: #faf8f5;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.availability-day-row.is-enabled {
+  border-color: var(--petlink-tan);
+  background: white;
+}
+
+.availability-day-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.availability-day-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.availability-toggle-switch {
+  display: inline-block;
+  width: 2.4rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  background: #d5d2cc;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.availability-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 0.94rem;
+  height: 0.94rem;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s;
+}
+
+.availability-day-toggle input:checked ~ .availability-toggle-switch {
+  background: var(--petlink-tan);
+}
+
+.availability-day-toggle input:checked ~ .availability-toggle-switch::after {
+  transform: translateX(1.1rem);
+}
+
+.availability-day-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #aaa;
+  min-width: 2.2rem;
+  transition: color 0.2s;
+}
+
+.availability-day-row.is-enabled .availability-day-name {
+  color: #333;
+}
+
+.availability-day-times {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.availability-day-times select {
+  border: 1.5px solid #e0ddd8;
+  border-radius: 0.6rem;
+  padding: 0.3rem 1.8rem 0.3rem 0.65rem;
+  background-color: #faf8f5;
+  color: #333;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #999 50%),
+    linear-gradient(135deg, #999 50%, transparent 50%);
+  background-position: calc(100% - 0.65rem) 50%, calc(100% - 0.4rem) 50%;
+  background-size: 0.28rem 0.28rem, 0.28rem 0.28rem;
+  background-repeat: no-repeat;
+  transition: border-color 0.15s;
+}
+
+.availability-day-times select:focus {
+  border-color: var(--petlink-tan);
+  outline: none;
+}
+
+.availability-time-sep {
+  color: #bbb;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.availability-day-closed {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ccc;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .availability-submit {
