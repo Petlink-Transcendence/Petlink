@@ -1,6 +1,7 @@
-/* Card styling */
 .profile-card {
-  width: 17.5rem;
+  width: 100%;
+  max-width: 17.5rem;
+  box-sizing: border-box;
   padding: 1.25rem;
   background-color: #fff;
   border-radius: 0.75rem;
@@ -58,6 +59,14 @@
   color: black;
   margin: 0.625rem 0;
   text-align: left;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
 /* Divider */

@@ -18,6 +18,7 @@ export type Booking = {
   price: string;
   note: string;
   layout: 'owner' | 'sitter';
+  avatar?: string;
   chatContactId?: number;
 };
 
@@ -100,7 +101,11 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
     <>
       <article className="bookings-card">
         <header className="bookings-card-header">
-          <div className="bookings-avatar">{initials(booking.personName)}</div>
+          {booking.avatar ? (
+            <img src={booking.avatar.startsWith('http') ? booking.avatar : `http://localhost:8000${booking.avatar}`} alt="Avatar" className="bookings-avatar" />
+          ) : (
+            <div className="bookings-avatar">{initials(booking.personName)}</div>
+          )}
           <div className="bookings-person">
             <h3>{booking.personName}</h3>
             <p>{booking.personRole}</p>

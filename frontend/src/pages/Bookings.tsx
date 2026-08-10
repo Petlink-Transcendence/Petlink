@@ -48,6 +48,7 @@ function mapBooking(b: any, layout: BookingLayout): Booking {
     id: b.id,
     layout,
     personName: isOwner ? b.provider_name : b.requester_name,
+    avatar: isOwner ? b.provider_avatar : b.requester_avatar,
     personRole: isOwner ? (SERVICE_LABELS[b.service_type] ?? b.service_type) : 'Pet Owner',
     petName: b.pet_name,
     petType: b.pet_type,

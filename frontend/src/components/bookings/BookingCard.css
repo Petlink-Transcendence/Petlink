@@ -19,8 +19,8 @@
 }
 
 .bookings-avatar {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 50%;
   background-color: #e8ddd0;
   color: var(--petlink-tan);
@@ -28,8 +28,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 0.72rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  object-fit: cover;
 }
 
 .bookings-person {
