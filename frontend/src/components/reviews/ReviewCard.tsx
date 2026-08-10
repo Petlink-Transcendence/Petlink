@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './ReviewCard.css';
 
 export type Review = {
   id: number;
+  reviewerId?: number;
+  reviewerUserType?: string;
   reviewer: string;
   avatarUrl?: string;
   role: string;
@@ -35,19 +38,21 @@ function ratingStars(rating: number) {
 export default function ReviewCard({ review }: ReviewCardProps) {
   const [avatarFailed, setAvatarFailed] = useState(false);
   const showAvatarImage = Boolean(review.avatarUrl) && !avatarFailed;
+  const profilePath = review.reviewerId
+    ? (review.reviewerUserType === 'provider' ? `/sitterprofile/${review.reviewerId}` : `/ownerprofile/${review.reviewerId}`)
+    : undefined;
+  const avatar = (
+    <div className="reviews-avatar">
+      {showAvatarImage ? <img src={review.avatarUrl} alt="" onError={() => setAvatarFailed(true)} /> : initials(review.reviewer)}
+    </div>
+  );
 
   return (
     <article className="reviews-card">
       <header className="reviews-card-header">
-        <div className="reviews-avatar">
-          {showAvatarImage ? (
-            <img src={review.avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
-          ) : (
-            initials(review.reviewer)
-          )}
-        </div>
+        {profilePath ? <Link to={profilePath} className="reviews-avatar-link" aria-label={`Open profile of ${review.reviewer}`}>{avatar}</Link> : avatar}
         <div className="reviews-person">
-          <h3>{review.reviewer}</h3>
+          {profilePath ? <Link to={profilePath} className="reviews-person-name">{review.reviewer}</Link> : <h3>{review.reviewer}</h3>}
           <p>{review.role}</p>
         </div>
         <span className="reviews-time">{review.time}</span>
