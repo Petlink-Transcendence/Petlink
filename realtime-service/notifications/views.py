@@ -108,23 +108,24 @@ def internal_notify(request):
 @api_view(['DELETE', 'POST'])
 def cleanup_user_notifications(request, user_id):
     """
-    Deletes all notifications related to a specific user_id:
-    - Sent to user_id
-    - Initiated by user_id (actor_id)
-    - Referencing user_id as a user profile
-    - Referencing posts owned by user_id
+    Deletes all notifications, messages, posts, comments, and likes related to a specific user_id.
     """
     try:
+        from chat.models import Message
+        from posts.models import Post, Like, Comment
+
+        # Delete chat messages where user is sender or recipient
+        Message.objects.filter(Q(sender_id=user_id) | Q(recipient_id=user_id)).delete()
+
+        # Delete likes & comments related to user or user's posts
+        Like.objects.filter(Q(user_id=user_id) | Q(post__user_id=user_id)).delete()
+        Comment.objects.filter(Q(user_id=user_id) | Q(post__user_id=user_id)).delete()
+
+        # Delete posts created by user
+        Post.objects.filter(user_id=user_id).delete()
+
         # Delete notifications where recipient or actor is user_id
         q_filter = Q(user_id=user_id) | Q(actor_id=user_id) | Q(reference_type='user', reference_id=user_id)
-
-        # Also find posts created by this user
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT id FROM posts_post WHERE user_id = %s", [user_id])
-            user_post_ids = [row[0] for row in cursor.fetchall()]
-
-        if user_post_ids:
-            q_filter |= Q(reference_type='post', reference_id__in=user_post_ids)
 
         deleted_count, _ = Notification.objects.filter(q_filter).delete()
         return Response({'status': 'cleaned up', 'deleted_count': deleted_count}, status=status.HTTP_200_OK)

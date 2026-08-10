@@ -1,6 +1,6 @@
 import './Auth.css';
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 export default function Login() {
     const [username, setUsername] = useState('');
@@ -104,7 +104,7 @@ export default function Login() {
 
                 <div className="sign-up-container">
                     <span className="sign-up-text">Don't have an account?</span>
-                    <a href="/register" className="sign-up-link">Sign up</a>
+                    <Link to="/register" className="sign-up-link">Sign up</Link>
                 </div>
             </div>
         </div>

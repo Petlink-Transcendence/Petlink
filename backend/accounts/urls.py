@@ -3,6 +3,7 @@
 from django.urls import path
 from .views import (
     RegisterView,
+    CheckAvailabilityView,
     ThrottledTokenObtainPairView,
     UserMeView,
     OAuth42LoginView,
@@ -24,6 +25,7 @@ from .views import (
 urlpatterns = [
     # Authentication & OAuth Routes
     path('register/', RegisterView.as_view(), name='register'),
+    path('check-availability/', CheckAvailabilityView.as_view(), name='check_availability'),
     path('login/', ThrottledTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('logout/', LogoutView.as_view(), name='auth_logout'),
     path('token/refresh/', RoleTokenRefreshView.as_view(), name='token_refresh'),

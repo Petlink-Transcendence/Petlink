@@ -29,7 +29,6 @@ type SitterAvailabilityPanelProps = {
 export default function SitterAvailabilityPanel({
   status,
   location,
-  capacity,
   windows,
   services,
   canEdit = true,
@@ -63,13 +62,9 @@ export default function SitterAvailabilityPanel({
       </div>
 
       <div className="sitter-availability-metrics">
-        <div>
+        <div className="availability-stat">
           <span>Location</span>
           <strong>{location || 'Not set'}</strong>
-        </div>
-        <div>
-          <span>Capacity</span>
-          <strong>{capacity || 'Not set'}</strong>
         </div>
       </div>
 

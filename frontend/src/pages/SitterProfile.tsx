@@ -431,8 +431,7 @@ export default function SitterProfile() {
         }
 
         setProfile(nextProfile);
-      } catch (err: any) {
-        console.error("Fetch error details:", err);
+      } catch {
         setError('');
       } finally {
         setLoading(false);
@@ -504,8 +503,7 @@ export default function SitterProfile() {
       } else {
         throw new Error(`Connection update failed with status ${response.status}`);
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       // Revert optimistic update
       setConnections(prev => ({
         ...prev,
@@ -576,8 +574,8 @@ export default function SitterProfile() {
         available_times: availabilityWindows,
       });
       setAvailabilityStatus(nextStatus);
-    } catch (err) {
-      console.error('Failed to save availability status:', err);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -643,6 +641,11 @@ export default function SitterProfile() {
   if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
   if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
 
+  const isBookable = availabilityStatus === 'Accepting' &&
+    availabilityLocation.trim() !== '' &&
+    availabilityWindows.length > 0 &&
+    currentServiceRates.length > 0;
+
   const getConnectionButtonLabel = () => {
     if (!connState) return 'Connect';
     if (connState.connected) return 'Disconnect';
@@ -663,7 +666,7 @@ export default function SitterProfile() {
         actions={isOwnProfile
           ? [{ label: 'Edit Profile', variant: 'secondary',  onClick: () => navigate('/settings') }]
           : [
-            ...(currentUserType === 'owner' ? [{ label: 'Make a booking', variant: 'primary' as const, onClick: () => setIsNewBookingOpen(true) }] : []),
+            ...(currentUserType === 'owner' && isBookable ? [{ label: 'Make a booking', variant: 'primary' as const, onClick: () => setIsNewBookingOpen(true) }] : []),
             {
               label: getConnectionButtonLabel(),
               variant: 'secondary',
@@ -697,7 +700,7 @@ export default function SitterProfile() {
       {isNewBookingOpen && (
         <NewBookingPopup
           onClose={() => setIsNewBookingOpen(false)}
-          onCreateBooking={() => undefined}
+          providerId={Number(profile.id)}
           initialSitter={profile.name}
         />
       )}

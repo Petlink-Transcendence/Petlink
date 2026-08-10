@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './BookingCard.css';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 export type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
 
@@ -17,11 +18,14 @@ export type Booking = {
   status: BookingStatus;
   price: string;
   note: string;
+  layout: 'owner' | 'sitter';
+  avatar?: string;
   chatContactId?: number;
 };
 
 type BookingCardProps = {
   booking: Booking;
+  onAction: (id: number, action: 'confirm' | 'cancel' | 'complete') => void;
 };
 
 const statusLabels: Record<BookingStatus, string> = {
@@ -31,20 +35,6 @@ const statusLabels: Record<BookingStatus, string> = {
   cancelled: 'Cancelled',
 };
 
-const monthIndexes: Record<string, number> = {
-  Jan: 0,
-  Feb: 1,
-  Mar: 2,
-  Apr: 3,
-  May: 4,
-  Jun: 5,
-  Jul: 6,
-  Aug: 7,
-  Sep: 8,
-  Oct: 9,
-  Nov: 10,
-  Dec: 11,
-};
 
 function initials(name: string): string {
   return name
@@ -55,64 +45,20 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function parseClockTime(time: string) {
-  const match = time.match(/(\d{1,2}):(\d{2})/);
 
-  if (!match) {
-    return null;
-  }
-
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-
-  if (hours > 23 || minutes > 59) {
-    return null;
-  }
-
-  return { hours, minutes };
-}
-
-function getBookingEndDate(booking: Booking) {
-  const [dayText, monthText, yearText] = booking.date.trim().split(/\s+/);
-  const day = Number(dayText);
-  const monthIndex = monthIndexes[monthText];
-  const year = Number(yearText);
-  const [startTimeText, endTimeText = startTimeText] = booking.time.split('-').map(time => time.trim());
-  const startTime = parseClockTime(startTimeText);
-  const endTime = parseClockTime(endTimeText);
-
-  if (!day || monthIndex === undefined || !year || !startTime || !endTime) {
-    return null;
-  }
-
-  const startDate = new Date(year, monthIndex, day, startTime.hours, startTime.minutes);
-  const endDate = new Date(year, monthIndex, day, endTime.hours, endTime.minutes);
-
-  if (endDate <= startDate) {
-    endDate.setDate(endDate.getDate() + 1);
-  }
-
-  return endDate;
-}
-
-function hasBookingTimePassed(booking: Booking) {
-  const bookingEndDate = getBookingEndDate(booking);
-
-  if (!bookingEndDate) {
-    return booking.status === 'completed';
-  }
-
-  return bookingEndDate.getTime() < Date.now();
-}
-
-export default function BookingCard({ booking }: BookingCardProps) {
+export default function BookingCard({ booking, onAction }: BookingCardProps) {
   const navigate = useNavigate();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [hasSubmittedReview, setHasSubmittedReview] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
-  const canWriteReview = hasBookingTimePassed(booking) && booking.status !== 'cancelled' && !hasSubmittedReview;
+  const [imgError, setImgError] = useState(false);
+  const canWriteReview = booking.status === 'completed' && !hasSubmittedReview;
+  const avatarUrl = resolveMediaUrl(booking.avatar);
+  const profilePath = booking.chatContactId
+    ? (booking.layout === 'owner' ? `/sitterprofile/${booking.chatContactId}` : `/ownerprofile/${booking.chatContactId}`)
+    : undefined;
 
   const handleMessageClick = () => {
     navigate('/chat', {
@@ -136,24 +82,54 @@ export default function BookingCard({ booking }: BookingCardProps) {
     resetReviewForm();
   };
 
-  const handleReviewSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleReviewSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!reviewText.trim()) return;
 
-    if (!reviewText.trim()) {
-      return;
-    }
-
-    setHasSubmittedReview(true);
-    closeReviewModal();
+    const token = localStorage.getItem('access');
+    try {
+      const res = await fetch(`/api/users/${booking.chatContactId}/reviews/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ rating: reviewRating, comment: reviewText }),
+      });
+      if (res.ok) {
+        setHasSubmittedReview(true);
+        closeReviewModal();
+      }
+    } catch {}
   };
 
   return (
     <>
       <article className="bookings-card">
         <header className="bookings-card-header">
-          <div className="bookings-avatar">{initials(booking.personName)}</div>
+          {profilePath ? (
+            <Link to={profilePath} className="bookings-avatar-link" aria-label={`Open profile of ${booking.personName}`}>
+              {!imgError && avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={booking.personName}
+                  className="bookings-avatar"
+                  onError={() => setImgError(true)}
+                />
+              ) : <div className="bookings-avatar">{initials(booking.personName)}</div>}
+            </Link>
+          ) : (
+            !imgError && avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={booking.personName}
+                className="bookings-avatar"
+                onError={() => setImgError(true)}
+              />
+            ) : <div className="bookings-avatar">{initials(booking.personName)}</div>
+          )}
           <div className="bookings-person">
-            <h3>{booking.personName}</h3>
+            {profilePath ? <Link to={profilePath} className="bookings-person-name">{booking.personName}</Link> : <h3>{booking.personName}</h3>}
             <p>{booking.personRole}</p>
           </div>
           <span className={`bookings-status ${booking.status}`}>
@@ -196,6 +172,23 @@ export default function BookingCard({ booking }: BookingCardProps) {
             <button type="button" onClick={() => setIsReviewOpen(true)}>
               Write a Review
             </button>
+          )}
+          {booking.layout === 'owner' && (booking.status === 'pending' || booking.status === 'confirmed') && (
+            <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>
+              Cancel
+            </button>
+          )}
+          {booking.layout === 'sitter' && booking.status === 'pending' && (
+            <>
+              <button type="button" onClick={() => onAction(booking.id, 'confirm')}>Accept</button>
+              <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>Reject</button>
+            </>
+          )}
+          {booking.layout === 'sitter' && booking.status === 'confirmed' && (
+            <>
+              <button type="button" onClick={() => onAction(booking.id, 'complete')}>Mark as Complete</button>
+              <button type="button" className="danger" onClick={() => onAction(booking.id, 'cancel')}>Cancel</button>
+            </>
           )}
         </div>
       </article>

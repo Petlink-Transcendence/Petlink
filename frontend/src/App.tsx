@@ -23,6 +23,7 @@ import MyProfileRedirect from './components/MyProfileRedirect';
 import UserProfileRedirect from './components/UserProfileRedirect';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import NotFound from './pages/NotFound';
 import { useWebSocket } from './hooks/useWebSocket';
 import './App.css';
 
@@ -153,6 +154,7 @@ function App() {
               <PrivacyPolicy />
             </ProtectedRoute>
           } />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
       <Footer />

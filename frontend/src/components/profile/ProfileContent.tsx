@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './ProfileContent.css';
 import '../Comments.css';
 import CreatePost from '../homepage/CreatePostContainer';
 import Post from '../homepage/Post';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 type BackendPost = {
   id: number;
@@ -20,6 +22,9 @@ type BackendReview = {
   id: number;
   reviewer: number;
   reviewer_name?: string;
+  reviewer_username?: string;
+  reviewer_user_type?: string;
+  reviewer_avatar?: string | null;
   rating: number;
   comment?: string | null;
   created_at: string;
@@ -46,6 +51,36 @@ function timeAgo(dateStr: string): string {
 
 function reviewerInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function reviewerProfilePath(review: BackendReview): string {
+  return review.reviewer_user_type === 'provider'
+    ? `/sitterprofile/${review.reviewer}`
+    : `/ownerprofile/${review.reviewer}`;
+}
+
+function ProfileReviewCard({ review }: { review: BackendReview }) {
+  const reviewerName = review.reviewer_name || review.reviewer_username || `User ${review.reviewer}`;
+  const profilePath = reviewerProfilePath(review);
+  const avatarUrl = resolveMediaUrl(review.reviewer_avatar);
+
+  return (
+    <div className="profile-review-card">
+      <div className="profile-review-header">
+        <Link to={profilePath} className="profile-review-avatar-link" aria-label={`Open profile of ${reviewerName}`}>
+          <div className="profile-review-avatar">
+            {avatarUrl ? <img src={avatarUrl} alt={reviewerName} /> : reviewerInitials(reviewerName)}
+          </div>
+        </Link>
+        <div className="profile-review-author-info">
+          <Link to={profilePath} className="profile-review-author">{reviewerName}</Link>
+          <span className="profile-review-stars">{'⭐'.repeat(review.rating)}</span>
+        </div>
+        <span className="profile-review-time">{timeAgo(review.created_at)}</span>
+      </div>
+      <p className="profile-review-text">{review.comment}</p>
+    </div>
+  );
 }
 
 export default function ProfileContent({
@@ -134,21 +169,7 @@ export default function ProfileContent({
           {reviews.length === 0 ? (
             <p className="no-comments-placeholder">No reviews yet.</p>
           ) : (
-            reviews.map(r => (
-              <div key={r.id} className="profile-review-card">
-                <div className="profile-review-header">
-                  <div className="profile-review-avatar">
-                    {reviewerInitials(r.reviewer_name || `User ${r.reviewer}`)}
-                  </div>
-                  <div className="profile-review-author-info">
-                    <span className="profile-review-author">{r.reviewer_name || `User ${r.reviewer}`}</span>
-                    <span className="profile-review-stars">{'⭐'.repeat(r.rating)}</span>
-                  </div>
-                  <span className="profile-review-time">{timeAgo(r.created_at)}</span>
-                </div>
-                <p className="profile-review-text">{r.comment}</p>
-              </div>
-            ))
+            reviews.map(r => <ProfileReviewCard key={r.id} review={r} />)
           )}
         </div>
       )}

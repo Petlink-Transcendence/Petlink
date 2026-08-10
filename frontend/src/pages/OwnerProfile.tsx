@@ -246,7 +246,6 @@ export default function Profile() {
       setProfile(mapBackendToProfile(mergedData, petsData));
     } catch (err: any) {
       setError(err.message || 'Failed to load profile.');
-      console.error("Fetch error details:", err);
     } finally {
       setLoading(false);
     }
@@ -312,8 +311,7 @@ export default function Profile() {
       } else {
         throw new Error(`Connection update failed with status ${response.status}`);
       }
-    } catch (err) {
-      console.error('Failed to toggle connection:', err);
+    } catch {
       // Roll back the optimistic update when persistence fails.
       setConnections(prev => ({
         ...prev,

@@ -1,4 +1,5 @@
-import './Footer.css'
+import { Link } from 'react-router-dom';
+import './Footer.css';
 
 export default function Footer() {
   return (
@@ -7,8 +8,8 @@ export default function Footer() {
         <p> 
           <span className="footer-team"> Built with ❤️ by <span className="footer-brand">PetLink</span> </span>
           <span className="footer-slogan"> Connecting pets, sitters & owners </span>
-          <span className="footer-links"> <a href="/terms-of-service" className="footer-link">Terms of Service</a> </span>
-          <span className="footer-links"> <a href="/privacy-policy" className="footer-link">Privacy Policy</a> </span>
+          <span className="footer-links"> <Link to="/terms-of-service" className="footer-link">Terms of Service</Link> </span>
+          <span className="footer-links"> <Link to="/privacy-policy" className="footer-link">Privacy Policy</Link> </span>
         </p>
       </div>
     </footer>

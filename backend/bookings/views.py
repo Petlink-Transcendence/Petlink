@@ -121,6 +121,13 @@ class BookingActionView(APIView):
             )
         elif action == 'complete' and booking.provider == request.user:
             booking.status = 'completed'
+            _notify(
+                user_id=booking.requester.id,
+                notif_type='booking_completed',
+                content=f'{request.user.name or request.user.username} marked the booking as completed.',
+                reference_id=booking.id,
+                reference_type='booking',
+            )
         else:
             return Response(status=403)
         booking.save()
@@ -134,7 +141,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
         return Review.objects.filter(reviewee_id=self.kwargs['pk'], deleted_at__isnull=True)
 
     def perform_create(self, serializer):
-        review = serializer.save(reviewer=self.request.user)
+        review = serializer.save(reviewer=self.request.user, reviewee_id=self.kwargs['pk'])
         # Notify the person being reviewed
         _notify(
             user_id=review.reviewee.id,

@@ -8,125 +8,13 @@ import './Bookings.css';
 type BookingLayout = 'owner' | 'sitter';
 type BookingFilter = 'all' | BookingStatus;
 
-const ownerBookings: Booking[] = [
-  {
-    id: 1,
-    personName: 'Daniela Padilha',
-    personRole: 'animal-sitter',
-    petName: 'Jack',
-    petType: 'Dog',
-    service: 'Dog walking',
-    date: '16 Jun 2026',
-    time: '14:00 - 15:00',
-    location: 'Porto, PT',
-    status: 'confirmed',
-    price: '14 EUR',
-    note: 'Daniela is confirmed for Jack\'s afternoon walk. Open the existing chat for the latest details.',
-    chatContactId: 1,
-  },
-  {
-    id: 2,
-    personName: 'Ana Costa',
-    personRole: 'Cat sitter',
-    petName: 'Luna',
-    petType: 'Bengal Cat',
-    service: 'Cat sitting',
-    date: '18 Jun 2026',
-    time: '09:00 - 18:00',
-    location: 'Porto, PT',
-    status: 'confirmed',
-    price: '20 EUR',
-    note: 'Ana will visit twice and send photo updates after each visit.',
-  },
-  {
-    id: 3,
-    personName: 'Miguel Ramos',
-    personRole: 'Dog walker',
-    petName: 'Buddy',
-    petType: 'Golden Retriever',
-    service: 'Dog walking',
-    date: '22 Jun 2026',
-    time: '17:30 - 18:30',
-    location: 'Cedofeita, Porto',
-    status: 'pending',
-    price: '12 EUR',
-    note: 'Waiting for Miguel to confirm the evening walk.',
-  },
-  {
-    id: 4,
-    personName: 'Sara Martins',
-    personRole: 'Overnight sitter',
-    petName: 'Luna and Buddy',
-    petType: 'Cat and Dog',
-    service: 'Overnight stay',
-    date: '02 May 2026',
-    time: '20:00 - 09:00',
-    location: 'Home stay',
-    status: 'completed',
-    price: '45 EUR',
-    note: 'Completed stay with feeding, walk, and bedtime updates.',
-  },
-  {
-    id: 5,
-    personName: 'Rodrigo Silva',
-    personRole: 'cat owner',
-    petName: 'Quiwi',
-    petType: 'Cat',
-    service: 'Home visits',
-    date: '10 Jun 2026',
-    time: '11:00 - 11:30',
-    location: 'Porto, PT',
-    status: 'cancelled',
-    price: '10 EUR',
-    note: 'Cancelled after Rodrigo changed travel plans. No further action is needed.',
-    chatContactId: 3,
-  },
-];
-
-const sitterBookings: Booking[] = [
-  {
-    id: 1,
-    personName: 'Jane Doe',
-    personRole: 'Pet owner',
-    petName: 'Luna',
-    petType: 'Bengal Cat',
-    service: 'Cat sitting',
-    date: '18 Jun 2026',
-    time: '09:00 - 18:00',
-    location: 'Porto, PT',
-    status: 'confirmed',
-    price: '20 EUR',
-    note: 'Jane requested two visits, wet food at noon, and photo updates.',
-  },
-  {
-    id: 2,
-    personName: 'Filipe Rocha',
-    personRole: 'Pet owner',
-    petName: 'Nori',
-    petType: 'Rabbit',
-    service: 'Home visits',
-    date: '24 Jun 2026',
-    time: '12:00 - 12:45',
-    location: 'Boavista, Porto',
-    status: 'pending',
-    price: '15 EUR',
-    note: 'Filipe is waiting for confirmation before sharing key pickup details.',
-  },
-  {
-    id: 3,
-    personName: 'Sofia Pereira',
-    personRole: 'Pet owner',
-    petName: 'Milo',
-    petType: 'British Shorthair',
-    service: 'Grooming',
-    date: '29 Apr 2026',
-    time: '14:00 - 15:30',
-    location: 'Client home',
-    status: 'completed',
-    price: '18 EUR',
-    note: 'Completed grooming appointment and coat brushing.',
-  },
-];
+const SERVICE_LABELS: Record<string, string> = {
+  dog_walking: 'Dog Walking',
+  cat_sitting: 'Cat Sitting',
+  home_visits: 'Home Visits',
+  overnight_stay: 'Overnight Stay',
+  grooming: 'Grooming',
+};
 
 const filterOptions: { label: string; value: BookingFilter }[] = [
   { label: 'All', value: 'all' },
@@ -136,18 +24,62 @@ const filterOptions: { label: string; value: BookingFilter }[] = [
   { label: 'Cancelled', value: 'cancelled' },
 ];
 
+function formatDate(iso: string): string {
+  const [year, month, day] = iso.split('-');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${parseInt(day)} ${monthNames[parseInt(month) - 1]} ${year}`;
+}
+
+function formatTime(t: string): string {
+  return t.slice(0, 5);
+}
+
 function countUpcoming(bookings: Booking[]) {
-  return bookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending').length;
+  return bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
 }
 
 function getBookingLayout(userType?: string): BookingLayout {
-  return userType === 'provider' || userType === 'sitter' ? 'sitter' : 'owner';
+  return userType === 'provider' ? 'sitter' : 'owner';
+}
+
+function mapBooking(b: any, layout: BookingLayout): Booking {
+  const isOwner = layout === 'owner';
+  return {
+    id: b.id,
+    layout,
+    personName: isOwner ? b.provider_name : b.requester_name,
+    avatar: isOwner ? b.provider_avatar : b.requester_avatar,
+    personRole: isOwner ? (SERVICE_LABELS[b.service_type] ?? b.service_type) : 'Pet Owner',
+    petName: b.pet_name,
+    petType: b.pet_type,
+    service: SERVICE_LABELS[b.service_type] ?? b.service_type,
+    date: formatDate(b.date),
+    time: `${formatTime(b.start_time)} - ${formatTime(b.end_time)}`,
+    location: b.location ?? '',
+    status: b.status,
+    price: `${parseFloat(b.service_price).toFixed(0)} ${b.service_currency}`,
+    note: b.message ?? '',
+    chatContactId: isOwner ? b.provider : b.requester,
+  };
 }
 
 export default function Bookings() {
   const [activeLayout, setActiveLayout] = useState<BookingLayout | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('all');
   const [error, setError] = useState(false);
+
+  const fetchBookings = async (layout: BookingLayout) => {
+    const token = localStorage.getItem('access');
+    try {
+      const res = await fetch('/api/bookings/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setBookings(data.map((b: any) => mapBooking(b, layout)));
+    } catch {}
+  };
 
   useEffect(() => {
     document.title = 'Bookings | PetLink';
@@ -165,21 +97,51 @@ export default function Bookings() {
         if (!res.ok) throw new Error();
         return res.json();
       })
-      .then(data => setActiveLayout(getBookingLayout(data.user_type)))
+      .then(data => {
+        const layout = getBookingLayout(data.user_type);
+        setActiveLayout(layout);
+        fetchBookings(layout);
+      })
       .catch(() => setError(true));
   }, []);
 
-  const bookings = activeLayout === 'sitter' ? sitterBookings : ownerBookings;
+  useEffect(() => {
+    const handleNotification = (e: CustomEvent) => {
+      const notif = e.detail;
+      if (!notif) return;
+      if (
+        (typeof notif.type === 'string' && notif.type.startsWith('booking_')) ||
+        notif.reference_type === 'booking'
+      ) {
+        if (activeLayout) {
+          fetchBookings(activeLayout);
+        }
+      }
+    };
+
+    window.addEventListener('newNotification', handleNotification as EventListener);
+    return () => {
+      window.removeEventListener('newNotification', handleNotification as EventListener);
+    };
+  }, [activeLayout]);
+
+  const handleAction = async (id: number, action: 'confirm' | 'cancel' | 'complete') => {
+    const token = localStorage.getItem('access');
+    try {
+      await fetch(`/api/bookings/${id}/${action}/`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchBookings(activeLayout!);
+    } catch {}
+  };
 
   const filteredBookings = useMemo(() => {
-    if (activeFilter === 'all') {
-      return bookings;
-    }
-
-    return bookings.filter(booking => booking.status === activeFilter);
+    if (activeFilter === 'all') return bookings;
+    return bookings.filter(b => b.status === activeFilter);
   }, [activeFilter, bookings]);
 
-  const pendingBookings = bookings.filter(booking => booking.status === 'pending').length;
+  const pendingBookings = bookings.filter(b => b.status === 'pending').length;
   const upcomingBookings = countUpcoming(bookings);
   const listTitle = activeLayout === 'owner' ? 'Bookings You Booked' : 'Bookings With You';
   const listDescription = activeLayout === 'owner'
@@ -227,8 +189,10 @@ export default function Bookings() {
             </div>
 
             <div className="bookings-list">
-              {filteredBookings.map(booking => (
-                <BookingCard key={booking.id} booking={booking} />
+              {filteredBookings.length === 0 ? (
+                <p className="bookings-empty">No bookings found.</p>
+              ) : filteredBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} onAction={handleAction} />
               ))}
             </div>
           </section>
@@ -236,7 +200,7 @@ export default function Bookings() {
           <section className="bookings-side-panel">
             <BookingsSidePanel
               layout={activeLayout}
-              nextBooking={bookings[0]}
+              nextBooking={bookings.find(b => b.status === 'confirmed')}
             />
           </section>
         </div>

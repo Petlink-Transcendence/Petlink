@@ -15,6 +15,9 @@ type AuthorInfo = {
   name: string;
   avatar: string | null;
   user_type: string;
+  availability_status?: string | null;
+  availability_location?: string | null;
+  available_times?: any[] | null;
 };
 
 type PostProps = {
@@ -85,7 +88,18 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(r => r.ok ? r.json() : null)
-      .then(u => { if (u) setAuthor({ name: u.name, avatar: u.avatar || null, user_type: u.user_type }); })
+      .then(u => {
+        if (u) {
+          setAuthor({
+            name: u.name,
+            avatar: u.avatar || null,
+            user_type: u.user_type,
+            availability_status: u.availability_status || null,
+            availability_location: u.availability_location || null,
+            available_times: u.available_times || null,
+          });
+        }
+      })
       .catch(() => {});
   }, [userId]);
 
@@ -140,6 +154,9 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
   }, [comments]);
 
   const authorName = author?.name || `User ${userId}`;
+  const isAuthorBookable = author?.availability_status === 'Accepting' &&
+    author?.availability_location && author.availability_location.trim() !== '' &&
+    author?.available_times && author.available_times.length > 0;
   const isOwnProfile = currentUser?.id === userId;
   const profilePath = isOwnProfile ? '/profile' : (author?.user_type === 'provider' ? `/sitterprofile/${userId}` : `/ownerprofile/${userId}`);
   const tag = PURPOSE_LABELS[purpose] || purpose.toUpperCase();
@@ -269,7 +286,7 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
           onClick={() => navigate('/chat', { state: { contact: { id: userId, name: authorName } } })}>
           💬 Message
         </button>
-        {purpose === 'service_promo' && author?.user_type === 'provider' && currentUser?.user_type === 'owner' && (
+        {purpose === 'service_promo' && author?.user_type === 'provider' && currentUser?.user_type === 'owner' && isAuthorBookable && (
           <button
             className="action-btn primary"
             onClick={() => setIsNewBookingOpen(true)}>
@@ -351,9 +368,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
       {isNewBookingOpen && (
         <NewBookingPopup
           onClose={() => setIsNewBookingOpen(false)}
-          onCreateBooking={() => undefined}
+          providerId={userId}
           initialSitter={authorName}
-          petType={petType}
         />
       )}
     </div>
