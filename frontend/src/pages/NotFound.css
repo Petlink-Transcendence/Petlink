@@ -1,6 +1,7 @@
 .notfound-container {
   display: flex;
   height: 100vh;
+  margin-top: 6.25rem;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
