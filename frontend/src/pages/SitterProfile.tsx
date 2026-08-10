@@ -643,6 +643,11 @@ export default function SitterProfile() {
   if (error) return <div className="profile-status-msg error">❌ Error: {error}</div>;
   if (!profile) return <div className="profile-status-msg error">⚠️ No profile data returned from backend.</div>;
 
+  const isBookable = availabilityStatus === 'Accepting' &&
+    availabilityLocation.trim() !== '' &&
+    availabilityWindows.length > 0 &&
+    currentServiceRates.length > 0;
+
   const getConnectionButtonLabel = () => {
     if (!connState) return 'Connect';
     if (connState.connected) return 'Disconnect';
@@ -663,7 +668,7 @@ export default function SitterProfile() {
         actions={isOwnProfile
           ? [{ label: 'Edit Profile', variant: 'secondary',  onClick: () => navigate('/settings') }]
           : [
-            ...(currentUserType === 'owner' ? [{ label: 'Make a booking', variant: 'primary' as const, onClick: () => setIsNewBookingOpen(true) }] : []),
+            ...(currentUserType === 'owner' && isBookable ? [{ label: 'Make a booking', variant: 'primary' as const, onClick: () => setIsNewBookingOpen(true) }] : []),
             {
               label: getConnectionButtonLabel(),
               variant: 'secondary',
