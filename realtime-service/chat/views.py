@@ -4,6 +4,7 @@ from rest_framework import status
 from django.db import connection
 from django.db.models import Q
 from django.conf import settings
+from datetime import datetime, timezone
 import os
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -92,11 +93,7 @@ def chat_contacts(request):
                 name = str(avatar_url).lstrip('/')
                 if name.startswith('media/'):
                     name = name[6:]
-                full_path = os.path.join(settings.MEDIA_ROOT, name)
-                if not os.path.exists(full_path):
-                    conn['avatar'] = None
-                else:
-                    conn['avatar'] = f"/media/{name}"
+                conn['avatar'] = f"/media/{name}"
 
         other_id = conn['user_id']
         last_msg = Message.objects.filter(
@@ -115,7 +112,7 @@ def chat_contacts(request):
             'unread_count': unread_count,
         })
 
-    results.sort(key=lambda c: c['last_message_at'] or '', reverse=True)
+    results.sort(key=lambda c: c['last_message_at'] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
     return Response(results, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
