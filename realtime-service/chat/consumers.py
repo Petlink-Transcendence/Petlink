@@ -60,11 +60,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         real_id = await self.save_message(recipient_id, content)
 
+        sender_name = await self.get_sender_name()
+        notif_content = f'You have a new message from {sender_name}.'
+
         await database_sync_to_async(Notification.objects.create)(
             user_id=recipient_id,
             actor_id=int(self.user_id),
             type='new_message',
-            content='You have a new message.',
+            content=notif_content,
             reference_id=int(self.user_id),
             reference_type='message',
         )
@@ -84,7 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'send_notification',
                 'notification_type': 'new_message',
-                'content': 'You have a new message',
+                'content': notif_content,
                 'reference_id': int(self.user_id),
                 'reference_type': 'message',
             }
@@ -146,3 +149,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
         except Exception as e:
             print(f"Could not update online status: {e}")
+
+    @database_sync_to_async
+    def get_sender_name(self):
+        from django.db import connection
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT name, username FROM accounts_user WHERE id = %s", [self.user_id])
+                row = cursor.fetchone()
+                if row:
+                    return row[0] or row[1] or "Someone"
+        except Exception:
+            pass
+        return "Someone"

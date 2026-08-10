@@ -87,12 +87,11 @@ export function useWebSocket() {
 
         socket.onerror = (err) => {
           if (!isMounted) return;
-          console.warn('[WebSocket] Error encountered:', err);
+          // Silently handle errors
         };
 
         socket.onclose = (event) => {
           if (!isMounted) return;
-          console.log('[WebSocket] Connection closed:', event.code, event.reason);
           if (currentUserId) {
             reconnectTimeout = setTimeout(() => {
               if (isMounted) connect();
@@ -100,7 +99,7 @@ export function useWebSocket() {
           }
         };
       } catch (err) {
-        console.error('[WebSocket] Failed to initialize connection:', err);
+        // Silently handle connection initialization errors
       }
     };
 

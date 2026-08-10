@@ -1,6 +1,7 @@
 import './Chat.css'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
+import { resolveMediaUrl } from '../utils/mediaUrl'
 
 interface Message {
     id: number;
@@ -98,6 +99,7 @@ export default function Chat() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const activeChatRef = useRef<number | null>(null);
+    const fetchingContactsRef = useRef<Set<number>>(new Set());
 
     useEffect(() => {
         activeChatRef.current = activeChat;
@@ -141,43 +143,92 @@ export default function Chat() {
     }, [loadContacts]);
 
     useEffect(() => {
-        if (routeOpenChatId === undefined) {
+        if (routeOpenChatId === undefined || contactsLoading) {
             return;
         }
-        const contactById = contacts.find(contact => contact.id === routeOpenChatId);
-        if (contactById) {
-            setSearchTermContacts("");
-            setActiveChat(contactById.id);
+        if (routeOpenChatId === getCurrentUserId()) {
+            return;
         }
-    }, [routeOpenChatId, contacts]);
+        const existing = contacts.find(contact => contact.id === routeOpenChatId);
+        if (existing) {
+            setSearchTermContacts("");
+            setActiveChat(existing.id);
+        } else {
+            // Fetch missing contact info
+            apiFetch(`/api/users/${routeOpenChatId}/`).then(userData => {
+                setContacts(prev => {
+                    if (prev.find(c => c.id === routeOpenChatId)) return prev;
+                    return [{
+                        id: routeOpenChatId,
+                        name: userData.name || userData.username || 'Unknown',
+                        avatar: userData.avatar || null,
+                        online: userData.online_status || false,
+                        lastSeen: userData.last_seen || null,
+                        lastMessage: null,
+                        lastMessageAt: null,
+                        unreadCount: 0
+                    }, ...prev];
+                });
+                setSearchTermContacts("");
+                setActiveChat(routeOpenChatId);
+            }).catch(console.error);
+        }
+    }, [routeOpenChatId, contactsLoading]); // omitted contacts to avoid infinite loops if it changes
 
     useEffect(() => {
-        if (!routeContact?.name) {
+        if (routeContact?.id === undefined || contactsLoading) {
             return;
         }
-        if (contactsLoading) {
+        if (routeContact.id === getCurrentUserId()) {
             return;
         }
-        const contactKey = `${routeContact.id ?? 'new'}|${routeContact.name}`;
+        const contactKey = `${routeContact.id}|${routeContact.name}`;
         if (openedRouteContactRef.current === contactKey) {
             return;
         }
         openedRouteContactRef.current = contactKey;
-        setSearchTermContacts("");
 
-        if (routeContact.id !== undefined) {
-            const existing = contacts.find(c => c.id === routeContact.id);
-            if (existing) {
-                setActiveChat(existing.id);
-            }
-            // NOTE: chat now only shows real connections (people you follow /
-            // who follow you). If routeContact isn't in that list, no chat
-            // opens here — confirm with the team whether navigating in from
-            // e.g. a profile page's "Message" button should be restricted
-            // to connections only, or should allow starting a chat with
-            // anyone regardless of follow status.
+        const existing = contacts.find(c => c.id === routeContact.id);
+        if (existing) {
+            setActiveChat(existing.id);
+            setSearchTermContacts("");
+        } else {
+            apiFetch(`/api/users/${routeContact.id}/`).then(userData => {
+                setContacts(prev => {
+                    if (prev.find(c => c.id === routeContact.id)) return prev;
+                    return [{
+                        id: routeContact.id!,
+                        name: userData.name || userData.username || routeContact.name || 'Unknown',
+                        avatar: userData.avatar || null,
+                        online: userData.online_status || false,
+                        lastSeen: userData.last_seen || null,
+                        lastMessage: null,
+                        lastMessageAt: null,
+                        unreadCount: 0
+                    }, ...prev];
+                });
+                setActiveChat(routeContact.id!);
+                setSearchTermContacts("");
+            }).catch(() => {
+                // Fallback if fetch fails
+                setContacts(prev => {
+                    if (prev.find(c => c.id === routeContact.id)) return prev;
+                    return [{
+                        id: routeContact.id!,
+                        name: routeContact.name || 'Unknown',
+                        avatar: null,
+                        online: false,
+                        lastSeen: null,
+                        lastMessage: null,
+                        lastMessageAt: null,
+                        unreadCount: 0
+                    }, ...prev];
+                });
+                setActiveChat(routeContact.id!);
+                setSearchTermContacts("");
+            });
         }
-    }, [routeContact?.id, routeContact?.name, contacts, contactsLoading]);
+    }, [routeContact?.id, routeContact?.name, contactsLoading]);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLocaleLowerCase().includes(searchTermContacts.toLocaleLowerCase())
@@ -227,6 +278,7 @@ export default function Chat() {
 
     const [message, setMessage] = useState("");
     const [attachedPhoto, setAttachedPhoto] = useState<string | null>(null);
+    const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
     const chatHistory = messages
         .filter(msg => msg.contactId === activeChat)
@@ -245,6 +297,7 @@ export default function Chat() {
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setAttachedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setAttachedPhoto(reader.result as string);
@@ -256,21 +309,36 @@ export default function Chat() {
     /* Send over the WebSocket. The backend doesn't echo the message back to
        the sender's own group, so we add it to local state ourselves
        (optimistic update) rather than waiting for a server round-trip. */
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if ((!message.trim() && !attachedPhoto) || !activeChat) return;
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            alert('Chat disconnected. Reconnecting... Please try again in a few seconds.');
             console.error('Chat socket is not connected');
             return;
         }
 
-        const tempId = Date.now();
+        let imageUrl = "";
+        if (attachedFile) {
+            const formData = new FormData();
+            formData.append('image', attachedFile);
+            try {
+                const data = await apiFetch('/chat/upload_image/', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (data && data.url) imageUrl = data.url;
+            } catch (err) {
+                console.error("Failed to upload image", err);
+                return;
+            }
+        }
 
-        // NOTE: the Message model only has a `content` text field — there is
-        // no backend support for image attachments yet, so attachedPhoto is
-        // only shown locally and never actually transmitted.
+        const tempId = Date.now();
+        const contentToSend = imageUrl ? `![image](${imageUrl})\n${message}`.trim() : message;
+
         wsRef.current.send(JSON.stringify({
             recipient_id: activeChat,
-            content: message,
+            content: contentToSend,
             temp_id: tempId,
         }));
 
@@ -278,8 +346,8 @@ export default function Chat() {
         const newMessage: Message = {
             id: tempId, // temporary client-side id until next reload
             contactId: activeChat,
-            text: message,
-            attachment: attachedPhoto || undefined,
+            text: contentToSend,
+            attachment: attachedPhoto || undefined, // local preview
             sender: "me",
             time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             createdAt: now.toISOString(),
@@ -288,6 +356,7 @@ export default function Chat() {
         setMessages(prev => [...prev, newMessage]);
         setMessage("");
         setAttachedPhoto(null);
+        setAttachedFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -323,10 +392,10 @@ export default function Chat() {
 
         let cancelled = false;
         let socket: WebSocket | null = null;
+        let timeoutId: number;
 
-        const timeoutId = setTimeout(() => {
+        const connect = () => {
             if (cancelled) return;
-
             const token = getToken();
             const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
             socket = new WebSocket(
@@ -359,32 +428,85 @@ export default function Chat() {
                     time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                     createdAt: now.toISOString(),
                 };
-                setMessages(prev => [...prev, incoming]);
+                if (activeChatRef.current === senderId) {
+                    setMessages(prev => [...prev, incoming]);
+                }
 
-                setContacts(prev => prev.map(c =>
-                    c.id === senderId
-                        ? {
-                            ...c,
-                            lastMessage: data.content,
-                            lastMessageAt: now.toISOString(),
-                            unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
-                        }
-                        : c
-                ));
+                setContacts(prev => {
+                    const existing = prev.find(c => c.id === senderId);
+                    if (existing) {
+                        return prev.map(c =>
+                            c.id === senderId
+                                ? {
+                                    ...c,
+                                    lastMessage: data.content,
+                                    lastMessageAt: now.toISOString(),
+                                    unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
+                                }
+                                : c
+                        );
+                    } else if (!fetchingContactsRef.current.has(senderId)) {
+                        fetchingContactsRef.current.add(senderId);
+                        apiFetch(`/api/users/${senderId}/`).then(userData => {
+                            const newContact = {
+                                id: senderId,
+                                name: userData.name || userData.username || 'Unknown',
+                                avatar: userData.avatar || null,
+                                online: userData.online_status || false,
+                                lastSeen: userData.last_seen || null,
+                                unreadCount: activeChatRef.current === senderId ? 0 : 1,
+                                lastMessage: data.content,
+                                lastMessageAt: now.toISOString(),
+                            };
+                            setContacts(curr => {
+                                const alreadyAdded = curr.find(c => c.id === senderId);
+                                if (alreadyAdded) {
+                                    return curr.map(c =>
+                                        c.id === senderId
+                                            ? {
+                                                ...c,
+                                                lastMessage: data.content,
+                                                lastMessageAt: now.toISOString(),
+                                                unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
+                                            }
+                                            : c
+                                    );
+                                }
+                                return [newContact, ...curr];
+                            });
+                        }).catch(err => {
+                            console.error("Could not fetch new contact", err);
+                            fetchingContactsRef.current.delete(senderId);
+                        });
+                        return prev;
+                    }
+                    return prev;
+                });
             };
 
             socket.onclose = (event) => {
                 if (event.code === 4001) {
-                    console.error('Chat auth failed — token invalid or expired');
+                    // Chat auth failed silently
+                    return;
+                }
+                if (!cancelled) {
+                    // Reconnect on unexpected close
+                    timeoutId = window.setTimeout(connect, 3000);
                 }
             };
-        }, 0);
+        };
+
+        connect();
 
         return () => {
             cancelled = true;
             clearTimeout(timeoutId);
             if (socket) {
-                socket.close();
+                if (socket.readyState === WebSocket.CONNECTING) {
+                    socket.onopen = () => socket?.close();
+                } else if (socket.readyState === WebSocket.OPEN) {
+                    socket.close();
+                }
             }
         };
     }, [currentUserId]);
@@ -435,18 +557,14 @@ export default function Chat() {
                             >
                                 <div className="contact-avatar">
                                     {contact.avatar
-                                        ? <img src={contact.avatar} alt={contact.name} />
+                                        ? <img src={resolveMediaUrl(contact.avatar)} alt={contact.name} />
                                         : initials(contact.name)}
                                 </div>
                                 <div className="contact-info">
-                                    <div className="contact-top">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span className="contact-name">
                                             {contact.name}
-                                            {contact.online && <span className="online-dot" title="Online"> ●</span>}
                                         </span>
-                                        {contact.unreadCount > 0 && (
-                                            <span className="unread-badge">{contact.unreadCount}</span>
-                                        )}
                                     </div>
                                     <p className="contact-last-msg">
                                         <span className="contact-time">
@@ -455,7 +573,9 @@ export default function Chat() {
                                                 : ""}
                                         </span>
                                         <span> </span>
-                                        {contact.lastMessage || "No messages yet"}
+                                        {contact.lastMessage?.startsWith('![image](') 
+                                            ? "📷 Photo" 
+                                            : (contact.lastMessage || "No messages yet")}
                                     </p>
                                 </div>
                             </div>
@@ -470,7 +590,9 @@ export default function Chat() {
                         <header className="chat-header">
                             <div className="header-info">
                                 <div className="header-avatar">
-                                    {activeContact ? initials(activeContact.name) : ""}
+                                    {activeContact?.avatar 
+                                        ? <img src={resolveMediaUrl(activeContact.avatar)} alt={activeContact.name} /> 
+                                        : (activeContact ? initials(activeContact.name) : "")}
                                 </div>
                                 <div>
                                     <h3>{activeContact?.name}</h3>
@@ -499,10 +621,23 @@ export default function Chat() {
                             ) : filteredMessages.length > 0 ? (
                                 filteredMessages.map((msg) => (
                                     <div key={msg.id} className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}>
-                                        {msg.attachment && (
+                                        {msg.attachment && !msg.text.startsWith('![image](') && (
                                             <img src={msg.attachment} alt="Attachment" className="chat-msg-image" />
                                         )}
-                                        {msg.text && <p>{msg.text}</p>}
+                                        {msg.text && msg.text.startsWith('![image](') ? (
+                                            <>
+                                                <img 
+                                                    src={resolveMediaUrl(msg.text.match(/!\[image\]\((.*?)\)/)?.[1] || '')} 
+                                                    alt="Attachment" 
+                                                    className="chat-msg-image" 
+                                                />
+                                                {msg.text.split('\n').slice(1).join('\n') && (
+                                                    <p>{msg.text.split('\n').slice(1).join('\n')}</p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            msg.text && <p>{msg.text}</p>
+                                        )}
                                         <div className="msg-footer">
                                             <span className="msg-time">{msg.time}</span>
                                             {msg.sender === 'me' && <span className="read-status">✓✓</span>}
