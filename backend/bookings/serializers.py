@@ -21,11 +21,13 @@ class BookingSerializer(serializers.ModelSerializer):
     service_type = serializers.CharField(source='service.type', read_only=True)
     service_price = serializers.DecimalField(source='service.price', max_digits=10, decimal_places=2, read_only=True)
     service_currency = serializers.CharField(source='service.currency', read_only=True)
+    requester_avatar = serializers.ImageField(source='requester.avatar', read_only=True)
+    provider_avatar = serializers.ImageField(source='provider.avatar', read_only=True)
 
     class Meta:
         model = Booking
         fields = (
-            'id', 'requester', 'requester_name', 'provider', 'provider_name',
+            'id', 'requester', 'requester_name', 'requester_avatar', 'provider', 'provider_name', 'provider_avatar',
             'service', 'service_type', 'service_price', 'service_currency',
             'pet', 'pet_name', 'pet_type',
             'status', 'date', 'start_time', 'end_time', 'location',

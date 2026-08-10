@@ -138,16 +138,6 @@ export default function UpdateAvailabilityPopup({
               />
             </label>
 
-            <label className="availability-field">
-              <span className="required-label">Capacity</span>
-              <input
-                type="text"
-                value={capacity}
-                onChange={event => setCapacity(event.target.value)}
-                placeholder="2 bookings/day"
-                required
-              />
-            </label>
           </div>
 
           <div className="availability-schedule">
