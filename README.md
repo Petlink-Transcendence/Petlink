@@ -51,14 +51,14 @@ The backend development was split into distinct microservices, while the fronten
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Gabriel La Rocque** | `gde-la-r` | Technical Lead / DevOps | `core-service` & Infrastructure | `auth/`, `api/`, `nginx/`, `docker` | Auth system, JWT issuance, 42 OAuth 2.0, soft deletion system (`ActiveUserManager` & `deleted_at`), DRF custom permissions (`IsAdmin`, `IsOwnerOrAdmin`), microservices Docker Compose & Nginx HTTPS proxy. |
 | **João Vieira** | `jpedro-f` | Project Manager / Backend Dev | `core-service` | `accounts/`, `pets/`, `bookings/` | User profile endpoints, pet management, booking workflow, file upload validation, database seeding scripts. |
-| **Ricardo Marques** | `rjesus-d` | Product Owner / Backend Dev | `realtime-service` | `chat/`, `notifications/` | Django Channels & Daphne ASGI setup, Redis channel layer, WebSocket chat consumer, real-time push notifications, cross-browser compatibility testing. |
+| **Ricardo Garcia** | `rjesus-d` | Product Owner / Backend Dev | `realtime-service` | `chat/`, `notifications/` | Django Channels & Daphne ASGI setup, Redis channel layer, WebSocket chat consumer, real-time push notifications, cross-browser compatibility testing. |
 
 ### Frontend Development Team
 
 | Member | 42 Login | Primary Role | Key Responsibilities |
 | :--- | :--- | :--- | :--- |
 | **Isabel Tootill** | `icunha-t` | Project Manager / Frontend Lead | React SPA architecture, client-side routing (React Router v7), real-time WebSocket state integration in React, cross-browser layout QA. |
-| **Daniela Santos** | `ddo-carm` | Product Owner / Frontend Lead | Frontend design system & component library, media upload & preview pipeline, accessibility compliance (WCAG 2.1), user experience & booking UI. |
+| **Daniela Padilha** | `ddo-carm` | Product Owner / Frontend Lead | Frontend design system & component library, media upload & preview pipeline, accessibility compliance (WCAG 2.1), user experience & booking UI. |
 
 ---
 
