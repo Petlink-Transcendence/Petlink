@@ -385,7 +385,7 @@ The database relies on PostgreSQL mapped via Django ORM.
 - **Media Uploads & Seeding:** Implemented server-side file upload validation for images, automated seeding commands, and booking lifecycle state machines.
 - **Challenges Overcome:** Maintaining data integrity and cascade constraints across bookings and pets when accounts are managed.
 
-### Ricardo Marques (`rjesus-d`) — Product Owner / Backend / Person C
+### Ricardo Garcia (`rjesus-d`) — Product Owner / Backend / Person C
 - **Real-Time WebSocket Service:** Built `realtime-service` with Django Channels, Daphne ASGI, and Redis channel layers for 1-on-1 chat and real-time push notifications.
 - **Notifications & Browser Support:** Developed the notification consumer and REST history endpoints; conducted cross-browser compatibility testing for Firefox and Edge.
 - **Challenges Overcome:** Ensuring synchronization between notification triggers in WebSocket handlers and direct database writes without locking PostgreSQL connections.
@@ -395,7 +395,7 @@ The database relies on PostgreSQL mapped via Django ORM.
 - **Real-Time UI Integration:** Wired WebSocket channels for chat and notifications into React context state, handling connection drops gracefully.
 - **Challenges Overcome:** Managing WebSocket reconnect logic with exponential backoff on client disconnections without triggering re-renders.
 
-### Daniela Santos (`ddo-carm`) — Product Owner / Frontend Lead
+### Daniela Padilha (`ddo-carm`) — Product Owner / Frontend Lead
 - **Design System & UI Components:** Created the modular component library (buttons, cards, modals, form controls, badges) and overall design aesthetic.
 - **Media Upload UI & Accessibility:** Implemented client-side file upload controls with progress indicators, image previews, and WCAG accessibility standards compliance.
 - **Challenges Overcome:** Designing accessible, responsive file upload components that provide immediate feedback and support drag-and-drop mechanics.
