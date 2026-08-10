@@ -139,13 +139,24 @@
 }
 
 @media (max-width: 42rem) {
+  .bookings-page {
+    padding-top: 5rem;
+  }
+
+  .bookings-shell {
+    padding: 0.75rem;
+  }
+
   .bookings-hero {
     align-items: flex-start;
     flex-direction: column;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
   }
 
   .bookings-hero h2 {
     font-size: 1.25rem;
+    padding-bottom: 0;
   }
 
   .bookings-list-header {
@@ -153,8 +164,16 @@
     flex-direction: column;
   }
 
+  .bookings-list-heading {
+    flex: 0 1 auto;
+  }
+
   .bookings-filters {
     flex: 1 1 auto;
     justify-content: flex-start;
+  }
+
+  .bookings-layout {
+    gap: 0.75rem;
   }
 }
