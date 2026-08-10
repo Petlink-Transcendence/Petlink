@@ -29,7 +29,6 @@ type SitterAvailabilityPanelProps = {
 export default function SitterAvailabilityPanel({
   status,
   location,
-  capacity,
   windows,
   services,
   canEdit = true,

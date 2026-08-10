@@ -106,6 +106,10 @@ export default function NewBookingPopup({ onClose, providerId, initialSitter = '
   const [services, setServices] = useState<Service[]>([]);
   const [daySchedule, setDaySchedule] = useState<DaySchedule>({});
 
+  const [provider, setProvider] = useState<any>(null);
+  const [loadedProvider, setLoadedProvider] = useState(false);
+  const [loadedServices, setLoadedServices] = useState(false);
+
   useEffect(() => {
     const userId = getLoggedInUserId();
     const token = localStorage.getItem('access');
@@ -123,14 +127,19 @@ export default function NewBookingPopup({ onClose, providerId, initialSitter = '
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(res => res.ok ? res.json() : [])
-      .then((data: Service[]) => setServices(data.filter((s: any) => s.user === providerId)))
-      .catch(() => {});
+      .then((data: Service[]) => {
+        setServices(data.filter((s: any) => s.user === providerId));
+        setLoadedServices(true);
+      })
+      .catch(() => setLoadedServices(true));
 
     fetch(`/api/users/${providerId}/`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
+        setProvider(data);
+        setLoadedProvider(true);
         if (data?.available_times && Array.isArray(data.available_times)) {
           setDaySchedule(buildDaySchedule(data.available_times));
         }
@@ -138,8 +147,15 @@ export default function NewBookingPopup({ onClose, providerId, initialSitter = '
           setLocation(data.availability_location.replace(/\s*\+\s*\d+\s*km\b/i, '').trim());
         }
       })
-      .catch(() => {});
+      .catch(() => setLoadedProvider(true));
   }, [providerId]);
+
+  const isLoaded = loadedProvider && loadedServices;
+  const isBookable = provider &&
+    provider.availability_status === 'Accepting' &&
+    provider.availability_location && provider.availability_location.trim() !== '' &&
+    provider.available_times && provider.available_times.length > 0 &&
+    services.length > 0;
 
   const handleDaySelect = (dayName: string) => {
     setSelectedDayName(dayName);
@@ -230,126 +246,137 @@ export default function NewBookingPopup({ onClose, providerId, initialSitter = '
           </button>
         </header>
 
-        <form className="new-booking-form" onSubmit={handleSubmit}>
-          {error && <div className="new-booking-warning">⚠️ {error}</div>}
+        {!isLoaded ? (
+          <div className="new-booking-loading">
+            <span>Loading sitter details...</span>
+          </div>
+        ) : !isBookable ? (
+          <div className="new-booking-unavailable">
+            <p>This sitter is currently not accepting bookings, or has not fully set up their profile.</p>
+            <button type="button" className="new-booking-close-btn" onClick={onClose}>Close</button>
+          </div>
+        ) : (
+          <form className="new-booking-form" onSubmit={handleSubmit}>
+            {error && <div className="new-booking-warning">⚠️ {error}</div>}
 
-          <label className="new-booking-field">
-            <span className="required-label">Service</span>
-            <select value={serviceId} onChange={e => setServiceId(e.target.value)} required>
-              <option value="">Select a service</option>
-              {services.map(s => (
-                <option key={s.id} value={s.id}>
-                  {SERVICE_LABELS[s.type] ?? s.type} — {s.price} {s.currency}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="new-booking-field">
-            <span className="required-label">Pet</span>
-            {userPets.length > 0 ? (
-              <select value={petId} onChange={e => setPetId(e.target.value)} required>
-                <option value="">Select a pet</option>
-                {userPets.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+            <label className="new-booking-field">
+              <span className="required-label">Service</span>
+              <select value={serviceId} onChange={e => setServiceId(e.target.value)} required>
+                <option value="">Select a service</option>
+                {services.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {SERVICE_LABELS[s.type] ?? s.type} — {s.price} {s.currency}
+                  </option>
                 ))}
               </select>
-            ) : (
-              <input type="text" placeholder="Add a pet in your profile first" disabled />
-            )}
-          </label>
+            </label>
 
-          {availableDayNames.length > 0 ? (
-            <>
-              <div className="new-booking-field">
-                <span className="required-label">Day</span>
-                <div className="new-booking-day-picker">
-                  {availableDayNames.map(day => (
-                    <button
-                      key={day}
-                      type="button"
-                      className={`new-booking-day-btn${selectedDayName === day ? ' is-selected' : ''}`}
-                      onClick={() => handleDaySelect(day)}
-                    >
-                      {day.slice(0, 3)}
-                    </button>
+            <label className="new-booking-field">
+              <span className="required-label">Pet</span>
+              {userPets.length > 0 ? (
+                <select value={petId} onChange={e => setPetId(e.target.value)} required>
+                  <option value="">Select a pet</option>
+                  {userPets.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
-                </div>
-              </div>
+                </select>
+              ) : (
+                <input type="text" placeholder="Add a pet in your profile first" disabled />
+              )}
+            </label>
 
-              {upcomingDates.length > 0 && (
+            {availableDayNames.length > 0 ? (
+              <>
                 <div className="new-booking-field">
-                  <span className="required-label">Date</span>
-                  <div className="new-booking-date-picker">
-                    {upcomingDates.map(d => (
+                  <span className="required-label">Day</span>
+                  <div className="new-booking-day-picker">
+                    {availableDayNames.map(day => (
                       <button
-                        key={d}
+                        key={day}
                         type="button"
-                        className={`new-booking-date-btn${date === d ? ' is-selected' : ''}`}
-                        onClick={() => handleDateSelect(d)}
+                        className={`new-booking-day-btn${selectedDayName === day ? ' is-selected' : ''}`}
+                        onClick={() => handleDaySelect(day)}
                       >
-                        {formatShortDate(d)}
+                        {day.slice(0, 3)}
                       </button>
                     ))}
                   </div>
                 </div>
-              )}
-            </>
-          ) : (
+
+                {upcomingDates.length > 0 && (
+                  <div className="new-booking-field">
+                    <span className="required-label">Date</span>
+                    <div className="new-booking-date-picker">
+                      {upcomingDates.map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          className={`new-booking-date-btn${date === d ? ' is-selected' : ''}`}
+                          onClick={() => handleDateSelect(d)}
+                        >
+                          {formatShortDate(d)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <label className="new-booking-field">
+                <span className="required-label">Date</span>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  min={MIN_BOOKING_DATE}
+                  required
+                />
+              </label>
+            )}
+
+            <div className="new-booking-row">
+              <label className="new-booking-field">
+                <span className="required-label">Start time</span>
+                <select value={startTime} onChange={e => handleStartTimeChange(e.target.value)} required disabled={!date}>
+                  <option value="">Select start</option>
+                  {startOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </label>
+              <label className="new-booking-field">
+                <span className="required-label">End time</span>
+                <select value={endTime} onChange={e => setEndTime(e.target.value)} required disabled={!date || !startTime}>
+                  <option value="">Select end</option>
+                  {endOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </label>
+            </div>
+
             <label className="new-booking-field">
-              <span className="required-label">Date</span>
+              <span className="required-label">Location</span>
               <input
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                min={MIN_BOOKING_DATE}
+                type="text"
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                placeholder="Porto, PT"
                 required
               />
             </label>
-          )}
 
-          <div className="new-booking-row">
             <label className="new-booking-field">
-              <span className="required-label">Start time</span>
-              <select value={startTime} onChange={e => handleStartTimeChange(e.target.value)} required disabled={!date}>
-                <option value="">Select start</option>
-                {startOptions.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <span>Notes</span>
+              <textarea
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Feeding instructions, access details, or anything the sitter should know."
+                rows={3}
+              />
             </label>
-            <label className="new-booking-field">
-              <span className="required-label">End time</span>
-              <select value={endTime} onChange={e => setEndTime(e.target.value)} required disabled={!date || !startTime}>
-                <option value="">Select end</option>
-                {endOptions.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </label>
-          </div>
 
-          <label className="new-booking-field">
-            <span className="required-label">Location</span>
-            <input
-              type="text"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder="Porto, PT"
-              required
-            />
-          </label>
-
-          <label className="new-booking-field">
-            <span>Notes</span>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Feeding instructions, access details, or anything the sitter should know."
-              rows={3}
-            />
-          </label>
-
-          <button type="submit" className="new-booking-submit" disabled={submitting}>
-            {submitting ? 'Creating…' : 'Create Booking'}
-          </button>
-        </form>
+            <button type="submit" className="new-booking-submit" disabled={submitting}>
+              {submitting ? 'Creating…' : 'Create Booking'}
+            </button>
+          </form>
+        )}
       </section>
     </div>
   );
