@@ -78,7 +78,7 @@ export default function UpdateAvailabilityPopup({
   onSaveAvailability,
 }: UpdateAvailabilityPopupProps) {
   const [location, setLocation] = useState(initialLocation);
-  const [capacity, setCapacity] = useState(initialCapacity);
+  const capacity = initialCapacity;
   const [days, setDays] = useState<Record<string, DayState>>(() => initDays(initialAvailableTimes));
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -96,7 +96,7 @@ export default function UpdateAvailabilityPopup({
       .filter(day => days[day].enabled)
       .map(day => ({ label: day, time: `${days[day].start} - ${days[day].end}` }));
 
-    if (!location.trim() || !capacity.trim()) return;
+    if (!location.trim()) return;
 
     setIsSaving(true);
     setSaveError('');
