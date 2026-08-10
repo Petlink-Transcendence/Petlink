@@ -4,6 +4,7 @@ from rest_framework import status
 from django.db import connection
 from django.db.models import Q
 from django.conf import settings
+from datetime import datetime, timezone
 import os
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -115,7 +116,7 @@ def chat_contacts(request):
             'unread_count': unread_count,
         })
 
-    results.sort(key=lambda c: c['last_message_at'] or '', reverse=True)
+    results.sort(key=lambda c: c['last_message_at'] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
     return Response(results, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
