@@ -351,9 +351,8 @@ export default function Post({ postId, userId, purpose, text, petType, image, cr
       {isNewBookingOpen && (
         <NewBookingPopup
           onClose={() => setIsNewBookingOpen(false)}
-          onCreateBooking={() => undefined}
+          providerId={userId}
           initialSitter={authorName}
-          petType={petType}
         />
       )}
     </div>

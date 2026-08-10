@@ -23,6 +23,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/admin/login/')\" || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
 
   postgres:
     image: postgres:15-alpine
@@ -74,8 +80,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - redis
-      - core-service
+      redis:
+        condition: service_started
+      core-service:
+        condition: service_healthy
 
 volumes:
   postgres_data:

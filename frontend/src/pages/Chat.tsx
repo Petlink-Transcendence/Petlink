@@ -1,6 +1,7 @@
 import './Chat.css'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
+import { resolveMediaUrl } from '../utils/mediaUrl'
 
 interface Message {
     id: number;
@@ -8,13 +9,19 @@ interface Message {
     text: string;
     sender: 'me' | 'them';
     time: string;
+    createdAt: string;
     attachment?: string;
 }
 
 interface Contact {
     id: number;
     name: string;
-    role: string;
+    avatar: string | null;
+    online: boolean;
+    lastSeen: string | null;
+    lastMessage: string | null;
+    lastMessageAt: string | null;
+    unreadCount: number;
 }
 
 interface ChatRouteState {
@@ -26,128 +33,244 @@ interface ChatRouteState {
     };
 }
 
-const initialContacts: Contact[] = [
-    {id: 1, name: "Daniela Padilha", role: "animal-sitter"},
-    {id: 2, name: "Filipe Tootill", role: "dog-owner"},
-    {id: 3, name: "Rodrigo Silva", role: "cat owner"},
-    {id: 4, name: "Daddy", role: "animal lover"},
-    {id: 5, name: "João Vieira", role: "cat-sitter"},
-    {id: 6, name: "Ricardo Oliveira", role: "cat-owner"},
-    {id: 7, name: "Dar banho ao gato", role: "animal-sitter"},
-];
+function getToken(): string | null {
+    return localStorage.getItem('access');
+}
+
+function getCurrentUserId(): number | null {
+    const token = getToken();
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const rawId = payload.user_id;
+        return rawId !== undefined ? Number(rawId) : null;
+    } catch {
+        return null;
+    }
+}
+
+async function apiFetch(path: string, options: RequestInit = {}) {
+    const token = getToken();
+    const res = await fetch(path, {
+        ...options,
+        headers: {
+            ...(options.headers || {}),
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Request failed: ${res.status}`);
+    }
+    return res.status === 204 ? null : res.json();
+}
 
 export default function Chat() {
     const location = useLocation();
     const routeOpenChatId = (location.state as ChatRouteState | null)?.openChatId;
     const routeContact = (location.state as ChatRouteState | null)?.contact;
 
+    const currentUserId = getCurrentUserId();
+
     useEffect(() => {
-      document.title = "Chat | PetLink";
+        document.title = "Chat | PetLink";
     }, []);
 
-    function initials(name: string) {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    function initials(name: string | undefined | null): string {
+        if (!name) return '?';
+
+        const parts = name.trim().split(/[\s_-]+/);
+
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+
+        return name.trim().slice(0, 2).toUpperCase();
     }
 
     /* CHAT */
     const [activeChat, setActiveChat] = useState<number | null>(null);
-    const [contacts, setContacts] = useState<Contact[]>(initialContacts);
+    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [contactsLoading, setContactsLoading] = useState(true);
+    const [contactsError, setContactsError] = useState<string | null>(null);
     const [searchTermContacts, setSearchTermContacts] = useState("");
     const openedRouteContactRef = useRef<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const wsRef = useRef<WebSocket | null>(null);
+    const activeChatRef = useRef<number | null>(null);
+    const fetchingContactsRef = useRef<Set<number>>(new Set());
+
+    useEffect(() => {
+        activeChatRef.current = activeChat;
+    }, [activeChat]);
 
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ 
-                behavior: "smooth", 
+            messagesEndRef.current.scrollIntoView({
+                behavior: "smooth",
                 block: "nearest"
             });
         }
     };
 
+    /* Load contacts (your connections: people you follow / who follow you) */
+    const loadContacts = useCallback(async () => {
+        setContactsLoading(true);
+        setContactsError(null);
+        try {
+            const data = await apiFetch('/chat/contacts/');
+            const mapped: Contact[] = data.map((c: any) => ({
+                id: c.user_id,
+                name: c.name || c.username,
+                avatar: c.avatar || null,
+                online: c.online_status,
+                lastSeen: c.last_seen,
+                lastMessage: c.last_message,
+                lastMessageAt: c.last_message_at,
+                unreadCount: c.unread_count,
+            }));
+            setContacts(mapped);
+        } catch (err) {
+            setContactsError(err instanceof Error ? err.message : 'Failed to load contacts');
+        } finally {
+            setContactsLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
-        if (routeOpenChatId === undefined) {
+        loadContacts();
+    }, [loadContacts]);
+
+    useEffect(() => {
+        if (routeOpenChatId === undefined || contactsLoading) {
             return;
         }
-
-        const contactById = contacts.find(contact => contact.id === routeOpenChatId);
-        if (contactById) {
+        if (routeOpenChatId === getCurrentUserId()) {
+            return;
+        }
+        const existing = contacts.find(contact => contact.id === routeOpenChatId);
+        if (existing) {
             setSearchTermContacts("");
-            setActiveChat(contactById.id);
+            setActiveChat(existing.id);
+        } else {
+            // Fetch missing contact info
+            apiFetch(`/api/users/${routeOpenChatId}/`).then(userData => {
+                setContacts(prev => {
+                    if (prev.find(c => c.id === routeOpenChatId)) return prev;
+                    return [{
+                        id: routeOpenChatId,
+                        name: userData.name || userData.username || 'Unknown',
+                        avatar: userData.avatar || null,
+                        online: userData.online_status || false,
+                        lastSeen: userData.last_seen || null,
+                        lastMessage: null,
+                        lastMessageAt: null,
+                        unreadCount: 0
+                    }, ...prev];
+                });
+                setSearchTermContacts("");
+                setActiveChat(routeOpenChatId);
+            }).catch(console.error);
         }
-    }, [routeOpenChatId, contacts]);
+    }, [routeOpenChatId, contactsLoading]); // omitted contacts to avoid infinite loops if it changes
 
     useEffect(() => {
-        if (!routeContact?.name || !routeContact?.role) {
+        if (routeContact?.id === undefined || contactsLoading) {
             return;
         }
-
-        const contactKey = `${routeContact.id ?? 'new'}|${routeContact.name}|${routeContact.role}`;
+        if (routeContact.id === getCurrentUserId()) {
+            return;
+        }
+        const contactKey = `${routeContact.id}|${routeContact.name}`;
         if (openedRouteContactRef.current === contactKey) {
             return;
         }
-
         openedRouteContactRef.current = contactKey;
-        setSearchTermContacts("");
-        setContacts(currentContacts => {
-            const existingContact = currentContacts.find(contact =>
-                contact.name === routeContact.name && contact.role === routeContact.role
-            );
 
-            if (existingContact) {
-                setActiveChat(existingContact.id);
-                return currentContacts;
-            }
-
-            if (routeContact.id !== undefined) {
-                const contactById = currentContacts.find(contact => contact.id === routeContact.id);
-
-                if (contactById) {
-                    setActiveChat(contactById.id);
-                    return currentContacts;
-                }
-            }
-
-            const newContact = {
-                id: Math.max(0, ...currentContacts.map(contact => contact.id)) + 1,
-                name: routeContact.name,
-                role: routeContact.role,
-            };
-
-            setActiveChat(newContact.id);
-            return [newContact, ...currentContacts];
-        });
-    }, [routeContact?.id, routeContact?.name, routeContact?.role]);
+        const existing = contacts.find(c => c.id === routeContact.id);
+        if (existing) {
+            setActiveChat(existing.id);
+            setSearchTermContacts("");
+        } else {
+            apiFetch(`/api/users/${routeContact.id}/`).then(userData => {
+                setContacts(prev => {
+                    if (prev.find(c => c.id === routeContact.id)) return prev;
+                    return [{
+                        id: routeContact.id!,
+                        name: userData.name || userData.username || routeContact.name || 'Unknown',
+                        avatar: userData.avatar || null,
+                        online: userData.online_status || false,
+                        lastSeen: userData.last_seen || null,
+                        lastMessage: null,
+                        lastMessageAt: null,
+                        unreadCount: 0
+                    }, ...prev];
+                });
+                setActiveChat(routeContact.id!);
+                setSearchTermContacts("");
+            }).catch(() => {
+                // Fallback if fetch fails
+                setContacts(prev => {
+                    if (prev.find(c => c.id === routeContact.id)) return prev;
+                    return [{
+                        id: routeContact.id!,
+                        name: routeContact.name || 'Unknown',
+                        avatar: null,
+                        online: false,
+                        lastSeen: null,
+                        lastMessage: null,
+                        lastMessageAt: null,
+                        unreadCount: 0
+                    }, ...prev];
+                });
+                setActiveChat(routeContact.id!);
+                setSearchTermContacts("");
+            });
+        }
+    }, [routeContact?.id, routeContact?.name, contactsLoading]);
 
     const filteredContacts = contacts.filter(contact =>
         contact.name.toLocaleLowerCase().includes(searchTermContacts.toLocaleLowerCase())
     );
 
     /* MESSAGES */
-    const [messages, setMessages] = useState<Message[]>([
-        { id: 101, contactId: 1, text: "Hi! Can you walk Jack tomorrow?", sender: "me", time: "7:00pm" },
-        { id: 102, contactId: 1, text: "Sure! I love Jack.", sender: "them", time: "08:00am" },
-        { id: 103, contactId: 1, text: "Great! At what time can you be there?.", sender: "me", time: "08:35am" },
-        { id: 104, contactId: 1, text: "I will be there at 2pm. Please have him ready for his walk.", sender: "them", time: "09:45am" },
-        { id: 105, contactId: 1, text: "Sounds great, see you then!", sender: "me", time: "09:45am" },
-        { id: 106, contactId: 2, text: "I've asked Daniela if she could walk the dogs", sender: "me", time: "07:02pm" },
-        { id: 107, contactId: 2, text: "Great, let's see what she says.", sender: "them", time: "08:45pm" },
-        { id: 108, contactId: 2, text: "She's in!", sender: "them", time: "08:30am" },
-        { id: 109, contactId: 2, text: "Ask her at what time she can be here to take Jack for his walk, please. I need to know soon.", sender: "me", time: "09:40am" },
-        { id: 110, contactId: 3, text: "How are the cats today?", sender: "me", time: "03:13pm" },
-        { id: 111, contactId: 3, text: "Hmm... Quiwi just spilt another glass of water...", sender: "them", time: "04:33pm" },
-        { id: 112, contactId: 4, text: "Good Two-Bags has just come in.", sender: "them", time: "02:10pm" },
-        { id: 114, contactId: 5, text: "Hello, I have 2 cats and I need a cat sitter for the weekend. Ricardo recommended you.", sender: "me", time: "09:04am" },
-        { id: 115, contactId: 5, text: "Hello, yes. I'm available for this weekend. Where is your house?", sender: "them", time: "09:30am" },
-        { id: 116, contactId: 5, text: "We're in Rio Tinto.", sender: "me", time: "09:40am" },
-        { id: 117, contactId: 5, text: "I'll take care of Quiwi and Sushi, don't worry.", sender: "me", time: "09:45am" },
-        { id: 118, contactId: 6, text: "Hey! I found a really cool cat-sitter in Rio Tinto.", sender: "them", time: "08:09pm" },
-        { id: 119, contactId: 6, text: "Great, can you send me the profile?", sender: "me", time: "09:25pm" },
-        { id: 120, contactId: 6, text: "Sure, here's the link: www.petlink.com/joao", sender: "them", time: "11:05pm" },
-        { id: 121, contactId: 7, text: "Boa tarde, queria marcar dois banhos de gato para o próximo sábado à tarde. Tem disponibilidade?", sender: "me", time: "12:45pm" },
-        { id: 122, contactId: 7, text: "Sim. Pode trazê-los às 15h. Até lá.", sender: "them", time: "14:05pm" },
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [messagesLoading, setMessagesLoading] = useState(false);
+
+    /* Load message history whenever the active chat changes */
+    useEffect(() => {
+        if (!activeChat) return;
+
+        let cancelled = false;
+        setMessagesLoading(true);
+
+        apiFetch(`/chat/messages/${activeChat}/`)
+            .then((data) => {
+                if (cancelled) return;
+                const mapped: Message[] = data.map((m: any) => ({
+                    id: m.id,
+                    contactId: m.sender_id === currentUserId ? m.recipient_id : m.sender_id,
+                    text: m.content,
+                    sender: m.sender_id === currentUserId ? 'me' : 'them',
+                    time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    createdAt: m.created_at,
+                }));
+                setMessages(prev => {
+                    // keep messages from OTHER conversations, replace this one
+                    const others = prev.filter(msg => msg.contactId !== activeChat);
+                    return [...others, ...mapped];
+                });
+            })
+            .catch((err) => {
+                console.error('Failed to load messages', err);
+            })
+            .finally(() => {
+                if (!cancelled) setMessagesLoading(false);
+            });
+
+        return () => { cancelled = true; };
+    }, [activeChat, currentUserId]);
 
     useEffect(() => {
         scrollToBottom();
@@ -155,18 +278,17 @@ export default function Chat() {
 
     const [message, setMessage] = useState("");
     const [attachedPhoto, setAttachedPhoto] = useState<string | null>(null);
+    const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
-    const chatHistory = messages.filter(msg => msg.contactId === activeChat);
+    const chatHistory = messages
+        .filter(msg => msg.contactId === activeChat)
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
     const [searchTermMsg, setSearchTermMsg] = useState("");
 
     const filteredMessages = chatHistory.filter(msg =>
         msg.text.toLowerCase().includes(searchTermMsg.toLowerCase())
     );
-
-    const getLastMessage = (contactId: number) => {
-        const contactHistory = messages.filter(msg => msg.contactId === contactId);
-        return contactHistory.length > 0 ? contactHistory[contactHistory.length - 1] : null;
-    }
 
     const handleAttachmentClick = () => {
         fileInputRef.current?.click();
@@ -175,6 +297,7 @@ export default function Chat() {
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setAttachedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setAttachedPhoto(reader.result as string);
@@ -183,31 +306,210 @@ export default function Chat() {
         }
     };
 
-    const handleSendMessage = () => {
-        if ((!message.trim() && !attachedPhoto) || !activeChat) 
+    /* Send over the WebSocket. The backend doesn't echo the message back to
+       the sender's own group, so we add it to local state ourselves
+       (optimistic update) rather than waiting for a server round-trip. */
+    const handleSendMessage = async () => {
+        if ((!message.trim() && !attachedPhoto) || !activeChat) return;
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            alert('Chat disconnected. Reconnecting... Please try again in a few seconds.');
+            console.error('Chat socket is not connected');
             return;
+        }
 
+        let imageUrl = "";
+        if (attachedFile) {
+            const formData = new FormData();
+            formData.append('image', attachedFile);
+            try {
+                const data = await apiFetch('/chat/upload_image/', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (data && data.url) imageUrl = data.url;
+            } catch (err) {
+                console.error("Failed to upload image", err);
+                return;
+            }
+        }
+
+        const tempId = Date.now();
+        const contentToSend = imageUrl ? `![image](${imageUrl})\n${message}`.trim() : message;
+
+        wsRef.current.send(JSON.stringify({
+            recipient_id: activeChat,
+            content: contentToSend,
+            temp_id: tempId,
+        }));
+
+        const now = new Date();
         const newMessage: Message = {
-            id: Date.now(),
+            id: tempId, // temporary client-side id until next reload
             contactId: activeChat,
-            text: message,
-            attachment: attachedPhoto || undefined,
+            text: contentToSend,
+            attachment: attachedPhoto || undefined, // local preview
             sender: "me",
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            createdAt: now.toISOString(),
         };
-        
-        setMessages([...messages, newMessage]);
+
+        setMessages(prev => [...prev, newMessage]);
         setMessage("");
         setAttachedPhoto(null);
+        setAttachedFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const deleteLastMessage = () => {
-        if (messages.length === 0) return;
-        setMessages(prevMessages => prevMessages.slice(0, -1));
+    /* Delete only YOUR most recent sent message in the ACTIVE conversation,
+       matching the backend rule exactly (delete_message only allows deleting
+       the sender's latest message in that specific conversation). */
+    const deleteLastMessage = async () => {
+        if (!activeChat) return;
+
+        const myMessagesInThisChat = chatHistory.filter(m => m.sender === 'me');
+        if (myMessagesInThisChat.length === 0) return;
+
+        const lastMine = myMessagesInThisChat[myMessagesInThisChat.length - 1];
+
+        try {
+            await apiFetch(`/chat/messages/delete/${lastMine.id}/`, { method: 'DELETE' });
+            setMessages(prev => prev.filter(m => m.id !== lastMine.id));
+        } catch (err) {
+            console.error('Failed to delete message', err);
+            // most likely a 403 if it's no longer actually the last message
+            // (e.g. sent from another tab/device) — surface it rather than
+            // failing silently
+            alert(err instanceof Error ? err.message : 'Could not delete message');
+        }
     };
 
     const activeContact = contacts.find(c => c.id === activeChat);
+
+    /* WEBSOCKET: one persistent connection for the whole chat session,
+       opened once per logged-in user (NOT reopened when switching chats). */
+    useEffect(() => {
+        if (!currentUserId) return;
+
+        let cancelled = false;
+        let socket: WebSocket | null = null;
+        let timeoutId: number;
+
+        const connect = () => {
+            if (cancelled) return;
+            const token = getToken();
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            socket = new WebSocket(
+                `${protocol}://${window.location.host}/ws/chat/${currentUserId}/?token=${token}`
+            );
+            wsRef.current = socket;
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'message_deleted') {
+                    setMessages(prev => prev.filter(m => m.id !== data.message_id));
+                    return;
+                }
+
+                if (data.type === 'message_sent_ack') {
+                    setMessages(prev => prev.map(m =>
+                        m.id === data.temp_id ? { ...m, id: data.real_id } : m
+                    ));
+                    return;
+                }
+
+                const senderId = Number(data.sender_id);
+                const now = new Date();
+                const incoming: Message = {
+                    id: data.message_id,
+                    contactId: senderId,
+                    text: data.content,
+                    sender: 'them',
+                    time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    createdAt: now.toISOString(),
+                };
+                if (activeChatRef.current === senderId) {
+                    setMessages(prev => [...prev, incoming]);
+                }
+
+                setContacts(prev => {
+                    const existing = prev.find(c => c.id === senderId);
+                    if (existing) {
+                        return prev.map(c =>
+                            c.id === senderId
+                                ? {
+                                    ...c,
+                                    lastMessage: data.content,
+                                    lastMessageAt: now.toISOString(),
+                                    unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
+                                }
+                                : c
+                        );
+                    } else if (!fetchingContactsRef.current.has(senderId)) {
+                        fetchingContactsRef.current.add(senderId);
+                        apiFetch(`/api/users/${senderId}/`).then(userData => {
+                            const newContact = {
+                                id: senderId,
+                                name: userData.name || userData.username || 'Unknown',
+                                avatar: userData.avatar || null,
+                                online: userData.online_status || false,
+                                lastSeen: userData.last_seen || null,
+                                unreadCount: activeChatRef.current === senderId ? 0 : 1,
+                                lastMessage: data.content,
+                                lastMessageAt: now.toISOString(),
+                            };
+                            setContacts(curr => {
+                                const alreadyAdded = curr.find(c => c.id === senderId);
+                                if (alreadyAdded) {
+                                    return curr.map(c =>
+                                        c.id === senderId
+                                            ? {
+                                                ...c,
+                                                lastMessage: data.content,
+                                                lastMessageAt: now.toISOString(),
+                                                unreadCount: activeChatRef.current === senderId ? c.unreadCount : c.unreadCount + 1,
+                                            }
+                                            : c
+                                    );
+                                }
+                                return [newContact, ...curr];
+                            });
+                        }).catch(err => {
+                            console.error("Could not fetch new contact", err);
+                            fetchingContactsRef.current.delete(senderId);
+                        });
+                        return prev;
+                    }
+                    return prev;
+                });
+            };
+
+            socket.onclose = (event) => {
+                if (event.code === 4001) {
+                    // Chat auth failed silently
+                    return;
+                }
+                if (!cancelled) {
+                    // Reconnect on unexpected close
+                    timeoutId = window.setTimeout(connect, 3000);
+                }
+            };
+        };
+
+        connect();
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timeoutId);
+            if (socket) {
+                if (socket.readyState === WebSocket.CONNECTING) {
+                    socket.onopen = () => socket?.close();
+                } else if (socket.readyState === WebSocket.OPEN) {
+                    socket.close();
+                }
+            }
+        };
+    }, [currentUserId]);
 
     /* TEXT AREA */
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -217,9 +519,9 @@ export default function Chat() {
             textareaRef.current.style.height = "auto";
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
-    });  
+    });
 
-    return(
+    return (
         <div className="chat-container">
             {/*Sidebar */}
             <aside className="chat-sidebar">
@@ -229,134 +531,166 @@ export default function Chat() {
 
                 <div className="search-box">
                     <div className="search-input-wrapper">
-                    <span className="search-icon">🔍</span>
-                    <input 
-                        type="text" 
-                        placeholder="Search contacts..." 
-                        className="search-input"
-                        onChange={(e) => setSearchTermContacts(e.target.value)}
-                    />
+                        <span className="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Search contacts..."
+                            className="search-input"
+                            onChange={(e) => setSearchTermContacts(e.target.value)}
+                        />
                     </div>
                 </div>
 
                 <div className="contact-list">
-                    {filteredContacts.map(contact => {
-                        const lastMsgObj = getLastMessage(contact.id);
-                        return (
-                            <div 
-                                key={contact.id} 
+                    {contactsLoading ? (
+                        <p className="no-results">Loading connections...</p>
+                    ) : contactsError ? (
+                        <p className="no-results">{contactsError}</p>
+                    ) : filteredContacts.length === 0 ? (
+                        <p className="no-results">No connections yet. Follow someone to start chatting.</p>
+                    ) : (
+                        filteredContacts.map(contact => (
+                            <div
+                                key={contact.id}
                                 className={`contact-item ${activeChat === contact.id ? 'active' : ''}`}
                                 onClick={() => setActiveChat(contact.id)}
                             >
-                                <div className="contact-avatar">{initials(contact.name)}</div>
+                                <div className="contact-avatar">
+                                    {contact.avatar
+                                        ? <img src={resolveMediaUrl(contact.avatar)} alt={contact.name} />
+                                        : initials(contact.name)}
+                                </div>
                                 <div className="contact-info">
-                                    <div className="contact-top">
-                                        <span className="contact-name">{contact.name}, {contact.role}</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span className="contact-name">
+                                            {contact.name}
+                                        </span>
                                     </div>
                                     <p className="contact-last-msg">
                                         <span className="contact-time">
-                                            {lastMsgObj ? lastMsgObj.time : ""}
+                                            {contact.lastMessageAt
+                                                ? new Date(contact.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                : ""}
                                         </span>
                                         <span> </span>
-                                        {lastMsgObj ? (lastMsgObj.attachment ? "📷 Image attachment" : lastMsgObj.text) : ""}
+                                        {contact.lastMessage?.startsWith('![image](') 
+                                            ? "📷 Photo" 
+                                            : (contact.lastMessage || "No messages yet")}
                                     </p>
                                 </div>
                             </div>
-                        );
-                    })}
+                        ))
+                    )}
                 </div>
             </aside>
 
             <main className="chat-window">
                 {activeChat ? (
                     <>
-                    <header className="chat-header">
-                        <div className="header-info">
-                            <div className="header-avatar">
-                                {activeContact ? initials(activeContact.name) : ""}
+                        <header className="chat-header">
+                            <div className="header-info">
+                                <div className="header-avatar">
+                                    {activeContact?.avatar 
+                                        ? <img src={resolveMediaUrl(activeContact.avatar)} alt={activeContact.name} /> 
+                                        : (activeContact ? initials(activeContact.name) : "")}
+                                </div>
+                                <div>
+                                    <h3>{activeContact?.name}</h3>
+                                </div>
                             </div>
-                            <div>
-                                <h3>{contacts.find(c => c.id === activeChat)?.name}, {contacts.find(c => c.id === activeChat)?.role} </h3>
+
+                            <div className="search-box">
+                                <div className="search-input-wrapper">
+                                    <span className="search-icon">🔍</span>
+                                    <input
+                                        type="text"
+                                        placeholder="Search for messages..."
+                                        className="search-input"
+                                        onChange={(e) => setSearchTermMsg(e.target.value)}
+                                    />
+                                </div>
                             </div>
+                        </header>
+
+                        {/* Messages Area */}
+                        <div className="messages-container">
+                            {messagesLoading ? (
+                                <p className='no-results'>Loading messages...</p>
+                            ) : chatHistory.length === 0 ? (
+                                <p className='no-results'>No messages yet.</p>
+                            ) : filteredMessages.length > 0 ? (
+                                filteredMessages.map((msg) => (
+                                    <div key={msg.id} className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}>
+                                        {msg.attachment && !msg.text.startsWith('![image](') && (
+                                            <img src={msg.attachment} alt="Attachment" className="chat-msg-image" />
+                                        )}
+                                        {msg.text && msg.text.startsWith('![image](') ? (
+                                            <>
+                                                <img 
+                                                    src={resolveMediaUrl(msg.text.match(/!\[image\]\((.*?)\)/)?.[1] || '')} 
+                                                    alt="Attachment" 
+                                                    className="chat-msg-image" 
+                                                />
+                                                {msg.text.split('\n').slice(1).join('\n') && (
+                                                    <p>{msg.text.split('\n').slice(1).join('\n')}</p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            msg.text && <p>{msg.text}</p>
+                                        )}
+                                        <div className="msg-footer">
+                                            <span className="msg-time">{msg.time}</span>
+                                            {msg.sender === 'me' && <span className="read-status">✓✓</span>}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className='no-results'>No messages found.</p>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
 
-                        <div className="search-box">
-                            <div className="search-input-wrapper">
-                            <span className="search-icon">🔍</span>
-                            <input 
-                                type="text" 
-                                placeholder="Search for messages..." 
-                                className="search-input"
-                                onChange={(e) => setSearchTermMsg(e.target.value)}
-                            />
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Messages Area */}
-                    <div className="messages-container">
-                        {chatHistory.length === 0 ? (
-                            <p className='no-results'>No messages yet.</p>
-                        ) : filteredMessages.length > 0 ? (
-                            filteredMessages.map((msg) => (
-                                <div key={msg.id} className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}>
-                                    {msg.attachment && (
-                                        <img src={msg.attachment} alt="Attachment" className="chat-msg-image" />
-                                    )}
-                                    {msg.text && <p>{msg.text}</p>}
-                                    <div className="msg-footer">
-                                        <span className="msg-time">{msg.time}</span>
-                                        {msg.sender === 'me' && <span className="read-status">✓✓</span>}
+                        <div className="chat-input-wrapper-block">
+                            {attachedPhoto && (
+                                <div className="attachment-preview-bar">
+                                    <div className="preview-thumbnail-wrapper">
+                                        <img src={attachedPhoto} alt="Upload preview" />
+                                        <button className="remove-preview-btn" onClick={() => setAttachedPhoto(null)}>×</button>
                                     </div>
                                 </div>
-                            ))
-                        ) : (
-                            <p className='no-results'>No messages found.</p>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
+                            )}
 
-                    <div className="chat-input-wrapper-block">
-                        {attachedPhoto && (
-                            <div className="attachment-preview-bar">
-                                <div className="preview-thumbnail-wrapper">
-                                    <img src={attachedPhoto} alt="Upload preview" />
-                                    <button className="remove-preview-btn" onClick={() => setAttachedPhoto(null)}>×</button>
-                                </div>
-                            </div>
-                        )}
+                            <footer className="chat-input-container">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    style={{ display: 'none' }}
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                />
 
-                        <footer className="chat-input-container">
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                style={{ display: 'none' }} 
-                                accept="image/*"
-                                onChange={handlePhotoChange} 
-                            />
-                            
-                            <button className="attachment-btn" onClick={handleAttachmentClick}>+</button>
-                            
-                            <textarea 
-                                ref={textareaRef}
-                                className="chat-input-textarea"
-                                placeholder="Type a message..." 
-                                value={message}
-                                rows={1}
-                                onChange={(e) => setMessage(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSendMessage();
-                                    }
-                                }}
-                            />
-                            <button className="send-message-btn" onClick={handleSendMessage}>Send</button>
-                            <button className="attachment-btn delete-btn" onClick={deleteLastMessage} title="Delete last message">
-                                <span className="btn-icon">🗑️</span>
-                            </button>
-                        </footer>                
-                    </div>
+                                <button className="attachment-btn" onClick={handleAttachmentClick}>+</button>
+
+                                <textarea
+                                    ref={textareaRef}
+                                    className="chat-input-textarea"
+                                    placeholder="Type a message..."
+                                    value={message}
+                                    rows={1}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                />
+                                <button className="send-message-btn" onClick={handleSendMessage}>Send</button>
+                                <button className="attachment-btn delete-btn" onClick={deleteLastMessage} title="Delete last message">
+                                    <span className="btn-icon">🗑️</span>
+                                </button>
+                            </footer>
+                        </div>
                     </>
                 ) : (
                     <p> </p>

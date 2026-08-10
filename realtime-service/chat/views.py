@@ -7,6 +7,8 @@ from django.conf import settings
 import os
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from .models import Message
 
 def get_user_id(request):
@@ -53,35 +55,44 @@ def chat_contacts(request):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    user_id = int(user_id)  # JWT encodes user_id as a string
+
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT DISTINCT
-                    u.user_id, u.username, u.name, u.avatar,
+                    u.id AS user_id, u.username, u.name, u.avatar,
                     u.online_status, u.last_seen
-                FROM "user" u
+                FROM accounts_user u
                 WHERE u.deleted_at IS NULL
-                  AND u.user_id IN (
-                      SELECT following_id FROM followers WHERE follower_id = %s
+                  AND u.id != %s
+                  AND u.id IN (
+                      SELECT following_id FROM accounts_follower WHERE follower_id = %s
                       UNION
-                      SELECT follower_id FROM followers WHERE following_id = %s
+                      SELECT follower_id FROM accounts_follower WHERE following_id = %s
+                      UNION
+                      SELECT sender_id FROM chat_message WHERE recipient_id = %s
+                      UNION
+                      SELECT recipient_id FROM chat_message WHERE sender_id = %s
                   )
-            """, [user_id, user_id])
+            """, [user_id, user_id, user_id, user_id, user_id])
             columns = [col[0] for col in cursor.description]
             connections = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    except Exception:
+    except Exception as e:
+        print(f"chat_contacts SQL error: {e}")
         connections = []
 
     results = []
     for conn in connections:
         avatar_url = conn.get('avatar')
         if avatar_url:
-            name = str(avatar_url).lstrip('/')
-            if name.startswith('media/'):
-                name = name[6:]
-            full_path = os.path.join(settings.MEDIA_ROOT, name)
-            if not os.path.exists(full_path):
-                conn['avatar'] = None
+            if str(avatar_url).startswith('http'):
+                pass
+            else:
+                name = str(avatar_url).lstrip('/')
+                if name.startswith('media/'):
+                    name = name[6:]
+                conn['avatar'] = f"/media/{name}"
 
         other_id = conn['user_id']
         last_msg = Message.objects.filter(
@@ -109,6 +120,8 @@ def delete_message(request, message_id):
     if not user_id:
         return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    user_id = int(user_id)
+
     try:
         message = Message.objects.get(id=message_id, sender_id=user_id)
     except Message.DoesNotExist:
@@ -125,5 +138,40 @@ def delete_message(request, message_id):
             status=status.HTTP_403_FORBIDDEN
         )
 
+    recipient_id = message.recipient_id
     message.delete()
+
+    # notify the recipient's open chat socket, if they have one connected
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'chat_{recipient_id}',
+        {'type': 'message_deleted', 'message_id': message_id}
+    )
+
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+import uuid
+
+@api_view(['POST'])
+def upload_chat_image(request):
+    user_id = get_user_id(request)
+    if not user_id:
+        return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    image = request.FILES.get('image')
+    if not image:
+        return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    ext = os.path.splitext(image.name)[1]
+    filename = f"{uuid.uuid4()}{ext}"
+    
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'chat_images')
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = os.path.join(upload_dir, filename)
+    with open(file_path, 'wb+') as destination:
+        for chunk in image.chunks():
+            destination.write(chunk)
+            
+    url = f"/media/chat_images/{filename}"
+    return Response({'url': url}, status=status.HTTP_201_CREATED)
