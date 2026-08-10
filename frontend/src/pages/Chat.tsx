@@ -171,7 +171,7 @@ export default function Chat() {
                 });
                 setSearchTermContacts("");
                 setActiveChat(routeOpenChatId);
-            }).catch(console.error);
+            }).catch(() => {});
         }
     }, [routeOpenChatId, contactsLoading]); // omitted contacts to avoid infinite loops if it changes
 
@@ -262,9 +262,7 @@ export default function Chat() {
                     return [...others, ...mapped];
                 });
             })
-            .catch((err) => {
-                console.error('Failed to load messages', err);
-            })
+            .catch(() => {})
             .finally(() => {
                 if (!cancelled) setMessagesLoading(false);
             });
@@ -313,7 +311,6 @@ export default function Chat() {
         if ((!message.trim() && !attachedPhoto) || !activeChat) return;
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
             alert('Chat disconnected. Reconnecting... Please try again in a few seconds.');
-            console.error('Chat socket is not connected');
             return;
         }
 
@@ -327,8 +324,7 @@ export default function Chat() {
                     body: formData,
                 });
                 if (data && data.url) imageUrl = data.url;
-            } catch (err) {
-                console.error("Failed to upload image", err);
+            } catch {
                 return;
             }
         }
@@ -375,7 +371,6 @@ export default function Chat() {
             await apiFetch(`/chat/messages/delete/${lastMine.id}/`, { method: 'DELETE' });
             setMessages(prev => prev.filter(m => m.id !== lastMine.id));
         } catch (err) {
-            console.error('Failed to delete message', err);
             // most likely a 403 if it's no longer actually the last message
             // (e.g. sent from another tab/device) — surface it rather than
             // failing silently
@@ -474,8 +469,7 @@ export default function Chat() {
                                 }
                                 return [newContact, ...curr];
                             });
-                        }).catch(err => {
-                            console.error("Could not fetch new contact", err);
+                        }).catch(() => {
                             fetchingContactsRef.current.delete(senderId);
                         });
                         return prev;

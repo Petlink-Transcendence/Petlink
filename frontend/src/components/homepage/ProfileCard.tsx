@@ -88,7 +88,6 @@ export default function ProfileCard() {
         setProfileCard(profileData);
       } catch (err: any) {
         setError(err.message || 'Failed to load profile card.');
-        console.error("Fetch error details:", err);
       } finally {
         setLoading(false);
       }

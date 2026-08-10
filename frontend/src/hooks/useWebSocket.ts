@@ -63,14 +63,12 @@ export function useWebSocket() {
 
         socket.onopen = () => {
           if (!isMounted) return;
-          console.log('[WebSocket] Connected to notification stream for user:', userId);
         };
 
         socket.onmessage = (event) => {
           if (!isMounted) return;
           try {
             const data = JSON.parse(event.data);
-            console.log('[WebSocket] Received message:', data);
 
             if (data.type === 'connection_updated') {
               // Dispatch local window event so all open components re-fetch/update live
@@ -80,8 +78,8 @@ export function useWebSocket() {
             } else {
               window.dispatchEvent(new CustomEvent('newNotification', { detail: data }));
             }
-          } catch (err) {
-            console.error('[WebSocket] Error parsing message:', err);
+          } catch {
+            /* ignore */
           }
         };
 

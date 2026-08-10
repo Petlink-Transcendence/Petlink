@@ -229,7 +229,6 @@ export default function Settings() {
 
     } catch (err: any) {
       setError(err.message || 'Failed to load account data.');
-      console.error("Fetch error details:", err);
     } finally {
       setLoading(false);
     }
@@ -263,8 +262,8 @@ export default function Settings() {
             email: data.email || current.email
           }));
         }
-      } catch (err) {
-        console.error('Failed to fetch user', err);
+      } catch {
+        /* ignore */
       }
     }
     fetchUser();
@@ -313,8 +312,7 @@ export default function Settings() {
         }
         return { ...current, avatarUrl: nextAvatarUrl };
       });
-    } catch (err) {
-      console.error('Error processing avatar image:', err);
+    } catch {
       setAvatarError('Failed to process image file. Please try another photo.');
       event.target.value = '';
     }
@@ -558,8 +556,7 @@ export default function Settings() {
         setAvatarFile(null);
         setAvatarError('');
       }
-    } catch (err) {
-      console.error('Settings save failed:', err);
+    } catch {
       setInlineError('Failed to save changes. Please try again.');
       return;
     }
