@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { resolveMediaUrl } from '../../utils/mediaUrl';
+import { Link, useNavigate } from 'react-router-dom';
 import './BookingCard.css';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 export type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
 
@@ -56,6 +56,9 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
   const [imgError, setImgError] = useState(false);
   const canWriteReview = booking.status === 'completed' && !hasSubmittedReview;
   const avatarUrl = resolveMediaUrl(booking.avatar);
+  const profilePath = booking.chatContactId
+    ? (booking.layout === 'owner' ? `/sitterprofile/${booking.chatContactId}` : `/ownerprofile/${booking.chatContactId}`)
+    : undefined;
 
   const handleMessageClick = () => {
     navigate('/chat', {
@@ -104,18 +107,29 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
     <>
       <article className="bookings-card">
         <header className="bookings-card-header">
-          {!imgError && avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="Avatar"
-              className="bookings-avatar"
-              onError={() => setImgError(true)}
-            />
+          {profilePath ? (
+            <Link to={profilePath} className="bookings-avatar-link" aria-label={`Open profile of ${booking.personName}`}>
+              {!imgError && avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={booking.personName}
+                  className="bookings-avatar"
+                  onError={() => setImgError(true)}
+                />
+              ) : <div className="bookings-avatar">{initials(booking.personName)}</div>}
+            </Link>
           ) : (
-            <div className="bookings-avatar">{initials(booking.personName)}</div>
+            !imgError && avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={booking.personName}
+                className="bookings-avatar"
+                onError={() => setImgError(true)}
+              />
+            ) : <div className="bookings-avatar">{initials(booking.personName)}</div>
           )}
           <div className="bookings-person">
-            <h3>{booking.personName}</h3>
+            {profilePath ? <Link to={profilePath} className="bookings-person-name">{booking.personName}</Link> : <h3>{booking.personName}</h3>}
             <p>{booking.personRole}</p>
           </div>
           <span className={`bookings-status ${booking.status}`}>

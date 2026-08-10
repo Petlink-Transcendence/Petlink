@@ -40,6 +40,12 @@
   display: block;
 }
 
+.reviews-avatar-link {
+  display: block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .reviews-person {
   min-width: 0;
   text-align: left;
@@ -50,6 +56,17 @@
   color: black;
   font-size: 0.85rem;
   font-weight: 700;
+}
+
+.reviews-person-name {
+  color: black;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.reviews-person-name:hover {
+  text-decoration: underline;
 }
 
 .reviews-person p {

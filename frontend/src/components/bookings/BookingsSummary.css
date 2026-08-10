@@ -45,6 +45,13 @@
 
 @media (max-width: 42rem) {
   .bookings-summary {
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
     grid-template-columns: 1fr;
+  }
+
+  .bookings-summary-card {
+    min-height: 0;
+    padding: 1rem 1.25rem;
   }
 }
