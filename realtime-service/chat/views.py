@@ -11,7 +11,6 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .models import Message
-from notifications.models import Notification
 
 def get_user_id(request):
     auth = request.headers.get('Authorization', '')
@@ -22,14 +21,6 @@ def get_user_id(request):
         return token['user_id']
     except (InvalidToken, TokenError):
         return None
-
-def get_display_name(user_id):
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT name, username FROM accounts_user WHERE id = %s", [user_id])
-        row = cursor.fetchone()
-        if row:
-            return row[0] or row[1] or "Someone"
-    return "Someone"
 
 @api_view(['GET'])
 def message_history(request, user_id):
@@ -102,11 +93,7 @@ def chat_contacts(request):
                 name = str(avatar_url).lstrip('/')
                 if name.startswith('media/'):
                     name = name[6:]
-                full_path = os.path.join(settings.MEDIA_ROOT, name)
-                if not os.path.exists(full_path):
-                    conn['avatar'] = None
-                else:
-                    conn['avatar'] = f"/media/{name}"
+                conn['avatar'] = f"/media/{name}"
 
         other_id = conn['user_id']
         last_msg = Message.objects.filter(
@@ -155,35 +142,11 @@ def delete_message(request, message_id):
     recipient_id = message.recipient_id
     message.delete()
 
-    channel_layer = get_channel_layer()
-
     # notify the recipient's open chat socket, if they have one connected
+    channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f'chat_{recipient_id}',
         {'type': 'message_deleted', 'message_id': message_id}
-    )
-
-    sender_name = get_display_name(user_id)
-    notif_content = f'{sender_name} deleted a message.'
-
-    Notification.objects.create(
-        user_id=recipient_id,
-        actor_id=user_id,
-        type='message_deleted',
-        content=notif_content,
-        reference_id=user_id,
-        reference_type='message',
-    )
-
-    async_to_sync(channel_layer.group_send)(
-        f'notifications_{recipient_id}',
-        {
-            'type': 'send_notification',
-            'notification_type': 'message_deleted',
-            'content': notif_content,
-            'reference_id': user_id,
-            'reference_type': 'message',
-        }
     )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
