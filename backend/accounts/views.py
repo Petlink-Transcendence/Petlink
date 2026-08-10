@@ -43,6 +43,41 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
     throttle_classes = [RegisterRateThrottle]
 
+class CheckAvailabilityView(APIView):
+    """Endpoint to check username and email availability returning 200 OK status"""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        username = request.query_params.get('username', '').strip()
+        email = request.query_params.get('email', '').strip()
+        exclude_user_id = request.query_params.get('exclude_user_id')
+
+        username_taken = False
+        email_taken = False
+
+        if username:
+            qs = User.all_objects.filter(username__iexact=username)
+            if exclude_user_id:
+                try:
+                    qs = qs.exclude(pk=int(exclude_user_id))
+                except ValueError:
+                    pass
+            username_taken = qs.exists()
+
+        if email:
+            qs = User.all_objects.filter(email__iexact=email)
+            if exclude_user_id:
+                try:
+                    qs = qs.exclude(pk=int(exclude_user_id))
+                except ValueError:
+                    pass
+            email_taken = qs.exists()
+
+        return Response({
+            'username_taken': username_taken,
+            'email_taken': email_taken,
+        }, status=status.HTTP_200_OK)
+
 class ThrottledTokenObtainPairView(TokenObtainPairView):
     """API view to handle user login with rate limiting"""
     serializer_class = RoleTokenObtainPairSerializer

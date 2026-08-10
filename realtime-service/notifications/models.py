@@ -7,6 +7,7 @@ class Notification(models.Model):
             ('booking_request', 'Booking Request'),
             ('booking_confirmed', 'Booking Confirmed'),
             ('booking_cancelled', 'Booking Cancelled'),
+            ('booking_completed', 'Booking Completed'),
             ('new_review', 'New Review'),
             ('new_comment', 'New Comment'),
             ('new_like', 'New Like'),
