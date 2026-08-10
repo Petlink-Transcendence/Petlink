@@ -82,15 +82,32 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                             contentEditable
                             className='post-text-input'
                             data-placeholder="What's on your mind? *"
+                            onKeyDown={(e) => {
+                                const isTextEntry = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+                                if (text.length >= 512 && isTextEntry) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onPaste={(e) => {
+                                const pastedText = e.clipboardData.getData('text/plain');
+                                const selection = window.getSelection();
+                                const selectedLength = selection?.toString().length || 0;
+                                const remaining = 512 - (text.length - selectedLength);
+
+                                if (pastedText.length > remaining) {
+                                    e.preventDefault();
+                                    if (remaining > 0) {
+                                        document.execCommand('insertText', false, pastedText.slice(0, remaining));
+                                    }
+                                }
+                            }}
                             onInput={(e) => {
                                 const current = e.currentTarget.textContent || '';
-                                if (current.length > 512) {
-                                    const sliced = current.slice(0, 512);
-                                    e.currentTarget.textContent = sliced;
-                                    setText(sliced);
-                                } else {
-                                    setText(current);
+                                const limited = current.slice(0, 512);
+                                if (current !== limited) {
+                                    e.currentTarget.textContent = limited;
                                 }
+                                setText(limited);
                             }}
                             onBlur={(e) => {
                                 if (!e.currentTarget.textContent?.trim()) {
