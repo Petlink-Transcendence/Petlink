@@ -33,6 +33,12 @@
   object-fit: cover;
 }
 
+.bookings-avatar-link {
+  display: block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .bookings-person {
   min-width: 0;
   text-align: left;
@@ -395,6 +401,17 @@
   color: #555;
   font-size: 0.8125rem;
   font-weight: 700;
+}
+
+.bookings-person-name {
+  color: black;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.bookings-person-name:hover {
+  text-decoration: underline;
 }
 
 .bookings-review-field input,

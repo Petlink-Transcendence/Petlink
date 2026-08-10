@@ -13,6 +13,7 @@ type BackendReview = {
   reviewer: number;
   reviewer_name?: string | null;
   reviewer_username?: string | null;
+  reviewer_user_type?: string | null;
   reviewer_avatar?: string | null;
   rating: number;
   comment?: string | null;
@@ -68,6 +69,8 @@ function mapBackendReview(review: BackendReview): Review {
 
   return {
     id: review.id,
+    reviewerId: review.reviewer,
+    reviewerUserType: review.reviewer_user_type || undefined,
     reviewer: reviewerName,
     avatarUrl: resolveMediaUrl(review.reviewer_avatar),
     role: 'PetLink member',

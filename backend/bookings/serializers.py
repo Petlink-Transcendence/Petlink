@@ -40,6 +40,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     comment = serializers.CharField(max_length=1000, required=False, allow_blank=True, allow_null=True)
     reviewer_name = serializers.CharField(source='reviewer.name', read_only=True)
     reviewer_username = serializers.CharField(source='reviewer.username', read_only=True)
+    reviewer_user_type = serializers.CharField(source='reviewer.user_type', read_only=True)
     reviewer_avatar = serializers.ImageField(source='reviewer.avatar', read_only=True)
     reviewee_name = serializers.CharField(source='reviewee.name', read_only=True)
     reviewee_username = serializers.CharField(source='reviewee.username', read_only=True)
@@ -47,11 +48,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = (
-            'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_avatar',
+            'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_user_type', 'reviewer_avatar',
             'reviewee', 'reviewee_name', 'reviewee_username',
             'booking', 'rating', 'comment', 'created_at'
         )
         read_only_fields = (
-            'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_avatar',
+            'id', 'reviewer', 'reviewer_name', 'reviewer_username', 'reviewer_user_type', 'reviewer_avatar',
             'reviewee', 'reviewee_name', 'reviewee_username', 'created_at'
         )

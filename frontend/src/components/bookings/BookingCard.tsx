@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './BookingCard.css';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 export type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
 
@@ -53,6 +54,9 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
   const canWriteReview = booking.status === 'completed' && !hasSubmittedReview;
+  const profilePath = booking.chatContactId
+    ? (booking.layout === 'owner' ? `/sitterprofile/${booking.chatContactId}` : `/ownerprofile/${booking.chatContactId}`)
+    : undefined;
 
   const handleMessageClick = () => {
     navigate('/chat', {
@@ -101,13 +105,15 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
     <>
       <article className="bookings-card">
         <header className="bookings-card-header">
-          {booking.avatar ? (
-            <img src={booking.avatar.startsWith('http') ? booking.avatar : `http://localhost:8000${booking.avatar}`} alt="Avatar" className="bookings-avatar" />
+          {profilePath ? (
+            <Link to={profilePath} className="bookings-avatar-link" aria-label={`Open profile of ${booking.personName}`}>
+              {booking.avatar ? <img src={resolveMediaUrl(booking.avatar)} alt={booking.personName} className="bookings-avatar" /> : <div className="bookings-avatar">{initials(booking.personName)}</div>}
+            </Link>
           ) : (
-            <div className="bookings-avatar">{initials(booking.personName)}</div>
+            booking.avatar ? <img src={resolveMediaUrl(booking.avatar)} alt={booking.personName} className="bookings-avatar" /> : <div className="bookings-avatar">{initials(booking.personName)}</div>
           )}
           <div className="bookings-person">
-            <h3>{booking.personName}</h3>
+            {profilePath ? <Link to={profilePath} className="bookings-person-name">{booking.personName}</Link> : <h3>{booking.personName}</h3>}
             <p>{booking.personRole}</p>
           </div>
           <span className={`bookings-status ${booking.status}`}>
