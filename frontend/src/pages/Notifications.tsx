@@ -6,7 +6,7 @@ import './Notifications.css';
 
 interface BackendNotification {
     id: number;
-    type: 'new_connection' | 'new_message' | 'booking_request' | 'booking_confirmed' | 'booking_cancelled' | 'new_review' | 'new_comment' | 'new_like';
+    type: 'new_connection' | 'new_message' | 'message_deleted' | 'booking_request' | 'booking_confirmed' | 'booking_cancelled' | 'new_review' | 'new_comment' | 'new_like';
     content: string;
     reference_id: number | null;
     reference_type: string | null;
@@ -36,6 +36,7 @@ function timeAgo(isoString: string): string {
 
 const TYPE_ICON: Record<string, string> = {
     new_message: '💬',
+    message_deleted: '🗑️',
     new_review: '⭐',
     new_connection: '🤝',
     booking_request: '📅',
@@ -143,6 +144,7 @@ export default function Notifications() {
 
         switch (notif.type) {
             case 'new_message':
+            case 'message_deleted':
                 navigate('/chat', { state: { openChatId: notif.reference_id } });
                 break;
             case 'new_review':

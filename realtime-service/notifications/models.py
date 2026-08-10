@@ -4,6 +4,7 @@ class Notification(models.Model):
     TYPE_CHOICES = [
             ('new_connection', 'New Connection'),
             ('new_message', 'New Message'),
+            ('message_deleted', 'Message Deleted'),
             ('booking_request', 'Booking Request'),
             ('booking_confirmed', 'Booking Confirmed'),
             ('booking_cancelled', 'Booking Cancelled'),
