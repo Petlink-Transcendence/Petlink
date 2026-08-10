@@ -105,6 +105,26 @@ export default function Bookings() {
       .catch(() => setError(true));
   }, []);
 
+  useEffect(() => {
+    const handleNotification = (e: CustomEvent) => {
+      const notif = e.detail;
+      if (!notif) return;
+      if (
+        (typeof notif.type === 'string' && notif.type.startsWith('booking_')) ||
+        notif.reference_type === 'booking'
+      ) {
+        if (activeLayout) {
+          fetchBookings(activeLayout);
+        }
+      }
+    };
+
+    window.addEventListener('newNotification', handleNotification as EventListener);
+    return () => {
+      window.removeEventListener('newNotification', handleNotification as EventListener);
+    };
+  }, [activeLayout]);
+
   const handleAction = async (id: number, action: 'confirm' | 'cancel' | 'complete') => {
     const token = localStorage.getItem('access');
     try {

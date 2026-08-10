@@ -44,8 +44,8 @@ export default function RightSidebar() {
         const data: BackendUser[] = await response.json();
         setSuggestedSitters(data);
       }
-    } catch (err) {
-      console.error('Failed to fetch suggested connections:', err);
+    } catch {
+      /* ignore */
     } finally {
       setLoading(false);
     }
@@ -74,8 +74,8 @@ export default function RightSidebar() {
         window.dispatchEvent(new Event('connectionUpdated'));
         await fetchSuggestedConnections();
       }
-    } catch (err) {
-      console.error('Error connecting to user:', err);
+    } catch {
+      /* ignore */
     } finally {
       setConnectingId(null);
     }

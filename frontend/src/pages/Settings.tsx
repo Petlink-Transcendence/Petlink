@@ -229,7 +229,6 @@ export default function Settings() {
 
     } catch (err: any) {
       setError(err.message || 'Failed to load account data.');
-      console.error("Fetch error details:", err);
     } finally {
       setLoading(false);
     }
@@ -263,8 +262,8 @@ export default function Settings() {
             email: data.email || current.email
           }));
         }
-      } catch (err) {
-        console.error('Failed to fetch user', err);
+      } catch {
+        /* ignore */
       }
     }
     fetchUser();
@@ -313,8 +312,7 @@ export default function Settings() {
         }
         return { ...current, avatarUrl: nextAvatarUrl };
       });
-    } catch (err) {
-      console.error('Error processing avatar image:', err);
+    } catch {
       setAvatarError('Failed to process image file. Please try another photo.');
       event.target.value = '';
     }
@@ -457,10 +455,34 @@ export default function Settings() {
       return;
     }
 
+    if (form.bio && form.bio.length > 500) {
+      setInlineError('Bio cannot exceed 500 characters.');
+      return;
+    }
+
+    // Pre-check username/email availability to prevent 400 Bad Request browser console errors
+    try {
+      const checkRes = await fetch(`/auth/check-availability/?username=${encodeURIComponent(form.username.trim())}&email=${encodeURIComponent(form.email.trim())}&exclude_user_id=${userId}`);
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        if (checkData.username_taken) {
+          setInlineError('Username already taken.');
+          return;
+        }
+        if (checkData.email_taken) {
+          setInlineError('Email already in use.');
+          return;
+        }
+      }
+    } catch {
+      // Ignore pre-check fetch failure and fallback to direct PATCH
+    }
+
     try {
       const token = localStorage.getItem('access') || localStorage.getItem('access_token');
       const patchBody = {
           username: form.username,
+          email: form.email,
           name: form.displayName,
           description: form.bio,
           city: form.city,
@@ -486,8 +508,18 @@ export default function Settings() {
         let message = `Server error ${response.status}`;
         try {
           const errorData = await response.json();
-          const firstError = Object.values(errorData)[0];
-          message = Array.isArray(firstError) ? firstError[0] : String(firstError);
+          if (errorData.username) {
+            message = Array.isArray(errorData.username) ? errorData.username[0] : String(errorData.username);
+          } else if (errorData.email) {
+            message = Array.isArray(errorData.email) ? errorData.email[0] : String(errorData.email);
+          } else if (errorData.description) {
+            message = Array.isArray(errorData.description) ? errorData.description[0] : String(errorData.description);
+          } else if (errorData.detail) {
+            message = Array.isArray(errorData.detail) ? errorData.detail[0] : String(errorData.detail);
+          } else {
+            const firstError = Object.values(errorData)[0];
+            message = Array.isArray(firstError) ? firstError[0] : String(firstError);
+          }
         } catch {
           message = response.statusText || message;
         }
@@ -524,8 +556,7 @@ export default function Settings() {
         setAvatarFile(null);
         setAvatarError('');
       }
-    } catch (err) {
-      console.error('Settings save failed:', err);
+    } catch {
       setInlineError('Failed to save changes. Please try again.');
       return;
     }

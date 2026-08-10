@@ -112,8 +112,7 @@ export default function Reviews() {
         const data = await reviewsResponse.json() as BackendReview[];
         setReviews(data.map(mapBackendReview));
         setStatusMessage(data.length === 0 ? 'No reviews yet.' : '');
-      } catch (error) {
-        console.error('Failed to load backend reviews:', error);
+      } catch {
         setReviews(initialReviews);
         setStatusMessage('');
       }

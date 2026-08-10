@@ -21,7 +21,7 @@ export default function Header() {
   useEffect(() => {
     const token = localStorage.getItem('access');
 
-    if (!token) {
+    if (!token || location.pathname === '/login' || location.pathname === '/register') {
       setCanSeeAdmin(false);
       return;
     }
@@ -50,6 +50,10 @@ export default function Header() {
   }, [location.pathname]);
 
   const refreshUnreadCount = useCallback(() => {
+    if (location.pathname === '/login' || location.pathname === '/register') {
+      setUnreadCount(0);
+      return;
+    }
     const userId = getLoggedInUserId();
     if (!userId) {
       setUnreadCount(0);
@@ -98,7 +102,7 @@ export default function Header() {
     <header className="main-header">
       {/* Left Side: Logo */}
       <Link to="/login" className="header-logo">
-        <img src="../public/favicon1.png" alt="PetLink" />
+        <img src="/favicon1.png" alt="PetLink" />
       </Link>
       
       {/* Right Side: Navigation Links */}

@@ -114,8 +114,8 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
                     }));
 
                 setPendingRequests([...incoming, ...outgoing]);
-            } catch (err) {
-                console.error('Error fetching connections:', err);
+            } catch {
+                /* ignore */
             } finally {
                 setLoading(false);
             }
@@ -155,8 +155,8 @@ export default function ConnectionsContainer({ onClose, initialTab = 'connection
             if (res.ok) {
                 window.dispatchEvent(new Event('connectionUpdated'));
             }
-        } catch (err) {
-            console.error('Error accepting connection:', err);
+        } catch {
+            /* ignore */
         }
     };
 

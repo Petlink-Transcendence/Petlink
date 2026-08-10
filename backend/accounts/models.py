@@ -77,6 +77,15 @@ class User(AbstractUser):
         try:
             from django.db import connection
             with connection.cursor() as cursor:
+                # Delete messages sent by or sent to this user
+                cursor.execute("DELETE FROM chat_message WHERE sender_id = %s OR recipient_id = %s", [self.id, self.id])
+                # Delete likes related to this user or this user's posts
+                cursor.execute("DELETE FROM posts_like WHERE user_id = %s OR post_id IN (SELECT id FROM posts_post WHERE user_id = %s)", [self.id, self.id])
+                # Delete comments related to this user or this user's posts
+                cursor.execute("DELETE FROM posts_comment WHERE user_id = %s OR post_id IN (SELECT id FROM posts_post WHERE user_id = %s)", [self.id, self.id])
+                # Delete posts created by this user
+                cursor.execute("DELETE FROM posts_post WHERE user_id = %s", [self.id])
+                # Delete notifications related to this user
                 cursor.execute("DELETE FROM notifications_notification WHERE user_id = %s", [self.id])
                 cursor.execute("DELETE FROM notifications_notification WHERE actor_id = %s", [self.id])
                 cursor.execute("DELETE FROM notifications_notification WHERE reference_type = 'user' AND reference_id = %s", [self.id])

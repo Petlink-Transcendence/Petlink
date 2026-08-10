@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import './BookingCard.css';
 
 export type BookingStatus = 'confirmed' | 'pending' | 'completed' | 'cancelled';
@@ -52,7 +53,9 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
   const [hasSubmittedReview, setHasSubmittedReview] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
+  const [imgError, setImgError] = useState(false);
   const canWriteReview = booking.status === 'completed' && !hasSubmittedReview;
+  const avatarUrl = resolveMediaUrl(booking.avatar);
 
   const handleMessageClick = () => {
     navigate('/chat', {
@@ -101,8 +104,13 @@ export default function BookingCard({ booking, onAction }: BookingCardProps) {
     <>
       <article className="bookings-card">
         <header className="bookings-card-header">
-          {booking.avatar ? (
-            <img src={booking.avatar.startsWith('http') ? booking.avatar : `http://localhost:8000${booking.avatar}`} alt="Avatar" className="bookings-avatar" />
+          {!imgError && avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              className="bookings-avatar"
+              onError={() => setImgError(true)}
+            />
           ) : (
             <div className="bookings-avatar">{initials(booking.personName)}</div>
           )}

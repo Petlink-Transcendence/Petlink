@@ -108,10 +108,16 @@ export default function ProfileSection({
         </div>
 
         <label className="settings-field">
-          <span>Bio</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Bio</span>
+            <span style={{ fontSize: '0.8rem', color: bio.length >= 500 ? '#ef4444' : '#6b7280' }}>
+              {bio.length}/500
+            </span>
+          </div>
           <textarea
             value={bio}
             rows={4}
+            maxLength={500}
             onChange={(e) => updateField('bio', e.target.value)}
           />
         </label>

@@ -92,7 +92,11 @@ def chat_contacts(request):
                 name = str(avatar_url).lstrip('/')
                 if name.startswith('media/'):
                     name = name[6:]
-                conn['avatar'] = f"/media/{name}"
+                full_path = os.path.join(settings.MEDIA_ROOT, name)
+                if not os.path.exists(full_path):
+                    conn['avatar'] = None
+                else:
+                    conn['avatar'] = f"/media/{name}"
 
         other_id = conn['user_id']
         last_msg = Message.objects.filter(

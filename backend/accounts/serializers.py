@@ -207,6 +207,7 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150, min_length=1, required=False)
+    email = serializers.EmailField(required=False)
     name = serializers.CharField(max_length=100, min_length=1)
     description = serializers.CharField(max_length=500, required=False, allow_blank=True, allow_null=True)
     country = serializers.CharField(max_length=100, required=False, allow_blank=True, allow_null=True)
@@ -222,14 +223,19 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username', 'name', 'description', 'country', 'city', 'experience', 'price', 
+            'username', 'email', 'name', 'description', 'country', 'city', 'experience', 'price', 
             'sitter_pet_types', 'looking_for', 'show_about','show_pets', 'show_looking_for', 
             'availability_status', 'availability_location', 'availability_capacity', 'available_times'
         )
 
     def validate_username(self, value):
-        if User.objects.filter(username__iexact=value).exclude(pk=self.instance.pk).exists():
+        if User.all_objects.filter(username__iexact=value).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError('Username already taken.')
+        return value
+
+    def validate_email(self, value):
+        if value and User.all_objects.filter(email__iexact=value).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError('Email already in use.')
         return value
 
 class AvatarUploadSerializer(serializers.ModelSerializer):

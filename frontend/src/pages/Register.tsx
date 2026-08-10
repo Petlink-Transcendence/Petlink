@@ -1,7 +1,9 @@
 import './Auth.css';
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Register() {
+    const navigate = useNavigate();
     // States to control data
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
@@ -19,9 +21,59 @@ export default function Register() {
     const handleRegister = async () => {
         setError('');
 
+        if (!name.trim()) {
+            setError("Full name is required.");
+            return;
+        }
+
+        if (!username.trim()) {
+            setError("Username is required.");
+            return;
+        }
+
+        if (!email.trim()) {
+            setError("Email is required.");
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            setError("Enter a valid email address.");
+            return;
+        }
+
+        if (!password) {
+            setError("Password is required.");
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,15}$/;
+        if (!passwordRegex.test(password)) {
+            setError("Password must contain at least 8 chars, one lower, one upper, one number, and one special char.");
+            return;
+        }
+
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
+        }
+
+        // Pre-check availability via GET endpoint (200 OK) to prevent 400 Bad Request browser console errors
+        try {
+            const checkRes = await fetch(`/auth/check-availability/?username=${encodeURIComponent(username.trim())}&email=${encodeURIComponent(email.trim())}`);
+            if (checkRes.ok) {
+                const checkData = await checkRes.json();
+                if (checkData.username_taken) {
+                    setError("A user with that username already exists.");
+                    return;
+                }
+                if (checkData.email_taken) {
+                    setError("A user with that email already exists.");
+                    return;
+                }
+            }
+        } catch {
+            // Ignore pre-check fetch error and fallback to direct POST
         }
 
         try {
@@ -29,17 +81,17 @@ export default function Register() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username,
-                    email,
+                    username: username.trim(),
+                    email: email.trim(),
                     password,
-                    name,
+                    name: name.trim(),
                     user_type: userType
                 })
             });
 
             if (response.ok) {
                 alert("Account created successfully!");
-                window.location.href = "/login";
+                navigate('/login');
             } else {
                 const data = await response.json().catch(() => null);
 
@@ -58,6 +110,8 @@ export default function Register() {
                 const usernameError = getFirstMessage(data?.username);
                 const emailError = getFirstMessage(data?.email);
                 const passwordError = getFirstMessage(data?.password);
+                const detailError = getFirstMessage(data?.detail);
+                const nonFieldErrors = getFirstMessage(data?.non_field_errors);
 
                 if (usernameError) {
                     setError(usernameError);
@@ -65,6 +119,10 @@ export default function Register() {
                     setError(emailError);
                 } else if (passwordError) {
                     setError(passwordError);
+                } else if (detailError) {
+                    setError(detailError);
+                } else if (nonFieldErrors) {
+                    setError(nonFieldErrors);
                 } else {
                     setError('Error creating account.');
                 }
@@ -85,28 +143,28 @@ export default function Register() {
                 {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
 
                 <div className="input-group">
-                    <label>Full Name</label>
-                    <input type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
+                    <label htmlFor="reg-name">Full Name</label>
+                    <input id="reg-name" type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
 
                 <div className="input-group">
-                    <label>Username</label>
-                    <input type="text" placeholder="Choose a username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                    <label htmlFor="reg-username">Username</label>
+                    <input id="reg-username" type="text" placeholder="Choose a username" value={username} onChange={(e) => setUsername(e.target.value)} />
                 </div>
 
                 <div className="input-group">
-                    <label>Email</label>
-                    <input type="email" placeholder="youremail@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <label htmlFor="reg-email">Email</label>
+                    <input id="reg-email" type="email" placeholder="youremail@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
 
                 <div className="input-group">
-                    <label>Password</label>
-                    <input type="password" placeholder="***************" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <label htmlFor="reg-password">Password</label>
+                    <input id="reg-password" type="password" placeholder="***************" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
 
                 <div className="input-group">
-                    <label>Confirm Password</label>
-                    <input type="password" placeholder="***************" value={confirmPassword}
+                    <label htmlFor="reg-confirm-password">Confirm Password</label>
+                    <input id="reg-confirm-password" type="password" placeholder="***************" value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -147,7 +205,7 @@ export default function Register() {
 
                 <div className="sign-up-container">
                     <span className="sign-up-text">Already have an account?</span>
-                    <a href="/login" className="sign-up-link">Login</a>
+                    <Link to="/login" className="sign-up-link">Login</Link>
                 </div>
             </div>
         </div>

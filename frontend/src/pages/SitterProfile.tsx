@@ -431,8 +431,7 @@ export default function SitterProfile() {
         }
 
         setProfile(nextProfile);
-      } catch (err: any) {
-        console.error("Fetch error details:", err);
+      } catch {
         setError('');
       } finally {
         setLoading(false);
@@ -504,8 +503,7 @@ export default function SitterProfile() {
       } else {
         throw new Error(`Connection update failed with status ${response.status}`);
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       // Revert optimistic update
       setConnections(prev => ({
         ...prev,
@@ -576,8 +574,8 @@ export default function SitterProfile() {
         available_times: availabilityWindows,
       });
       setAvailabilityStatus(nextStatus);
-    } catch (err) {
-      console.error('Failed to save availability status:', err);
+    } catch {
+      /* ignore */
     }
   };
 
