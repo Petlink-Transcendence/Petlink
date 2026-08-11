@@ -66,20 +66,20 @@ The backend development was split into distinct microservices, while the fronten
 
 Our team targeted **11 modules** totaling **19 points** (exceeding the mandatory 14-point threshold):
 
-| Category | Module Name | Type | Points | Assigned Team Member(s) | Status |
-| :--- | :--- | :---: | :---: | :--- | :---: |
-| **Web** | Use a framework for both frontend & backend (React + Django) | Major | **2** | All Members (`gde-la-r`, `icunha-t`, `jpedro-f`, `rjesus-d`, `ddo-carm`) | Implemented |
-| **Web** | Use an ORM for the database (Django ORM) | Minor | **1** | Gabriel (`gde-la-r`), João (`jpedro-f`), Ricardo (`rjesus-d`) | Implemented |
-| **Web** | Implement real-time features using WebSockets | Major | **2** | Ricardo (`rjesus-d`) | In Progress |
-| **Web** | Allow users to interact with other users (Chat, Profiles, Followers) | Major | **2** | João (`jpedro-f`), Ricardo (`rjesus-d`), Isabel (`icunha-t`), Daniela (`ddo-carm`) | In Progress |
-| **Web** | Complete notification system for all CRUD actions | Minor | **1** | Ricardo (`rjesus-d`) | Implemented |
-| **Web** | File upload and management system | Minor | **1** | João (`jpedro-f`), Daniela (`ddo-carm`) | Implemented |
-| **Accessibility** | Support for additional browsers (Chrome, Firefox, Edge/Safari) | Minor | **1** | Ricardo (`rjesus-d`), Isabel (`icunha-t`), Daniela (`ddo-carm`) | In Progress |
-| **User Mgmt** | Standard user management & authentication | Major | **2** | João (`jpedro-f`), Gabriel (`gde-la-r`) | Implemented |
-| **User Mgmt** | Remote authentication with OAuth 2.0 (42 Intranet) | Minor | **1** | Gabriel (`gde-la-r`) | Implemented |
-| **User Mgmt** | Advanced permissions system & roles (RBAC) | Major | **2** | Gabriel (`gde-la-r`) | Implemented |
-| **DevOps** | Backend as microservices | Major | **2** | Gabriel (`gde-la-r`) | Implemented |
-| **TOTAL** | **11 Modules Selected** | | **19 Points** | | **In Progress** |
+| Category | Module Name | Type | Points | Status |
+| :--- | :--- | :---: | :---: | :---: |
+| **Web** | Use a framework for both frontend & backend (React + Django) | Major | **2** | Implemented |
+| **Web** | Use an ORM for the database (Django ORM) | Minor | **1** | Implemented |
+| **Web** | Implement real-time features using WebSockets | Major | **2** | Implemented |
+| **Web** | Allow users to interact with other users (Chat, Profiles, Followers) | Major | **2** | Implemented |
+| **Web** | Complete notification system for all CRUD actions | Minor | **1** | Implemented |
+| **Web** | File upload and management system | Minor | **1** | Implemented |
+| **Accessibility** | Support for additional browsers (Chrome, Firefox, Edge/Safari) | Minor | **1** | Implemented |
+| **User Mgmt** | Standard user management & authentication | Major | **2** | Implemented |
+| **User Mgmt** | Remote authentication with OAuth 2.0 (42 Intranet) | Minor | **1** | Implemented |
+| **User Mgmt** | Advanced permissions system & roles (RBAC) | Major | **2** | Implemented |
+| **DevOps** | Backend as microservices | Major | **2** | Implemented |
+| **TOTAL** | **11 Modules Selected** | | **19 Points** | **Implemented** |
 
 ### Module Justifications & Implementation Details
 
@@ -146,11 +146,11 @@ main
 ```
 
 #### **Phase 0 — Frontend Setup & Wireframing**
-* **Goal:** Initialize the React 19 frontend application with TypeScript, Vite, React Router DOM, and CSS to establish core layouts, wireframes, and page skeletons.
+* **Goal:** Initialize the React 19 frontend application with TypeScript, Vite, React Router DOM, and CSS (with some Tailwind) to establish core layouts, wireframes, and page skeletons.
 * **Key Tasks:**
   - Initialize the React 19 application structure using Vite and TypeScript.
   - Configure client-side routing using React Router DOM v7.
-  - Establish base CSS design tokens, typography, and reusable core layout components (navbars, footers, modal dialogs).
+  - Establish base CSS and Tailwind design tokens, typography, and reusable core layout components (navbars, footers, modal dialogs).
   - Build initial static page skeletons for Home, Authentication (Login/Register), Profile, Search, Chat, and Settings.
 
 ---
@@ -201,7 +201,7 @@ main
 * **Goal:** Ensure full system responsiveness, cross-browser compatibility, client-side input validation, and project compliance.
 * **Key Tasks:**
   - Perform backend permission audits, enforce Redis-backed rate-limiting on heavy endpoints (login/register), and refine error handling with field-level `400` HTTP responses.
-  - Standardize responsive CSS styling across desktop, tablet, and mobile breakpoints (`Admin.css`, `Auth.css`, `Chat.css`, `Home.css`, `LegalPages.css`), add client-side file size and MIME-type error handling for image uploads, add confirmation popups for destructive actions (account deletion, post removal), and integrate Privacy Policy and Terms of Service links into the global footer.
+  - Standardize responsive CSS styling across desktop, tablet, and mobile breakpoints (`Admin.css`, `Auth.css`, `Chat.css`, `Home.css`, `LegalPages.css`) while introducing Tailwind CSS on select pages, add client-side file size and MIME-type error handling for image uploads, add confirmation popups for destructive actions (account deletion, post removal), and integrate Privacy Policy and Terms of Service links into the global footer.
 
 ---
 
@@ -218,7 +218,7 @@ main
 
 ## Technical Stack
 
-- **Frontend:** React 19, TypeScript, Vite, React Router DOM v7, CSS Modules / Vanilla CSS.
+- **Frontend:** React 19, TypeScript, Vite, React Router DOM v7, CSS Modules / Vanilla CSS & Tailwind CSS.
 - **Backend Core Service (`core-service`):** Python 3.11, Django 4.2+, Django REST Framework (DRF), `djangorestframework-simplejwt`, `Pillow`, `psycopg2-binary`.
 - **Real-Time Service (`realtime-service`):** Python 3.11, Django Channels 4.0+, Daphne ASGI server, `channels_redis`, Redis client.
 - **Database & Cache:** PostgreSQL 15 Alpine (relational storage), Redis 7 Alpine (WebSocket pub/sub broker & caching layer).

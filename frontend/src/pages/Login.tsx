@@ -30,7 +30,7 @@ export default function Login() {
             if (response.ok) {
                 const data = await response.json();
                 if (data.error) {
-                    setError("Invalid username or password.");
+                    setError(data.error);
                 } else {
                     localStorage.setItem('access', data.access);
                     localStorage.setItem('refresh', data.refresh);

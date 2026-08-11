@@ -144,8 +144,10 @@ export default function Notifications() {
 
         switch (notif.type) {
             case 'new_message':
-            case 'message_deleted':
                 navigate('/chat', { state: { openChatId: notif.reference_id } });
+                break;
+            case 'message_deleted':
+                navigate('/chat', { state: { openChatId: notif.actor_id } });
                 break;
             case 'new_review':
                 navigate('/reviews');

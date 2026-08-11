@@ -115,7 +115,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_CLASSES': [],
     'DEFAULT_THROTTLE_RATES': {
-        'login': '5/minute',
+        'login': '100/minute',
         'register': '3/minute',
     }
 }
