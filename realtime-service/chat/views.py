@@ -42,6 +42,7 @@ def message_history(request, user_id):
             'sender_id': m.sender_id,
             'recipient_id': m.recipient_id,
             'content': m.content,
+            'is_deleted': m.is_deleted,
             'read_at': m.read_at,
             'created_at': m.created_at,
         }
@@ -130,7 +131,8 @@ def delete_message(request, message_id):
 
     last_sent_in_conversation = Message.objects.filter(
         sender_id=user_id,
-        recipient_id=message.recipient_id
+        recipient_id=message.recipient_id,
+        is_deleted=False
     ).order_by('-created_at').first()
 
     if not last_sent_in_conversation or last_sent_in_conversation.id != message.id:
@@ -140,13 +142,46 @@ def delete_message(request, message_id):
         )
 
     recipient_id = message.recipient_id
-    message.delete()
+    message.is_deleted = True
+    message.content = "message has been deleted"
+    message.save()
 
     # notify the recipient's open chat socket, if they have one connected
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f'chat_{recipient_id}',
         {'type': 'message_deleted', 'message_id': message_id}
+    )
+
+    from django.db import connection
+    sender_name = "Someone"
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT name, username FROM accounts_user WHERE id = %s", [user_id])
+            row = cursor.fetchone()
+            if row:
+                sender_name = row[0] or row[1] or "Someone"
+    except Exception:
+        pass
+
+    from notifications.models import Notification
+    Notification.objects.create(
+        user_id=recipient_id,
+        actor_id=user_id,
+        type='message_deleted',
+        content=f"{sender_name} deleted a message.",
+        reference_id=user_id,
+        reference_type='message'
+    )
+    async_to_sync(channel_layer.group_send)(
+        f'notifications_{recipient_id}',
+        {
+            'type': 'send_notification',
+            'notification_type': 'message_deleted',
+            'content': f"{sender_name} deleted a message.",
+            'reference_id': user_id,
+            'reference_type': 'message'
+        }
     )
 
     return Response(status=status.HTTP_204_NO_CONTENT)

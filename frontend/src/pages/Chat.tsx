@@ -11,6 +11,7 @@ interface Message {
     time: string;
     createdAt: string;
     attachment?: string;
+    is_deleted?: boolean;
 }
 
 interface Contact {
@@ -255,6 +256,7 @@ export default function Chat() {
                     sender: m.sender_id === currentUserId ? 'me' : 'them',
                     time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                     createdAt: m.created_at,
+                    is_deleted: m.is_deleted,
                 }));
                 setMessages(prev => {
                     // keep messages from OTHER conversations, replace this one
@@ -362,19 +364,17 @@ export default function Chat() {
     const deleteLastMessage = async () => {
         if (!activeChat) return;
 
-        const myMessagesInThisChat = chatHistory.filter(m => m.sender === 'me');
+        const myMessagesInThisChat = chatHistory.filter(m => m.sender === 'me' && !m.is_deleted);
         if (myMessagesInThisChat.length === 0) return;
 
         const lastMine = myMessagesInThisChat[myMessagesInThisChat.length - 1];
 
         try {
             await apiFetch(`/chat/messages/delete/${lastMine.id}/`, { method: 'DELETE' });
-            setMessages(prev => prev.filter(m => m.id !== lastMine.id));
+            setMessages(prev => prev.map(m => m.id === lastMine.id ? { ...m, text: 'message has been deleted', is_deleted: true, attachment: undefined } : m));
         } catch (err) {
-            // most likely a 403 if it's no longer actually the last message
-            // (e.g. sent from another tab/device) — surface it rather than
-            // failing silently
-            alert(err instanceof Error ? err.message : 'Could not delete message');
+            // silently fail if there's no message to delete or backend returns 403
+            console.warn("Could not delete message (may already be deleted or not the last message)");
         }
     };
 
@@ -402,7 +402,9 @@ export default function Chat() {
                 const data = JSON.parse(event.data);
 
                 if (data.type === 'message_deleted') {
-                    setMessages(prev => prev.filter(m => m.id !== data.message_id));
+                    setMessages(prev => prev.map(m =>
+                        m.id === data.message_id ? { ...m, text: 'message has been deleted', is_deleted: true, attachment: undefined } : m
+                    ));
                     return;
                 }
 
@@ -630,7 +632,7 @@ export default function Chat() {
                                                 )}
                                             </>
                                         ) : (
-                                            msg.text && <p>{msg.text}</p>
+                                            msg.text && <p className={msg.is_deleted ? 'deleted-message' : ''} style={msg.is_deleted ? { fontStyle: 'italic', color: '#000' } : {}}>{msg.text}</p>
                                         )}
                                         <div className="msg-footer">
                                             <span className="msg-time">{msg.time}</span>
