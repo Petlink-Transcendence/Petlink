@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface CreatePostContainerProps {
     onClose: () => void;
@@ -8,10 +8,24 @@ interface CreatePostContainerProps {
 export default function CreatePostContainer({ onClose, onPostCreated }: CreatePostContainerProps) {
     const [text, setText] = useState('');
     const [goal, setGoal] = useState('');
+    const [userType, setUserType] = useState<string | null>(null);
 
     const [petType, setPetType] = useState('');
     const [selectedPhoto, setPhoto] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem('access');
+        if (!token) return;
+        fetch('/auth/me/', { headers: { Authorization: `Bearer ${token}` } })
+            .then(r => r.ok ? r.json() : null)
+            .then(u => {
+                if (u) setUserType(u.user_type || u.role || null);
+            })
+            .catch(() => {});
+    }, []);
+
+    const isSitter = userType === 'provider' || userType === 'sitter';
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -27,15 +41,13 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
     const handleSubmit = async (e: { preventDefault: () => void }) => {
         e.preventDefault();
 
-        if (!text.trim()) {
+        const trimmedText = text.trim();
+        if (!trimmedText) {
             alert("Please write something before posting.");
             return;
         }
 
-        if (text.trim().length > 512) {
-            alert("Post description cannot exceed 512 characters.");
-            return;
-        }
+        const finalText = trimmedText.slice(0, 512);
 
         if (!goal) {
             alert("Please select a main goal for your post.");
@@ -45,7 +57,7 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
         const token = localStorage.getItem('access');
         const formData = new FormData();
         formData.append('purpose', goal);
-        formData.append('text', text.trim());
+        formData.append('text', finalText);
         if (petType) formData.append('pet_type', petType);
         const imageFile = fileInputRef.current?.files?.[0];
         if (imageFile) formData.append('image', imageFile);
@@ -78,42 +90,13 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
 
                 <form onSubmit={handleSubmit} className='post-form'>
                     <div>
-                        <div 
-                            contentEditable
+                        <textarea
                             className='post-text-input'
-                            data-placeholder="What's on your mind? *"
-                            onKeyDown={(e) => {
-                                const isTextEntry = e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
-                                if (text.length >= 512 && isTextEntry) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            onPaste={(e) => {
-                                const pastedText = e.clipboardData.getData('text/plain');
-                                const selection = window.getSelection();
-                                const selectedLength = selection?.toString().length || 0;
-                                const remaining = 512 - (text.length - selectedLength);
-
-                                if (pastedText.length > remaining) {
-                                    e.preventDefault();
-                                    if (remaining > 0) {
-                                        document.execCommand('insertText', false, pastedText.slice(0, remaining));
-                                    }
-                                }
-                            }}
-                            onInput={(e) => {
-                                const current = e.currentTarget.textContent || '';
-                                const limited = current.slice(0, 512);
-                                if (current !== limited) {
-                                    e.currentTarget.textContent = limited;
-                                }
-                                setText(limited);
-                            }}
-                            onBlur={(e) => {
-                                if (!e.currentTarget.textContent?.trim()) {
-                                    e.currentTarget.innerHTML = '';
-                                    setText('');
-                                }
+                            placeholder="What's on your mind? *"
+                            value={text}
+                            maxLength={512}
+                            onChange={(e) => {
+                                setText(e.target.value.slice(0, 512));
                             }}
                         />
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
@@ -173,7 +156,9 @@ export default function CreatePostContainer({ onClose, onPostCreated }: CreatePo
                             <option value="playdate">Looking for a Playdate 🦴</option>
                             <option value="advice">Pet Advice / Question ❓</option>
                             <option value="social">Just Sharing / Social 📸</option>
-                            <option value="service_promo">Providing a service 💼</option>
+                            {isSitter && (
+                                <option value="service_promo">Providing a service 💼</option>
+                            )}
                         </select>
                     </div>
 
