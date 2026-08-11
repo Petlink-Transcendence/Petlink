@@ -109,6 +109,16 @@ def create_post(request):
     purpose = request.data.get('purpose')
     if not purpose:
         return Response({'error': 'purpose is required'}, status=status.HTTP_400_BAD_REQUEST)
+    if purpose == 'service_promo':
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT user_type FROM accounts_user WHERE id = %s", [user_id])
+                row = cursor.fetchone()
+                user_type = row[0] if row else None
+                if user_type not in ['provider', 'sitter']:
+                    return Response({'error': 'Only pet sitters can create service promo posts.'}, status=status.HTTP_403_FORBIDDEN)
+        except Exception:
+            pass
     image = request.FILES.get('image')
     if image:
         allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
@@ -124,7 +134,7 @@ def create_post(request):
 
     text = request.data.get('text', '') or ''
     if len(text) > 512:
-        return Response({'error': 'Post description exceeds maximum length of 512 characters'}, status=400)
+        text = text[:512]
 
     post = Post.objects.create(
         user_id=user_id,
@@ -168,7 +178,7 @@ def update_post(request, pk):
         post.image = image
     new_text = request.data.get('text', post.text)
     if new_text and len(new_text) > 512:
-        return Response({'error': 'Post description exceeds maximum length of 512 characters'}, status=400)
+        new_text = new_text[:512]
     post.purpose = request.data.get('purpose', post.purpose)
     post.text = new_text
     post.pet_type = request.data.get('pet_type', post.pet_type)
@@ -374,7 +384,7 @@ def post_comments(request, pk):
     if not text:
         return Response({'error': 'text is required'}, status=400)
     if len(text) > 512:
-        return Response({'error': 'Comment exceeds maximum length of 512 characters'}, status=400)
+        text = text[:512]
     comment = Comment.objects.create(user_id=user_id, post=post, text=text)
 
     if post.user_id != user_id:

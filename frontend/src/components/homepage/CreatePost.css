@@ -162,6 +162,11 @@
 
 /* Text Area inside Popup */
 .post-text-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: none;
+  border: none;
   min-height: 6.25rem;
   max-height: 9.38rem;
   overflow-y: auto;
@@ -176,14 +181,8 @@
   white-space: pre-wrap;
 }
 
-.post-text-input:empty::before {
-  content: attr(data-placeholder);
+.post-text-input::placeholder {
   color: #aaa;
-  transition: color 0.15s ease;
-}
-
-.post-text-input:focus:empty::before {
-  color: transparent;
 }
 
 .post-text-input:focus {
