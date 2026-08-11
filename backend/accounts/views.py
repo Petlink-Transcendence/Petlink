@@ -83,6 +83,12 @@ class ThrottledTokenObtainPairView(TokenObtainPairView):
     serializer_class = RoleTokenObtainPairSerializer
     throttle_classes = [LoginRateThrottle]
 
+    def handle_exception(self, exc):
+        from rest_framework.exceptions import Throttled
+        if isinstance(exc, Throttled):
+            return Response({"error": "Too many requests. Please try again later."}, status=status.HTTP_200_OK)
+        return super().handle_exception(exc)
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         try:
