@@ -178,7 +178,7 @@ body:has(.chat-container) .footer {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 0 0.125rem;
+    padding: 0;
     box-sizing: border-box;
 }
 

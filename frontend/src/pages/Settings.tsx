@@ -421,8 +421,8 @@ export default function Settings() {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        setPasswordError(data.old_password?.[0] || data.new_password?.[0] || data.detail || 'Failed to update password.');
+      if (!response.ok || data.old_password || data.new_password || (data.detail && data.detail !== "Password updated successfully.")) {
+        setPasswordError(data.old_password?.[0] || data.new_password?.[0] || data.detail || data.error || 'Failed to update password.');
         return;
       }
     } catch (err) {
@@ -457,6 +457,11 @@ export default function Settings() {
 
     if (!form.displayName.trim()) {
       setInlineError('Display name cannot be empty.');
+      return;
+    }
+
+    if (!form.email.trim()) {
+      setInlineError('Email cannot be empty.');
       return;
     }
 

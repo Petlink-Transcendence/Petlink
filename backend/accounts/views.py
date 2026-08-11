@@ -173,13 +173,27 @@ class OAuth42CallbackView(APIView):
         token_res = requests.post("https://api.intra.42.fr/oauth/token", data=token_data)
 
         if not token_res.ok:
-            return Response({"error": "Failed to authenticate with 42"}, status=400)
+            return redirect("https://localhost:5173/login?error=42_auth_failed")
 
-        access_token = token_res.json().get('access_token')
+        try:
+            token_json = token_res.json()
+        except ValueError:
+            return redirect("https://localhost:5173/login?error=42_auth_failed")
+
+        access_token = token_json.get('access_token')
+        if not access_token:
+            return redirect("https://localhost:5173/login?error=42_auth_failed")
 
         headers = {'Authorization': f'Bearer {access_token}'}
         user_res = requests.get('https://api.intra.42.fr/v2/me', headers=headers)
-        user_data = user_res.json()
+        
+        if not user_res.ok:
+            return redirect("https://localhost:5173/login?error=42_auth_failed")
+            
+        try:
+            user_data = user_res.json()
+        except ValueError:
+            return redirect("https://localhost:5173/login?error=42_auth_failed")
 
         ft_login = user_data.get('login')
         email = user_data.get('email')
@@ -585,12 +599,12 @@ class ChangePasswordView(APIView):
             user = request.user
             
             if user.oauth_provider:
-                return Response({"detail": "Password change is not available for OAuth users."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Password change is not available for OAuth users."}, status=status.HTTP_200_OK)
 
             if not user.check_password(serializer.validated_data['old_password']):
-                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_200_OK)
 
             user.set_password(serializer.validated_data['new_password'])
             user.save()
             return Response({"detail": "Password updated successfully."}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_200_OK)
