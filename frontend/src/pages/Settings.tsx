@@ -455,6 +455,16 @@ export default function Settings() {
       return;
     }
 
+    if (!form.displayName.trim()) {
+      setInlineError('Display name cannot be empty.');
+      return;
+    }
+
+    if (!form.username.trim()) {
+      setInlineError('Username cannot be empty.');
+      return;
+    }
+
     if (form.bio && form.bio.length > 500) {
       setInlineError('Bio cannot exceed 500 characters.');
       return;
